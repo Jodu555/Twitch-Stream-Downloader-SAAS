@@ -1,6 +1,6 @@
 <template lang="">
 	<div class="container">
-		<h1 class="text-center mb-3">Login - Twitch-StreamDownloader</h1>
+		<h1 class="text-center mb-3">Login - Live Downloader</h1>
 		<div v-if="error != null" class="alert alert-danger alert-dismissible">
 			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 			<strong
@@ -11,7 +11,7 @@
 			<div class="col-1"></div>
 			<div class="col-5">
 				<div class="card">
-					<div class="card-header">Login - Twitch-StreamDownloader</div>
+					<div class="card-header">Login - Live Downloader</div>
 					<div class="card-body">
 						<h4 class="card-title">Login to the Downloader</h4>
 						<hr />
