@@ -1,0 +1,81 @@
+const http = require('http');
+const express = require('express');
+const { Server } = require("socket.io");
+const https = require('https');
+const cors = require('cors');
+const morgan = require('morgan');
+const helmet = require('helmet');
+const dotenv = require('dotenv').config();
+const { setIO, getIO } = require('./utils/utils');
+const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers');
+
+const { Database } = require('@jodu555/mysqlapi');
+const database = Database.createDatabase('1b2.jodu555.de', 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
+database.connect();
+require('./utils/database')();
+
+const app = express();
+app.use(cors());
+app.use(morgan('dev'));
+app.use(helmet());
+app.use(express.json());
+
+const authHelper = new AuthenticationHelper(app, '/auth', database);
+authHelper.addToken('SECR-DEV', { "UUID": "0d9a088d-6704-4880-b1f1-d9c806ca8554", "username": "Jodu", "email": "test@test.com" });
+authHelper.options.register = true;
+authHelper.install();
+
+let server;
+if (process.env.https) {
+    const sslProperties = {
+        key: fs.readFileSync(process.env.KEY_FILE),
+        cert: fs.readFileSync(process.env.CERT_FILE),
+    };
+    server = https.createServer(sslProperties, app)
+} else {
+    server = http.createServer(app);
+}
+
+setIO(new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+}));
+
+
+
+const io = getIO();
+
+io.on('connection', (socket) => {
+    console.log('Socket Connection:', socket.id);
+    socket.on('auth', (authValue) => {
+        if (authValue && authHelper.getUser(authValue)) {
+            console.log(`Socket with`);
+            console.log(`   ID: ${socket.id}`);
+            console.log(`   IP: ${socket.address}`);
+            console.log(`  proposed with ${authValue}`);
+            socket.auth = { authValue };
+
+            socket.emit('auth-success');
+        } else {
+            socket.emit('auth-failure');
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Socket DisConnection:', socket.id);
+    })
+
+});
+
+const errorHelper = new ErrorHelper()
+app.use(errorHelper.install());
+
+// Your Middleware handlers here
+
+
+const PORT = process.env.PORT || 3200;
+server.listen(PORT, () => {
+    console.log(`Express App Listening ${process.env.https ? 'with SSL ' : ''}on `);
+});
