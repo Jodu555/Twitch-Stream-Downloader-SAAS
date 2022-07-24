@@ -20,13 +20,6 @@
 					</li>
 				</ul>
 				<div v-if="loggedIn" class="d-flex">
-					<input
-						ref="autocomplete"
-						type="text"
-						class="form-control"
-						placeholder="Search for a series..."
-						autocomplete="off"
-					/>
 					<div
 						class="btn-group"
 						style="margin-left: 4rem"

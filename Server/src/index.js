@@ -10,7 +10,7 @@ const { setIO, getIO } = require('./utils/utils');
 const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers');
 
 const { Database } = require('@jodu555/mysqlapi');
-const database = Database.createDatabase('1b2.jodu555.de', 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
+const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
 database.connect();
 require('./utils/database')();
 
