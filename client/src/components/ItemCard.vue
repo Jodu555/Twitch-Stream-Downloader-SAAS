@@ -13,6 +13,7 @@
 		</ul>
 		<div class="card-body">
 			<a href="https://twitch.tv/Sintica" class="btn btn-outline-info">Kanal</a>
+			<a href="https://twitch.tv/Sintica" class="btn btn-outline-warning">Stop</a>
 		</div>
 	</div>
 </template>
