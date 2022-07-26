@@ -48,24 +48,28 @@ setIO(new Server(server, {
 const io = getIO();
 
 io.use((socket, next) => {
-    if (socket.handshake.auth && authHelper.getUser(socket.handshake.auth)) {
-        if (authValue) {
+    const authToken = socket.handshake.auth.token;
+    console.log(1, authToken);
+    if (authToken && authHelper.getUser(authToken)) {
+        console.log(2);
+        if (authToken) {
             console.log(`Socket with`);
             console.log(`   ID: ${socket.id}`);
-            console.log(`  proposed with ${authValue}`);
-            socket.auth = { authValue };
+            console.log(`  proposed with ${authToken}`);
+            socket.auth = { token: authToken, user: authHelper.getUser(authToken) };
             return next();
         } else {
             return next(new Error('Authentication error'));
         }
-    }
-    else {
+    } else {
         next(new Error('Authentication error'));
     }
 })
 
 io.on('connection', (socket) => {
     console.log('Socket Connection:', socket.id);
+
+    console.log(socket.auth);
 
     socket.on('disconnect', () => {
         console.log('Socket DisConnection:', socket.id);
@@ -81,5 +85,5 @@ app.use(errorHelper.install());
 
 const PORT = process.env.PORT || 3200;
 server.listen(PORT, () => {
-    console.log(`Express App Listening ${process.env.https ? 'with SSL ' : ''}on `);
+    console.log(`Express App Listening ${process.env.https ? 'with SSL ' : ''}on ${PORT}`);
 });
