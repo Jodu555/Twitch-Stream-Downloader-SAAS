@@ -49,13 +49,11 @@ const io = getIO();
 
 io.use((socket, next) => {
     const authToken = socket.handshake.auth.token;
-    console.log(1, authToken);
     if (authToken && authHelper.getUser(authToken)) {
-        console.log(2);
         if (authToken) {
             console.log(`Socket with`);
             console.log(`   ID: ${socket.id}`);
-            console.log(`  proposed with ${authToken}`);
+            console.log(`   - proposed with: ${authToken}`);
             socket.auth = { token: authToken, user: authHelper.getUser(authToken) };
             return next();
         } else {

@@ -11,13 +11,17 @@ import { io } from "socket.io-client";
 
 const socket = io('http://localhost:3200', {
     auth: {
-        token: 'SECR-DEV'
+        token: 'SECR-DEVsss'
     }
 })
 
 socket.on('connect', () => {
-    console.log('Conected');
+    console.log('Connected');
 })
+
+socket.on("connect_error", (err) => {
+    console.log('Socket Connect Error: ', err.message); // prints the message associated with the error
+});
 
 const networkingPlugin = {
     install: (app, options) => {
