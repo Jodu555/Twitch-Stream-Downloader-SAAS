@@ -44,7 +44,9 @@ class TwitchDownload {
     }
 
     startRecording() {
-        const command = `streamlink --output "PATH/FILE.ts" twitch.tv/${this.channel} best`;
+        this.channel = 'Sintica'
+        const command = `streamlink --output "file.ts" twitch.tv/${this.channel} best`;
+        this.executeProcess(command, process.cwd(), console.log, console.error, () => { });
     }
 
     stopRecording() {

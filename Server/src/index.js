@@ -20,7 +20,8 @@ const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers'
 
 
 const dl = new TwitchDownload();
-dl.makeImage();
+// dl.makeImage();
+dl.startRecording();
 
 
 const { Database } = require('@jodu555/mysqlapi');

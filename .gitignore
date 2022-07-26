@@ -2,6 +2,10 @@ Recordings/
 Renderings/
 previewImages/
 
+*.ts
+*.mp4
+*.jpg
+
 # Logs
 logs
 *.log
