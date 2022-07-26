@@ -47,21 +47,25 @@ setIO(new Server(server, {
 
 const io = getIO();
 
-io.on('connection', (socket) => {
-    console.log('Socket Connection:', socket.id);
-    socket.on('auth', (authValue) => {
-        if (authValue && authHelper.getUser(authValue)) {
+io.use((socket, next) => {
+    if (socket.handshake.auth && authHelper.getUser(socket.handshake.auth)) {
+        if (authValue) {
             console.log(`Socket with`);
             console.log(`   ID: ${socket.id}`);
-            console.log(`   IP: ${socket.address}`);
             console.log(`  proposed with ${authValue}`);
             socket.auth = { authValue };
-
-            socket.emit('auth-success');
+            return next();
         } else {
-            socket.emit('auth-failure');
+            return next(new Error('Authentication error'));
         }
-    });
+    }
+    else {
+        next(new Error('Authentication error'));
+    }
+})
+
+io.on('connection', (socket) => {
+    console.log('Socket Connection:', socket.id);
 
     socket.on('disconnect', () => {
         console.log('Socket DisConnection:', socket.id);
