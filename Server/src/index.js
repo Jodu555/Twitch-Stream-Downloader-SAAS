@@ -9,6 +9,7 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const dotenv = require('dotenv').config();
 const { setIO, getIO } = require('./utils/utils');
+const TwitchDownload = require('./classes/TwitchDownload');
 const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers');
 
 ['Recordings', 'Renderings', 'previewImages'].map(e => path.join(process.cwd(), e)).forEach(e => {
@@ -17,12 +18,18 @@ const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers'
     }
 });
 
+
+const dl = new TwitchDownload();
+dl.makeImage();
+
+
 const { Database } = require('@jodu555/mysqlapi');
 const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
 database.connect();
 require('./utils/database')();
 
 const app = express();
+app.use('imgs', express.static(path.join(process.cwd(), 'previewImages')))
 app.use(cors());
 app.use(morgan('dev'));
 app.use(helmet());
