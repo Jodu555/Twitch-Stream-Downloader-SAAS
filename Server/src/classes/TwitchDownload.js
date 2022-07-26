@@ -14,7 +14,7 @@ class TwitchDownload {
     }
 
     makeImage() {
-
+        const command = `ffmpeg -sseof -3 -i file.ts -update 1 -q:v 1 imagename.jpg`;
     }
 
     startRecording() {

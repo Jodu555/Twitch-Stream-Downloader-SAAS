@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const http = require('http');
 const express = require('express');
 const { Server } = require("socket.io");
@@ -8,6 +10,12 @@ const helmet = require('helmet');
 const dotenv = require('dotenv').config();
 const { setIO, getIO } = require('./utils/utils');
 const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers');
+
+['Recordings', 'Renderings', 'previewImages'].map(e => path.join(process.cwd(), e)).forEach(e => {
+    if (!fs.existsSync(e)) {
+        fs.mkdirSync(e, { recursive: true });
+    }
+});
 
 const { Database } = require('@jodu555/mysqlapi');
 const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
