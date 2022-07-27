@@ -25,23 +25,47 @@ class TwitchDownload {
 
         // console.log(stats);
 
-        console.log(await this.collectStats());
+        const { length, size, speed } = await this.collectStats();
+
+
+        console.log({ length, size, speed });
+
+        console.log(`Speed: ${this.getReadableSizeString(speed)}/s`);
+        console.log(`Größe: ${this.getReadableSizeString(size)}`);
+
 
     }
 
-    async collectStats() {
-        return new Promise((resolve, reject) => {
-            const prevStats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
-            setTimeout(async () => {
-                const stats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
-                const length = await getVideoDurationInSeconds(path.join(recordingsDirectory, 'out.ts'));
-                resolve({
-                    length,
-                    size: stats.size,
-                    speed: stats.size - prevStats.size,
-                })
-            }, 1000);
+    getReadableSizeString(fileSizeInBytes) {
+        var i = -1;
+        var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+        do {
+            fileSizeInBytes = fileSizeInBytes / 1024;
+            i++;
+        } while (fileSizeInBytes > 1024);
 
+        return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+    };
+
+
+    async collectStats() {
+        const filename = 'out1.ts';
+        return new Promise((resolve, reject) => {
+            try {
+                const prevStats = fs.statSync(path.join(recordingsDirectory, filename));
+                setTimeout(async () => {
+                    const stats = fs.statSync(path.join(recordingsDirectory, filename));
+                    const length = await getVideoDurationInSeconds(path.join(recordingsDirectory, filename));
+                    console.log(prevStats, stats);
+                    resolve({
+                        length,
+                        size: stats.size,
+                        speed: stats.size - prevStats.size,
+                    })
+                }, 3000);
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 
