@@ -16,6 +16,12 @@ class TwitchDownload {
     }
 
     emitStats() {
+        //Length
+        //Speed
+        //Size
+        const stats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
+
+        console.log(stats);
 
     }
 
