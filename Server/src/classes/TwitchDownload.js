@@ -8,6 +8,7 @@ const imagesDirectory = path.join(process.cwd(), 'previewImages');
 class TwitchDownload {
     constructor() {
         this.channel = 'Sintica';
+        this.recordingProcess;
     }
 
     loadFromID() {
@@ -46,11 +47,11 @@ class TwitchDownload {
     startRecording() {
         this.channel = 'Sintica'
         const command = `streamlink --output "file.ts" twitch.tv/${this.channel} best`;
-        this.executeProcess(command, process.cwd(), console.log, console.error, () => { });
+        this.recordingProcess = this.executeProcess(command, process.cwd(), console.log, console.error, () => { });
     }
 
     stopRecording() {
-
+        this.recordingProcess.kill('SIGINT');
     }
 
     startRendering() {
