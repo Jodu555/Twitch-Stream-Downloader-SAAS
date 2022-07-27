@@ -56,13 +56,12 @@ class TwitchDownload {
                 setTimeout(async () => {
                     const stats = fs.statSync(path.join(recordingsDirectory, filename));
                     const length = await getVideoDurationInSeconds(path.join(recordingsDirectory, filename));
-                    console.log(prevStats, stats);
                     resolve({
                         length,
                         size: stats.size,
-                        speed: stats.size - prevStats.size,
+                        speed: (stats.size - prevStats.size) / 5,
                     })
-                }, 3000);
+                }, 5000);
             } catch (error) {
                 reject(error);
             }

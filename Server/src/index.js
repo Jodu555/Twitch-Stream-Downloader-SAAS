@@ -85,6 +85,8 @@ io.on('connection', (socket) => {
 
     console.log(socket.auth);
 
+    console.log(io.sockets.clients());
+
     socket.on('disconnect', () => {
         console.log('Socket DisConnection:', socket.id);
     })
