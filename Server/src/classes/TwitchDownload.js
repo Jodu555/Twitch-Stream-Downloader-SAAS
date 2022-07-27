@@ -25,6 +25,18 @@ class TwitchDownload {
 
     }
 
+    async collectStats() {
+        return new Promise((resolve, reject) => {
+            const stats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
+            const size = stats.size;
+            setTimeout(() => {
+                const stats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
+                const size = stats.size;
+
+            }, 1000);
+        });
+    }
+
     async makeImage() {
         let command = 'ffmpeg -sseof -3 -i '
         command += `"${path.join(recordingsDirectory, 'out.ts')}" `;
