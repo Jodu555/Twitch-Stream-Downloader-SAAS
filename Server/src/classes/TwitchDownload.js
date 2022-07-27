@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const child_process = require('child_process');
 
+const { getVideoDurationInSeconds } = require('get-video-duration');
+
 const recordingsDirectory = path.join(process.cwd(), 'Recordings')
 const imagesDirectory = path.join(process.cwd(), 'previewImages');
 
@@ -15,25 +17,31 @@ class TwitchDownload {
 
     }
 
-    emitStats() {
+    async emitStats() {
         //Length
         //Speed
         //Size
-        const stats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
+        // const stats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
 
-        console.log(stats);
+        // console.log(stats);
+
+        console.log(await this.collectStats());
 
     }
 
     async collectStats() {
         return new Promise((resolve, reject) => {
-            const stats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
-            const size = stats.size;
-            setTimeout(() => {
+            const prevStats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
+            setTimeout(async () => {
                 const stats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
-                const size = stats.size;
-
+                const length = await getVideoDurationInSeconds(path.join(recordingsDirectory, 'out.ts'));
+                resolve({
+                    length,
+                    size: stats.size,
+                    speed: stats.size - prevStats.size,
+                })
             }, 1000);
+
         });
     }
 
