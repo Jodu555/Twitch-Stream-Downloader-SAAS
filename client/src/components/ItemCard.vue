@@ -7,8 +7,8 @@
 		<pre>{{ stats }}</pre>
 		<ul class="list-group list-group-flush">
 			<li class="list-group-item"><b>Dauer:</b> {{ toNiceTime(stats.length) }}</li>
-			<li class="list-group-item"><b>Größe:</b> {{toNiceSize(stats.size)}}</li>
-			<li class="list-group-item"><b>Geschwindigkeit:</b> {{toNiceSize(stats.speed)}}/s</li>
+			<li class="list-group-item"><b>Größe:</b> {{ toNiceSize(stats.size) }}</li>
+			<li class="list-group-item"><b>Geschwindigkeit:</b> {{ toNiceSize(stats.speed) }}/s</li>
 			<li class="list-group-item"><b>Status:</b> Recording</li>
 		</ul>
 		<div class="card-body">
@@ -20,6 +20,11 @@
 <script>
 export default {
 	props: ['stats'],
+	watch: {
+		stats() {
+			console.log('Prop Change');
+		},
+	},
 	methods: {
 		toNiceTime(seconds) {
 			const date = new Date(0);
@@ -35,8 +40,8 @@ export default {
 				i++;
 			} while (fileSizeInBytes > 1024);
 
-			return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
-    	}
+			return Math.max(fileSizeInBytes, 0.01).toFixed(2) + byteUnits[i];
+		},
 	},
 };
 </script>

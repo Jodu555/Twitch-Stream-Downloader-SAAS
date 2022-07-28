@@ -10,8 +10,9 @@ const imagesDirectory = path.join(process.cwd(), 'previewImages');
 
 class TwitchDownload {
     constructor() {
-        this.channel = 'Sintica';
+        this.channel = 'basti';
         this.recordingProcess;
+
     }
 
     loadFromID() {
@@ -19,6 +20,10 @@ class TwitchDownload {
     }
 
     async emitStats() {
+        console.log('emitStats()');
+        await this.makeImage();
+
+        console.log('NEXT');
 
         const { length, size, speed } = await this.collectStats();
 
@@ -52,13 +57,12 @@ class TwitchDownload {
 
 
     async collectStats() {
-        const filename = 'basti.ts';
         return new Promise((resolve, reject) => {
             try {
-                const prevStats = fs.statSync(path.join(recordingsDirectory, filename));
+                const prevStats = fs.statSync(path.join(recordingsDirectory, this.channel + '.ts'));
                 setTimeout(async () => {
-                    const stats = fs.statSync(path.join(recordingsDirectory, filename));
-                    const length = await getVideoDurationInSeconds(path.join(recordingsDirectory, filename));
+                    const stats = fs.statSync(path.join(recordingsDirectory, this.channel + '.ts'));
+                    const length = await getVideoDurationInSeconds(path.join(recordingsDirectory, this.channel + '.ts'));
                     resolve({
                         length,
                         size: stats.size,
@@ -72,28 +76,31 @@ class TwitchDownload {
     }
 
     async makeImage() {
+        fs.existsSync(path.join(imagesDirectory, this.channel + '.jpg')) && fs.rmSync(path.join(imagesDirectory, this.channel + '.jpg'));
+
+
         let command = 'ffmpeg -sseof -3 -i '
-        command += `"${path.join(recordingsDirectory, 'out.ts')}" `;
+        command += `"${path.join(recordingsDirectory, this.channel + '.ts')}" `;
         command += '-update 1 -q:v 1 ';
-        command += `"${path.join(imagesDirectory, 'out.jpg')}"`;
+        command += `"${path.join(imagesDirectory, this.channel + '.jpg')}"`;
 
-        // try {
-        //     const output = await this.deepExecPromisify(command, process.cwd());
-        //     console.log(`output`, output);
-        // } catch (error) {
-        //     console.error(error);
-        // }
+        try {
+            const output = await this.deepExecPromisify(command, process.cwd());
+            // console.log(`output`, output);
+        } catch (error) {
+            console.error(error);
+        }
 
-        this.executeProcess(command, process.cwd(),
-            (out) => {
-                //StdOut
-            },
-            (err) => {
-                //StdErr
-            },
-            () => {
-                //Stop(Cleanup)
-            });
+        // this.executeProcess(command, process.cwd(),
+        //     (out) => {
+        //         //StdOut
+        //     },
+        //     (err) => {
+        //         //StdErr
+        //     },
+        //     () => {
+        //         //Stop(Cleanup)
+        //     });
     }
 
     startRecording() {
@@ -141,7 +148,7 @@ class TwitchDownload {
     async deepExecPromisify(command, cwd) {
         return await new Promise((resolve, reject) => {
             child_process.exec(command, { encoding: 'utf8', cwd }, (error, stdout, stderr) => {
-                console.log({ error, stdout, stderr });
+                // console.log({ error, stdout, stderr });
                 if (error) {
                     reject({ error, stdout: stdout?.trim()?.split('\n'), stderr: stderr?.trim()?.split('\n') });
                 }
