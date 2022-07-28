@@ -6,9 +6,9 @@
 		</div>
 		<pre>{{ stats }}</pre>
 		<ul class="list-group list-group-flush">
-			<li class="list-group-item"><b>Dauer:</b> 22m10s</li>
-			<li class="list-group-item"><b>Größe:</b> 2GB</li>
-			<li class="list-group-item"><b>Geschwindigkeit:</b> 50 kb/s</li>
+			<li class="list-group-item"><b>Dauer:</b> {{ toNiceTime(stats.length) }}</li>
+			<li class="list-group-item"><b>Größe:</b> {{toNiceSize(stats.size)}}</li>
+			<li class="list-group-item"><b>Geschwindigkeit:</b> {{toNiceSize(stats.speed)}}/s</li>
 			<li class="list-group-item"><b>Status:</b> Recording</li>
 		</ul>
 		<div class="card-body">
@@ -20,6 +20,24 @@
 <script>
 export default {
 	props: ['stats'],
+	methods: {
+		toNiceTime(seconds) {
+			const date = new Date(0);
+			date.setSeconds(seconds);
+			return date.toISOString().substr(11, 8);
+		},
+
+		toNiceSize(fileSizeInBytes) {
+			var i = -1;
+			var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+			do {
+				fileSizeInBytes = fileSizeInBytes / 1024;
+				i++;
+			} while (fileSizeInBytes > 1024);
+
+			return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+    	}
+	},
 };
 </script>
 <style lang=""></style>
