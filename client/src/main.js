@@ -13,11 +13,7 @@ const serverURL = location.hostname == 'localhost' ? 'http://localhost:3200' : '
 
 const socketPlugin = {
     install: (app, options) => {
-        app.config.globalProperties.$socket = io(serverURL, {
-            auth: {
-                token: 'SECR-DEV'
-            }
-        });
+        app.config.globalProperties.$socket = io(serverURL);
     }
 }
 
@@ -26,25 +22,19 @@ const networkingPlugin = {
         app.config.globalProperties.$networking = new Networking(serverURL, '');
     }
 }
+const app = createApp(App);
+
+app.use(socketPlugin);
 
 const socket = app.config.globalProperties.$socket;
-
-socket.on('connect', () => {
-    console.log('Connected');
-})
-
-socket.on('stats', (data) => {
-    console.log('Got Stats-Update: ', data);
-})
 
 socket.on("connect_error", (err) => {
     console.log('Socket Connect Error: ', err.message); // prints the message associated with the error
 });
 
-const app = createApp(App);
 
 app.use(networkingPlugin);
-app.use(socketPlugin);
+
 app.use(store);
 app.use(router);
 

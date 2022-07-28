@@ -10,6 +10,9 @@ export default createStore({
   mutations: {
   },
   actions: {
+    reset({ commit }) {
+      commit('auth/reset')
+    },
   },
   modules: {
     auth

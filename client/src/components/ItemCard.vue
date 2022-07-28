@@ -4,7 +4,7 @@
 		<div class="card-body">
 			<h1 class="card-title">Sintica</h1>
 		</div>
-
+		<pre>{{ stats }}</pre>
 		<ul class="list-group list-group-flush">
 			<li class="list-group-item"><b>Dauer:</b> 22m10s</li>
 			<li class="list-group-item"><b>Größe:</b> 2GB</li>
@@ -18,6 +18,8 @@
 	</div>
 </template>
 <script>
-export default {};
+export default {
+	props: ['stats'],
+};
 </script>
 <style lang=""></style>

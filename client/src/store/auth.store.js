@@ -70,6 +70,10 @@ export default {
                         await commit('setLoggedIn', true);
                         await commit('setAuthToken', authtoken);
                         setCookie('auth-token', authtoken, 30);
+
+                        this.$socket.auth = { token: authtoken };
+                        await this.$socket.connect();
+
                         redirectToSlash && await router.push('/');
                     } else {
                         await commit('setError', response);

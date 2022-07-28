@@ -3,11 +3,11 @@
 		<h1 class="text-center py-3">Home Page</h1>
 		<div class="container py-5">
 			<div class="row gap-2">
-				<ItemCard class="col-5"></ItemCard>
-				<ItemCard class="col-5"></ItemCard>
-				<ItemCard class="col-5"></ItemCard>
-				<ItemCard class="col-5"></ItemCard>
-				<ItemCard class="col-5"></ItemCard>
+				<ItemCard class="col-5" :stats="stats"></ItemCard>
+				<ItemCard class="col-5" :stats="stats"></ItemCard>
+				<ItemCard class="col-5" :stats="stats"></ItemCard>
+				<ItemCard class="col-5" :stats="stats"></ItemCard>
+				<ItemCard class="col-5" :stats="stats"></ItemCard>
 			</div>
 		</div>
 	</div>
@@ -16,6 +16,17 @@
 import ItemCard from '../components/ItemCard.vue';
 export default {
 	components: { ItemCard },
+	data() {
+		return {
+			stats: null,
+		};
+	},
+	created() {
+		this.$socket.on('stats', (data) => {
+			console.log('Got Stats-Update-Comp: ', data);
+			this.stats = data;
+		});
+	},
 };
 </script>
 <style lang=""></style>

@@ -33,7 +33,7 @@ class TwitchDownload {
 
 
         (await getIO().fetchSockets()).forEach(socket => {
-            console.log(socket.auth);
+            // console.log(socket.auth);
             socket.emit('stats', { length, size, speed });
         });
 
@@ -52,7 +52,7 @@ class TwitchDownload {
 
 
     async collectStats() {
-        const filename = 'out.ts';
+        const filename = 'basti.ts';
         return new Promise((resolve, reject) => {
             try {
                 const prevStats = fs.statSync(path.join(recordingsDirectory, filename));
