@@ -3,6 +3,7 @@ const path = require('path');
 const child_process = require('child_process');
 
 const { getVideoDurationInSeconds } = require('get-video-duration');
+const { getIO } = require('../utils/utils');
 
 const recordingsDirectory = path.join(process.cwd(), 'Recordings')
 const imagesDirectory = path.join(process.cwd(), 'previewImages');
@@ -18,21 +19,23 @@ class TwitchDownload {
     }
 
     async emitStats() {
-        //Length
-        //Speed
-        //Size
-        // const stats = fs.statSync(path.join(recordingsDirectory, 'out.ts'));
-
-        // console.log(stats);
 
         const { length, size, speed } = await this.collectStats();
 
 
         console.log({ length, size, speed });
 
-        console.log(`Speed: ${this.getReadableSizeString(speed)}/s`);
+        const date = new Date(0);
+        date.setSeconds(length);
+        console.log(`Geschwindigkeit: ${this.getReadableSizeString(speed)}/s`);
         console.log(`Größe: ${this.getReadableSizeString(size)}`);
+        console.log(`Länge: ${date.toISOString().substr(11, 8)}`);
 
+
+        (await getIO().fetchSockets()).forEach(socket => {
+            console.log(socket.auth);
+            socket.emit('stats', { length, size, speed });
+        });
 
     }
 
@@ -49,7 +52,7 @@ class TwitchDownload {
 
 
     async collectStats() {
-        const filename = 'out1.ts';
+        const filename = 'out.ts';
         return new Promise((resolve, reject) => {
             try {
                 const prevStats = fs.statSync(path.join(recordingsDirectory, filename));

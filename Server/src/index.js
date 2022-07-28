@@ -19,9 +19,14 @@ const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers'
 });
 
 
-const dl = new TwitchDownload();
+
 // dl.makeImage();
-dl.emitStats();
+
+setInterval(async () => {
+    const dl = new TwitchDownload();
+    await dl.emitStats();
+}, 5000);
+
 
 
 const { Database } = require('@jodu555/mysqlapi');
@@ -80,12 +85,10 @@ io.use((socket, next) => {
     }
 })
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     console.log('Socket Connection:', socket.id);
 
     console.log(socket.auth);
-
-    console.log(io.sockets.clients());
 
     socket.on('disconnect', () => {
         console.log('Socket DisConnection:', socket.id);
