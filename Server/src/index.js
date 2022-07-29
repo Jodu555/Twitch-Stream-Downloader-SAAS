@@ -25,7 +25,7 @@ const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers'
 setInterval(async () => {
     const dl = new TwitchDownload();
     await dl.emitStats();
-}, 5000);
+}, 10000);
 
 
 

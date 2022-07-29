@@ -1,6 +1,6 @@
 <template lang="">
 	<div class="card">
-		<img src="" class="card-img-top" alt="..." />
+		<img src="http://localhost:3200/imgs/basti.jpg" class="card-img-top" alt="..." />
 		<div class="card-body">
 			<h1 class="card-title">Sintica</h1>
 		</div>
@@ -20,11 +20,6 @@
 <script>
 export default {
 	props: ['stats'],
-	watch: {
-		stats() {
-			console.log('Prop Change');
-		},
-	},
 	methods: {
 		toNiceTime(seconds) {
 			const date = new Date(0);
