@@ -3,6 +3,7 @@ const path = require('path');
 const child_process = require('child_process');
 
 const { getVideoDurationInSeconds } = require('get-video-duration');
+const { v4: uuidv4 } = require('uuid');
 const { getIO } = require('../utils/utils');
 
 const recordingsDirectory = path.join(process.cwd(), 'Recordings')
@@ -10,6 +11,7 @@ const imagesDirectory = path.join(process.cwd(), 'previewImages');
 
 class TwitchDownload {
     constructor(channel) {
+        this.id = uuidv4();
         this.channel = channel;
         this.recordingProcess;
         const statsInterval = 5000;
@@ -36,7 +38,7 @@ class TwitchDownload {
 
     async initialInfos(socket) {
         console.log('Got Initial Infos');
-        socket.emit('name', this.channel)
+        socket.emit('name', { id: this.id, name: this.channel })
         await Promise.all([
             this.emitStats(socket),
             this.changeImage(socket)
@@ -55,14 +57,14 @@ class TwitchDownload {
         console.log({ length, size, speed });
 
         // console.log(socket.auth);
-        socket.emit('stats', { length, size, speed });
+        socket.emit('stats', { id: this.id, length, size, speed });
 
     }
 
     async changeImage(socket) {
         console.log('changeImage()');
         await this.makeImage();
-        socket.emit('imageChange');
+        socket.emit('imageChange', { id: this.id });
     }
 
     getReadableSizeString(fileSizeInBytes) {

@@ -33,34 +33,18 @@
 </template>
 <script>
 export default {
+	props: ['value'],
 	data() {
 		return {
-			stats: null,
-			lastStats: null,
-			imageurl: '',
-			lastImage: null,
-			channelname: 'Noname',
+			// stats: null,
+			// lastStats: null,
+			// imageurl: '',
+			// lastImage: null,
+			// channelname: 'Noname',
 		};
 	},
 	created() {
 		console.log('Component Created');
-		this.$socket.on('imageChange', (data) => {
-			this.imageurl = `http://localhost:3200/imgs/${this.channelname}.jpg?cacheKey=${Date.now()}`;
-			this.lastImage = Date.now();
-		});
-
-		this.$socket.on('stats', (data) => {
-			console.log('Got Stats-Update-Comp: ', data);
-			this.stats = data;
-			this.lastStats = Date.now();
-		});
-
-		this.$socket.on('name', (name) => {
-			console.log('Go Name', name);
-			this.channelname = name;
-		});
-
-		this.$socket.emit('initialInfos');
 	},
 	methods: {
 		toNiceTime(seconds) {

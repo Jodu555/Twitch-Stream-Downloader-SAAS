@@ -1,6 +1,7 @@
 <template lang="">
 	<div>
 		<h1 class="text-center py-3">Home Page</h1>
+		<!-- <pre>{{ items }}</pre> -->
 		<div class="container">
 			<form @submit.prevent="onAdd" class="row g-3 justify-content-center">
 				<div class="col-auto">
@@ -13,7 +14,7 @@
 			</form>
 			<div class="py-3">
 				<div class="row gap-2">
-					<ItemCard class="col-5"></ItemCard>
+					<ItemCard v-for="[key, value] of items" class="col-5" :value="value"></ItemCard>
 					<!-- <ItemCard class="col-5"></ItemCard>
 				<ItemCard class="col-5"></ItemCard>
 				<ItemCard class="col-5"></ItemCard>
@@ -30,7 +31,33 @@ export default {
 	data() {
 		return {
 			channelname: '',
+			items: new Map(),
 		};
+	},
+	created() {
+		this.$socket.on('imageChange', ({ id }) => {
+			if (!this.items.has(id)) this.items.set(id, {});
+			const imageurl = `http://localhost:3200/imgs/${this.channelname}.jpg?cacheKey=${Date.now()}`;
+			this.items.set(id, { ...this.items.get(id), imageurl, lastImage: Date.now() });
+		});
+
+		this.$socket.on('stats', ({ id, ...data }) => {
+			console.log('Got Stats-Update-Comp: ', id, data);
+			if (!this.items.has(id)) this.items.set(id, {});
+
+			this.items.set(id, { ...this.items.get(id), stats: data, lastStats: Date.now() });
+		});
+
+		this.$socket.on('name', ({ id, name }) => {
+			console.log('Go Name', name);
+			if (this.items.has(id)) {
+				this.items.set(id, { ...this.items.get(id), name });
+			} else {
+				this.items.set(id, { name });
+			}
+		});
+
+		this.$socket.emit('initialInfos');
 	},
 	methods: {
 		onAdd() {
