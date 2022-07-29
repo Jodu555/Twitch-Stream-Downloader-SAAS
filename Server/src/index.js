@@ -18,8 +18,6 @@ const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers'
     }
 });
 
-new TwitchDownload('nyalina');
-
 const { Database } = require('@jodu555/mysqlapi');
 const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
 database.connect();
@@ -55,7 +53,7 @@ setIO(new Server(server, {
     }
 }));
 
-
+const twitchdl = new TwitchDownload('nyalina');
 
 const io = getIO();
 
@@ -80,6 +78,10 @@ io.on('connection', async (socket) => {
     console.log('Socket Connection:', socket.id);
 
     console.log(socket.auth);
+
+    socket.on('initialInfos', () => {
+        twitchdl.initialInfos(socket);
+    });
 
     socket.on('disconnect', () => {
         console.log('Socket DisConnection:', socket.id);

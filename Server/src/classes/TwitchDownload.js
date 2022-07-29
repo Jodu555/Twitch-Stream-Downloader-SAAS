@@ -14,16 +14,24 @@ class TwitchDownload {
         this.recordingProcess;
 
         setInterval(async () => {
-            (await getIO().fetchSockets()).forEach(socket => {
+            (await getIO().fetchSockets()).forEach(async socket => {
                 await this.emitStats(socket);
             });
         }, 10000);
 
         setInterval(async () => {
-            (await getIO().fetchSockets()).forEach(socket => {
+            (await getIO().fetchSockets()).forEach(async socket => {
                 await this.changeImage(socket);
             });
         }, 30000);
+    }
+
+    async initialInfos(socket) {
+        socket.emit('name', this.channel)
+        await Promise.all([
+            this.emitStats(socket),
+            this.changeImage(socket)
+        ])
     }
 
     loadFromID() {
