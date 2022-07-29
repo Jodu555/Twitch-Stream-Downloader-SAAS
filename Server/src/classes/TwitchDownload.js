@@ -27,6 +27,7 @@ class TwitchDownload {
     }
 
     async initialInfos(socket) {
+        console.log('Got Initial Infos');
         socket.emit('name', this.channel)
         await Promise.all([
             this.emitStats(socket),
