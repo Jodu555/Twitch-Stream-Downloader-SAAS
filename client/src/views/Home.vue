@@ -37,7 +37,9 @@ export default {
 	created() {
 		this.$socket.on('imageChange', ({ id }) => {
 			if (!this.items.has(id)) this.items.set(id, {});
-			const imageurl = `http://localhost:3200/imgs/${this.channelname}.jpg?cacheKey=${Date.now()}`;
+			const imageurl = `http://localhost:3200/imgs/${
+				this.items.has(id) ? this.items.get(id).name : 'notfound'
+			}.jpg?cacheKey=${Date.now()}`;
 			this.items.set(id, { ...this.items.get(id), imageurl, lastImage: Date.now() });
 		});
 

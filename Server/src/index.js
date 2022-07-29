@@ -52,8 +52,8 @@ setIO(new Server(server, {
         methods: ["GET", "POST"]
     }
 }));
-getDownloaders().push(new TwitchDownload('nyalina'));
-getDownloaders().push(new TwitchDownload('starletnova'));
+getDownloaders().push(new TwitchDownload('bastighg'));
+getDownloaders().push(new TwitchDownload('annitheduck'));
 
 const io = getIO();
 
