@@ -12,22 +12,26 @@ class TwitchDownload {
     constructor(channel) {
         this.channel = channel;
         this.recordingProcess;
+        const statsInterval = 5000;
+        const imageInterval = 25000;
 
         const statstimer = async () => {
             const sockets = await getIO().fetchSockets();
             await Promise.all(sockets.map(async socket => {
                 await this.emitStats(socket);
             }));
-            setTimeout(statstimer, 5000);
+            setTimeout(statstimer, statsInterval);
         }
+        setTimeout(statstimer, statsInterval);
 
-        setTimeout(statstimer, 5000);
-
-        setInterval(async () => {
-            (await getIO().fetchSockets()).forEach(async socket => {
+        const imagetimer = async () => {
+            const sockets = await getIO().fetchSockets();
+            await Promise.all(sockets.map(async socket => {
                 await this.changeImage(socket);
-            });
-        }, 30000);
+            }));
+            setTimeout(imagetimer, imageInterval);
+        }
+        setTimeout(imagetimer, imageInterval);
     }
 
     async initialInfos(socket) {
