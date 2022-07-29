@@ -9,42 +9,43 @@ const recordingsDirectory = path.join(process.cwd(), 'Recordings')
 const imagesDirectory = path.join(process.cwd(), 'previewImages');
 
 class TwitchDownload {
-    constructor() {
-        this.channel = 'basti';
+    constructor(channel) {
+        this.channel = channel;
         this.recordingProcess;
 
+        setInterval(async () => {
+            (await getIO().fetchSockets()).forEach(socket => {
+                await this.emitStats(socket);
+            });
+        }, 10000);
+
+        setInterval(async () => {
+            (await getIO().fetchSockets()).forEach(socket => {
+                await this.changeImage(socket);
+            });
+        }, 30000);
     }
 
     loadFromID() {
 
     }
 
-    async emitStats() {
+    async emitStats(socket) {
         console.log('emitStats()');
         const { length, size, speed } = await this.collectStats();
 
 
         console.log({ length, size, speed });
 
-        // const date = new Date(0);
-        // date.setSeconds(length);
-        // console.log(`Geschwindigkeit: ${this.getReadableSizeString(speed)}/s`);
-        // console.log(`Größe: ${this.getReadableSizeString(size)}`);
-        // console.log(`Länge: ${date.toISOString().substr(11, 8)}`);
+        // console.log(socket.auth);
+        socket.emit('stats', { length, size, speed });
 
-
-        (await getIO().fetchSockets()).forEach(socket => {
-            // console.log(socket.auth);
-            socket.emit('stats', { length, size, speed });
-        });
     }
 
-    async changeImage() {
+    async changeImage(socket) {
         console.log('changeImage()');
         await this.makeImage();
-        (await getIO().fetchSockets()).forEach(socket => {
-            socket.emit('imageChange');
-        });
+        socket.emit('imageChange');
     }
 
     getReadableSizeString(fileSizeInBytes) {

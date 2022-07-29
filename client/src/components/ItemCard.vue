@@ -27,7 +27,7 @@ export default {
 	},
 	created() {
 		this.$socket.on('imageChange', (data) => {
-			this.imageurl = `http://localhost:3200/imgs/basti.jpg?cacheKey=${Date.now()}`;
+			this.imageurl = `http://localhost:3200/imgs/nyalina.jpg?cacheKey=${Date.now()}`;
 		});
 	},
 	methods: {

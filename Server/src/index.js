@@ -18,22 +18,7 @@ const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers'
     }
 });
 
-
-
-// dl.makeImage();
-
-setInterval(async () => {
-    const dl = new TwitchDownload();
-    await dl.emitStats();
-}, 10000);
-
-
-setInterval(async () => {
-    const dl = new TwitchDownload();
-    await dl.changeImage();
-}, 30000);
-
-
+new TwitchDownload('nyalina');
 
 const { Database } = require('@jodu555/mysqlapi');
 const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
