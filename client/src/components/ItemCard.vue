@@ -20,7 +20,12 @@
 		</ul>
 		<div class="card-body">
 			<div class="row justify-content-around">
-				<a href="https://twitch.tv/Sintica" class="col-4 btn btn-outline-info">Kanal</a>
+				<a
+					:href="`https://twitch.tv/${channelname}`"
+					target="_blank"
+					class="col-4 btn btn-outline-info"
+					>Kanal</a
+				>
 				<a href="https://twitch.tv/Sintica" class="col-4 btn btn-outline-warning">Stop</a>
 			</div>
 		</div>

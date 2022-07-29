@@ -8,7 +8,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const dotenv = require('dotenv').config();
-const { setIO, getIO } = require('./utils/utils');
+const { setIO, getIO, getDownloaders } = require('./utils/utils');
 const TwitchDownload = require('./classes/TwitchDownload');
 const { ErrorHelper, AuthenticationHelper } = require('@jodu555/express-helpers');
 
@@ -52,8 +52,8 @@ setIO(new Server(server, {
         methods: ["GET", "POST"]
     }
 }));
-
-const twitchdl = new TwitchDownload('nyalina');
+getDownloaders().push(new TwitchDownload('nyalina'));
+getDownloaders().push(new TwitchDownload('starletnova'));
 
 const io = getIO();
 
@@ -80,7 +80,9 @@ io.on('connection', async (socket) => {
     console.log(socket.auth);
 
     socket.on('initialInfos', () => {
-        twitchdl.initialInfos(socket);
+        getDownloaders().forEach(dl => {
+            dl.initialInfos(socket);
+        })
     });
 
     socket.on('disconnect', () => {
