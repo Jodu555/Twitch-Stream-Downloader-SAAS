@@ -1,6 +1,6 @@
 <template>
 	<div class="card">
-		<img :src="imageurl" class="card-img-top" alt="..." />
+		<img :src="imageurl" class="card-img-top py-2" alt="previewImage" />
 		<div class="card-body">
 			<h1 class="card-title">{{ channelname }}</h1>
 		</div>
@@ -27,8 +27,9 @@ export default {
 		};
 	},
 	created() {
+		console.log('Component Created');
 		this.$socket.on('imageChange', (data) => {
-			this.imageurl = `http://localhost:3200/imgs/nyalina.jpg?cacheKey=${Date.now()}`;
+			this.imageurl = `http://localhost:3200/imgs/${this.channelname}.jpg?cacheKey=${Date.now()}`;
 		});
 
 		this.$socket.on('stats', (data) => {

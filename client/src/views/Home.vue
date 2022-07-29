@@ -4,10 +4,10 @@
 		<div class="container py-5">
 			<div class="row gap-2">
 				<ItemCard class="col-5"></ItemCard>
+				<!-- <ItemCard class="col-5"></ItemCard>
 				<ItemCard class="col-5"></ItemCard>
 				<ItemCard class="col-5"></ItemCard>
-				<ItemCard class="col-5"></ItemCard>
-				<ItemCard class="col-5"></ItemCard>
+				<ItemCard class="col-5"></ItemCard> -->
 			</div>
 		</div>
 	</div>
