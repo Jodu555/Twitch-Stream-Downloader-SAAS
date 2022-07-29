@@ -1,6 +1,6 @@
 <template>
 	<div class="card">
-		<img src="http://localhost:3200/imgs/basti.jpg" class="card-img-top" alt="..." />
+		<img :src="imageurl" class="card-img-top" alt="..." />
 		<div class="card-body">
 			<h1 class="card-title">Sintica</h1>
 		</div>
@@ -20,6 +20,16 @@
 <script>
 export default {
 	props: ['stats'],
+	data() {
+		return {
+			imageurl: '',
+		};
+	},
+	created() {
+		this.$socket.on('imageChange', (data) => {
+			this.imageurl = `http://localhost:3200/imgs/basti.jpg?cacheKey=${Date.now()}`;
+		});
+	},
 	methods: {
 		toNiceTime(seconds) {
 			const date = new Date(0);

@@ -41,7 +41,7 @@ database.connect();
 require('./utils/database')();
 
 const app = express();
-app.use('imgs', express.static(path.join(process.cwd(), 'previewImages')))
+app.use('/imgs', express.static(path.join(process.cwd(), 'previewImages')))
 app.use(cors());
 app.use(morgan('dev'));
 app.use(helmet());
