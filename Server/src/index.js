@@ -28,6 +28,12 @@ setInterval(async () => {
 }, 10000);
 
 
+setInterval(async () => {
+    const dl = new TwitchDownload();
+    await dl.changeImage();
+}, 30000);
+
+
 
 const { Database } = require('@jodu555/mysqlapi');
 const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');

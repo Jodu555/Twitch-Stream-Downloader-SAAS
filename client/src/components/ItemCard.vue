@@ -1,4 +1,4 @@
-<template lang="">
+<template>
 	<div class="card">
 		<img src="http://localhost:3200/imgs/basti.jpg" class="card-img-top" alt="..." />
 		<div class="card-body">

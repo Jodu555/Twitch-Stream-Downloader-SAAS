@@ -21,27 +21,30 @@ class TwitchDownload {
 
     async emitStats() {
         console.log('emitStats()');
-        await this.makeImage();
-
-        console.log('NEXT');
-
         const { length, size, speed } = await this.collectStats();
 
 
         console.log({ length, size, speed });
 
-        const date = new Date(0);
-        date.setSeconds(length);
-        console.log(`Geschwindigkeit: ${this.getReadableSizeString(speed)}/s`);
-        console.log(`Größe: ${this.getReadableSizeString(size)}`);
-        console.log(`Länge: ${date.toISOString().substr(11, 8)}`);
+        // const date = new Date(0);
+        // date.setSeconds(length);
+        // console.log(`Geschwindigkeit: ${this.getReadableSizeString(speed)}/s`);
+        // console.log(`Größe: ${this.getReadableSizeString(size)}`);
+        // console.log(`Länge: ${date.toISOString().substr(11, 8)}`);
 
 
         (await getIO().fetchSockets()).forEach(socket => {
             // console.log(socket.auth);
             socket.emit('stats', { length, size, speed });
         });
+    }
 
+    async changeImage() {
+        console.log('changeImage()');
+        await this.makeImage();
+        (await getIO().fetchSockets()).forEach(socket => {
+            socket.emit('imageChange');
+        });
     }
 
     getReadableSizeString(fileSizeInBytes) {
