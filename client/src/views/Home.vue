@@ -54,17 +54,19 @@ export default {
 			}
 		});
 
+		let disconn = false;
+
 		this.$socket.on('disconnect', () => {
 			this.items = new Map();
+			disconn = true;
 		});
-		let init = true;
 
 		this.$socket.on('connect', () => {
-			!init && this.$socket.emit('initialInfos');
+			console.log(init);
+			disconn && this.$socket.emit('initialInfos');
 		});
 
-		init && this.$socket.emit('initialInfos');
-		init = false;
+		this.$socket.emit('initialInfos');
 	},
 	methods: {
 		onAdd() {
