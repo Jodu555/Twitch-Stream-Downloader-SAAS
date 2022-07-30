@@ -54,11 +54,22 @@ export default {
 			}
 		});
 
-		this.$socket.emit('initialInfos');
+		this.$socket.on('disconnect', () => {
+			this.items = new Map();
+		});
+		let init = true;
+
+		this.$socket.on('connect', () => {
+			!init && this.$socket.emit('initialInfos');
+		});
+
+		init && this.$socket.emit('initialInfos');
+		init = false;
 	},
 	methods: {
 		onAdd() {
-			this.channelname;
+			this.$socket.emit('download', { channelname: this.channelname });
+			this.channelname = '';
 		},
 	},
 };

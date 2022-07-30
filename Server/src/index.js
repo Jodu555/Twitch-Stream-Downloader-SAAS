@@ -52,8 +52,8 @@ setIO(new Server(server, {
         methods: ["GET", "POST"]
     }
 }));
-getDownloaders().push(new TwitchDownload('hannimoon', '0d9a088d-6704-4880-b1f1-d9c806ca8554'));
-getDownloaders().push(new TwitchDownload('violit_tv', '0d9a088d-6704-4880-b1f1-d9c806ca8554'));
+// getDownloaders().push(new TwitchDownload('hannimoon', '0d9a088d-6704-4880-b1f1-d9c806ca8554'));
+// getDownloaders().push(new TwitchDownload('violit_tv', '0d9a088d-6704-4880-b1f1-d9c806ca8554'));
 
 const io = getIO();
 
@@ -85,6 +85,13 @@ io.on('connection', async (socket) => {
         })
     });
 
+    socket.on('download', ({ channelname }) => {
+        getDownloaders().push(new TwitchDownload(channelname, socket.auth.user.UUID));
+        getDownloaders().forEach(dl => {
+            dl.initialInfos(socket);
+        })
+    })
+
     socket.on('disconnect', () => {
         console.log('Socket DisConnection:', socket.id);
     })
@@ -95,7 +102,6 @@ const errorHelper = new ErrorHelper()
 app.use(errorHelper.install());
 
 // Your Middleware handlers here
-
 
 const PORT = process.env.PORT || 3200;
 server.listen(PORT, () => {

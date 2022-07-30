@@ -32,6 +32,10 @@ socket.on("connect_error", (err) => {
     console.log('Socket Connect Error: ', err.message); // prints the message associated with the error
 });
 
+socket.on('connect', () => {
+    console.log('Socket Connect Success');
+})
+
 
 app.use(networkingPlugin);
 
