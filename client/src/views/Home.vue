@@ -1,7 +1,6 @@
 <template lang="">
 	<div>
 		<h1 class="text-center py-3">Home Page</h1>
-		<!-- <pre>{{ items }}</pre> -->
 		<div class="container">
 			<form @submit.prevent="onAdd" class="row g-3 justify-content-center">
 				<div class="col-auto">
@@ -15,10 +14,6 @@
 			<div class="py-3">
 				<div class="row gap-2">
 					<ItemCard v-for="[key, value] of items" class="col-5" :value="value"></ItemCard>
-					<!-- <ItemCard class="col-5"></ItemCard>
-				<ItemCard class="col-5"></ItemCard>
-				<ItemCard class="col-5"></ItemCard>
-				<ItemCard class="col-5"></ItemCard> -->
 				</div>
 			</div>
 		</div>

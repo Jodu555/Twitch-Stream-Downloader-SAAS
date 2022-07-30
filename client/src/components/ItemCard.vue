@@ -1,6 +1,6 @@
 <template>
 	<div class="card">
-		<pre>{{ value }}</pre>
+		<!-- <pre>{{ value }}</pre> -->
 		<img v-if="value.imageurl" :src="value.imageurl" class="card-img-top py-2" alt="previewImage" />
 		<div class="card-body">
 			<h1 class="card-title text-center">{{ value.name }}</h1>
@@ -35,9 +35,6 @@
 <script>
 export default {
 	props: ['value'],
-	created() {
-		console.log('Component Created');
-	},
 	methods: {
 		toNiceTime(seconds) {
 			const date = new Date(0);

@@ -10,9 +10,10 @@ const recordingsDirectory = path.join(process.cwd(), 'Recordings')
 const imagesDirectory = path.join(process.cwd(), 'previewImages');
 
 class TwitchDownload {
-    constructor(channel) {
+    constructor(channel, issuerUUID) {
         this.id = uuidv4();
         this.channel = channel;
+        this.issuerUUID = issuerUUID;
         this.recordingProcess;
         const statsInterval = 5000;
         const imageInterval = 25000;
@@ -36,7 +37,13 @@ class TwitchDownload {
         setTimeout(imagetimer, imageInterval);
     }
 
+    checkIssuer(socket) {
+        return (socket.auth.user.UUID == this.issuerUUID) || socket.auth.user.UUID == 'OWNER_UUID';
+    }
+
     async initialInfos(socket) {
+        if (!this.checkIssuer(socket)) return;
+
         console.log('Got Initial Infos');
         socket.emit('name', { id: this.id, name: this.channel })
         await Promise.all([
@@ -51,6 +58,7 @@ class TwitchDownload {
 
     async emitStats(socket) {
         console.log('emitStats()');
+        if (!this.checkIssuer(socket)) return;
         const { length, size, speed } = await this.collectStats();
 
 
@@ -63,6 +71,7 @@ class TwitchDownload {
 
     async changeImage(socket) {
         console.log('changeImage()');
+        if (!this.checkIssuer(socket)) return;
         await this.makeImage();
         socket.emit('imageChange', { id: this.id });
     }
