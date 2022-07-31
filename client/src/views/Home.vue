@@ -62,7 +62,6 @@ export default {
 		});
 
 		this.$socket.on('connect', () => {
-			console.log(init);
 			disconn && this.$socket.emit('initialInfos');
 		});
 

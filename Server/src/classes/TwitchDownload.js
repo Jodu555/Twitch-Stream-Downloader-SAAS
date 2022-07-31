@@ -38,7 +38,7 @@ class TwitchDownload {
     }
 
     checkIssuer(socket) {
-        return (socket.auth.user.UUID == this.issuerUUID) || socket.auth.user.UUID == 'OWNER_UUID';
+        return (socket.auth.user.UUID == this.issuerUUID) || socket.auth.user.UUID == process.env.OWNER_UUID;
     }
 
     async initialInfos(socket) {
