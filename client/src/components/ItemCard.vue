@@ -10,6 +10,15 @@
 		>
 			++
 		</button>
+		<button
+			@click="
+				() => {
+					this.value.state--;
+				}
+			"
+		>
+			--
+		</button>
 		<img v-if="value.imageurl" :src="value.imageurl" class="card-img-top py-2" alt="previewImage" />
 		<div class="card-body">
 			<h1 class="card-title text-center">{{ value.name }}</h1>
@@ -36,7 +45,13 @@
 					class="col-4 btn btn-outline-info"
 					>Kanal</a
 				>
-				<button @click="stop" class="col-6 btn btn-outline-warning">{{ btnValue }}</button>
+				<button
+					@click="actionButton"
+					:disabled="this.value.state == 2"
+					class="col-6 btn btn-outline-warning"
+				>
+					{{ btnValue }}
+				</button>
 			</div>
 		</div>
 	</div>
@@ -62,7 +77,22 @@ export default {
 		},
 	},
 	methods: {
-		stop() {},
+		actionButton() {
+			switch (this.value.state) {
+				case 0:
+					//Stop Recording
+					break;
+				case 1:
+					//Start Rendering
+					break;
+				case 3:
+					//Download
+					break;
+
+				default:
+					break;
+			}
+		},
 
 		toNiceTime(seconds) {
 			const date = new Date(0);
