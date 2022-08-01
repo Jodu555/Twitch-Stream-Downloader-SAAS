@@ -1,6 +1,15 @@
 <template>
 	<div class="card">
-		<!-- <pre>{{ value }}</pre> -->
+		<pre>{{ value }}</pre>
+		<button
+			@click="
+				() => {
+					this.value.state++;
+				}
+			"
+		>
+			++
+		</button>
 		<img v-if="value.imageurl" :src="value.imageurl" class="card-img-top py-2" alt="previewImage" />
 		<div class="card-body">
 			<h1 class="card-title text-center">{{ value.name }}</h1>
@@ -27,7 +36,7 @@
 					class="col-4 btn btn-outline-info"
 					>Kanal</a
 				>
-				<button @click="stop" class="col-4 btn btn-outline-warning">Stop</button>
+				<button @click="stop" class="col-6 btn btn-outline-warning">{{ btnValue }}</button>
 			</div>
 		</div>
 	</div>
@@ -35,11 +44,26 @@
 <script>
 export default {
 	props: ['value'],
-	methods: {
-		stop() {
+	computed: {
+		btnValue() {
+			switch (this.value.state) {
+				case 0:
+					return 'Aufnahme stoppen';
+				case 1:
+					return 'Rendering Starten';
+				case 2:
+					return 'Auf Rendern Warten';
+				case 3:
+					return 'Herunterladen';
 
+				default:
+					return 'Nothing';
+			}
 		},
-		
+	},
+	methods: {
+		stop() {},
+
 		toNiceTime(seconds) {
 			const date = new Date(0);
 			date.setSeconds(seconds);
