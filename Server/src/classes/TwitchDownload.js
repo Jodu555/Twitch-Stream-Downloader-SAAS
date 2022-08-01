@@ -45,7 +45,7 @@ class TwitchDownload {
         if (!this.checkIssuer(socket)) return;
 
         console.log('Got Initial Infos');
-        socket.emit('name', { id: this.id, name: this.channel })
+        socket.emit('infos', { id: this.id, name: this.channel, state: 0 })
         await Promise.all([
             this.emitStats(socket),
             this.changeImage(socket)

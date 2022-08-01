@@ -45,10 +45,10 @@ export default {
 			this.items.set(id, { ...this.items.get(id), stats: data, lastStats: Date.now() });
 		});
 
-		this.$socket.on('name', ({ id, name }) => {
-			console.log('Go Name', name);
+		this.$socket.on('infos', ({ id, name, state }) => {
+			console.log('Got Name & state', name, state);
 			if (this.items.has(id)) {
-				this.items.set(id, { ...this.items.get(id), name });
+				this.items.set(id, { ...this.items.get(id), name, state });
 			} else {
 				this.items.set(id, { name });
 			}

@@ -27,7 +27,7 @@
 					class="col-4 btn btn-outline-info"
 					>Kanal</a
 				>
-				<a href="https://twitch.tv/Sintica" class="col-4 btn btn-outline-warning">Stop</a>
+				<button @click="stop" class="col-4 btn btn-outline-warning">Stop</button>
 			</div>
 		</div>
 	</div>
@@ -36,6 +36,10 @@
 export default {
 	props: ['value'],
 	methods: {
+		stop() {
+
+		},
+		
 		toNiceTime(seconds) {
 			const date = new Date(0);
 			date.setSeconds(seconds);
