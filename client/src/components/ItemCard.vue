@@ -35,7 +35,7 @@
 			<li class="list-group-item"><b>Dauer:</b> {{ toNiceTime(value.stats.length) }}</li>
 			<li class="list-group-item"><b>Größe:</b> {{ toNiceSize(value.stats.size) }}</li>
 			<li class="list-group-item"><b>Geschwindigkeit:</b> {{ toNiceSize(value.stats.speed) }}/s</li>
-			<li class="list-group-item"><b>Status:</b> Recording</li>
+			<li class="list-group-item"><b>Status:</b> {{statusInfo}}</li>
 		</ul>
 		<div class="card-body">
 			<div class="row justify-content-around">
@@ -60,6 +60,16 @@
 export default {
 	props: ['value'],
 	computed: {
+		statusInfo() {
+			switch (this.value.state) {
+				case 0:
+					return 'Aufnahme';
+				case 2:
+					return 'Rendern';
+				default:
+					return 'Leerlauf';
+			}
+		},
 		btnValue() {
 			switch (this.value.state) {
 				case 0:
