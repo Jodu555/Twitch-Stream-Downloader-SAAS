@@ -15,6 +15,7 @@ class TwitchDownload {
         this.channel = channel;
         this.issuerUUID = issuerUUID;
         this.recordingProcess;
+        this.state = 0;
         const statsInterval = 5000;
         const imageInterval = 25000;
 
@@ -45,7 +46,7 @@ class TwitchDownload {
         if (!this.checkIssuer(socket)) return;
 
         console.log('Got Initial Infos');
-        socket.emit('infos', { id: this.id, name: this.channel, state: 0 })
+        socket.emit('infos', { id: this.id, name: this.channel, state: this.state })
         await Promise.all([
             this.emitStats(socket),
             this.changeImage(socket)
@@ -142,7 +143,9 @@ class TwitchDownload {
     }
 
     stopRecording() {
-        this.recordingProcess.kill('SIGINT');
+        this.state = 1;
+        if (this.recordingProcess)
+            this.recordingProcess.kill('SIGINT');
     }
 
     startRendering() {

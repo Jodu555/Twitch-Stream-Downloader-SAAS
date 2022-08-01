@@ -50,7 +50,7 @@ export default {
 			if (this.items.has(id)) {
 				this.items.set(id, { ...this.items.get(id), name, state });
 			} else {
-				this.items.set(id, { name });
+				this.items.set(id, { name, state });
 			}
 		});
 
