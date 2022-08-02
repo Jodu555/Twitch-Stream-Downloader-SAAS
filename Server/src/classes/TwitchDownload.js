@@ -16,6 +16,7 @@ class TwitchDownload {
         this.issuerUUID = issuerUUID;
         this.recordingProcess;
         this.state = 0;
+        this.lastemitspeed = null;
         const statsInterval = 5000;
         const imageInterval = 25000;
 
@@ -58,7 +59,7 @@ class TwitchDownload {
     }
 
     async emitStats(socket) {
-        console.log('emitStats()');
+        console.log('emitStats()', this.channel);
         if (!this.checkIssuer(socket)) return;
         const { length, size, speed } = await this.collectStats();
 
@@ -71,10 +72,11 @@ class TwitchDownload {
     }
 
     async changeImage(socket) {
-        console.log('changeImage()');
+        console.log('changeImage()', this.channel);
         if (!this.checkIssuer(socket)) return;
         await this.makeImage();
         socket.emit('imageChange', { id: this.id });
+        console.log('END changeImage()', this.channel);
     }
 
     getReadableSizeString(fileSizeInBytes) {
@@ -109,31 +111,51 @@ class TwitchDownload {
     }
 
     async makeImage() {
-        fs.existsSync(path.join(imagesDirectory, this.channel + '.jpg')) && fs.rmSync(path.join(imagesDirectory, this.channel + '.jpg'));
+        const imageLocation = path.join(imagesDirectory, this.channel + '.jpg');
+
+        fs.existsSync(imageLocation) && fs.rmSync(imageLocation);
 
 
-        let command = 'ffmpeg -sseof -3 -i '
-        command += `"${path.join(recordingsDirectory, this.channel + '.ts')}" `;
-        command += '-update 1 -q:v 1 ';
-        command += `"${path.join(imagesDirectory, this.channel + '.jpg')}"`;
+        const genCommand = (offset) => {
+            let command = `ffmpeg -sseof -${offset} -i `
+            command += `"${path.join(recordingsDirectory, this.channel + '.ts')}" `;
+            command += '-update 1 -q:v 1 ';
+            command += `"${imageLocation}"`;
+
+            return command;
+        }
+
+
+
+
 
         try {
-            const output = await this.deepExecPromisify(command, process.cwd());
-            // console.log(`output`, output);
+            let output = await this.deepExecPromisify(genCommand(3), process.cwd());
+            if (fs.existsSync(imageLocation))
+                return;
+
+            output = await this.deepExecPromisify(genCommand(10), process.cwd());
+            if (fs.existsSync(imageLocation))
+                return;
         } catch (error) {
             console.error(error);
         }
 
-        // this.executeProcess(command, process.cwd(),
-        //     (out) => {
-        //         //StdOut
-        //     },
-        //     (err) => {
-        //         //StdErr
-        //     },
-        //     () => {
-        //         //Stop(Cleanup)
-        //     });
+
+
+
+        //     this.executeProcess(command, process.cwd(),
+        //         (out) => {
+        //             //StdOut
+        //             console.log('OUT', out);
+        //         },
+        //         (err) => {
+        //             //StdErr
+        //             console.log('ERR', err);
+        //         },
+        //         () => {
+        //             //Stop(Cleanup)
+        //         });
     }
 
     startRecording() {

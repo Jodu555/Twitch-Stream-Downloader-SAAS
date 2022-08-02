@@ -91,6 +91,8 @@ export default {
 			switch (this.value.state) {
 				case 0:
 					//Stop Recording
+					console.log(this.value.id);
+					this.$socket.emit('stopRecording', { id: this.value.id });
 					break;
 				case 1:
 					//Start Rendering

@@ -48,9 +48,9 @@ export default {
 		this.$socket.on('infos', ({ id, name, state }) => {
 			console.log('Got Name & state:', name, state);
 			if (this.items.has(id)) {
-				this.items.set(id, { ...this.items.get(id), name, state });
+				this.items.set(id, { ...this.items.get(id), name, state, id });
 			} else {
-				this.items.set(id, { name, state });
+				this.items.set(id, { name, state, id });
 			}
 		});
 

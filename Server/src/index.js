@@ -92,6 +92,12 @@ io.on('connection', async (socket) => {
         })
     })
 
+    socket.on('stopRecording', ({ id }) => {
+        console.log('Got stop Recording with socket id: ', id);
+        const dl = getDownloaders().find(dl => dl.id == id);
+        console.log(dl);
+    })
+
     socket.on('disconnect', () => {
         console.log('Socket DisConnection:', socket.id);
     })
