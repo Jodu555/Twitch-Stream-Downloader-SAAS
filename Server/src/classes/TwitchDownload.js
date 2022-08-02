@@ -21,6 +21,7 @@ class TwitchDownload {
         const imageInterval = 25000;
 
         const statstimer = async () => {
+            if (this.state !== 0) return;
             const sockets = await getIO().fetchSockets();
             await Promise.all(sockets.map(async socket => {
                 await this.emitStats(socket);
@@ -30,6 +31,7 @@ class TwitchDownload {
         setTimeout(statstimer, statsInterval);
 
         const imagetimer = async () => {
+            if (this.state !== 0) return;
             const sockets = await getIO().fetchSockets();
             await Promise.all(sockets.map(async socket => {
                 await this.changeImage(socket);
@@ -150,8 +152,11 @@ class TwitchDownload {
             this.recordingProcess.kill('SIGINT');
     }
 
-    startRendering() {
-        const command = `ffmpeg -i input.ts -c copy output.mp4`
+    startRendering(socket) {
+        if (socket && !this.checkIssuer(socket)) return;
+        this.state = 2;
+        const command = `ffmpeg -i ${this.chanel}.ts -c copy ${this.chanel}.mp4`
+        this.recordingProcess = this.executeProcess(command, process.cwd(), console.log, console.error, () => { });
     }
 
     executeProcess(command, cwd, out, err, stop) {

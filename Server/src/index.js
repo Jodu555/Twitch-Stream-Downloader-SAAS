@@ -99,6 +99,13 @@ io.on('connection', async (socket) => {
         dl.initialInfos(socket);
     })
 
+    socket.on('startRendering', ({ id }) => {
+        const dl = getDownloaders().find(dl => dl.id == id);
+        console.log('Got start Rendering with id && channel', id, dl.channel);
+        dl.startRendering(socket);
+        dl.initialInfos(socket);
+    })
+
     socket.on('disconnect', () => {
         console.log('Socket DisConnection:', socket.id);
     })
