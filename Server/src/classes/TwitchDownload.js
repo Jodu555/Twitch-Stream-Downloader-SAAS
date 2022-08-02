@@ -125,10 +125,6 @@ class TwitchDownload {
             return command;
         }
 
-
-
-
-
         try {
             let output = await this.deepExecPromisify(genCommand(3), process.cwd());
             if (fs.existsSync(imageLocation))
@@ -140,31 +136,15 @@ class TwitchDownload {
         } catch (error) {
             console.error(error);
         }
-
-
-
-
-        //     this.executeProcess(command, process.cwd(),
-        //         (out) => {
-        //             //StdOut
-        //             console.log('OUT', out);
-        //         },
-        //         (err) => {
-        //             //StdErr
-        //             console.log('ERR', err);
-        //         },
-        //         () => {
-        //             //Stop(Cleanup)
-        //         });
     }
 
     startRecording() {
-        this.channel = 'Sintica'
-        const command = `streamlink --output "file.ts" twitch.tv/${this.channel} best`;
+        const command = `streamlink --output "${this.channel}.ts" twitch.tv/${this.channel} best`;
         this.recordingProcess = this.executeProcess(command, process.cwd(), console.log, console.error, () => { });
     }
 
-    stopRecording() {
+    stopRecording(socket) {
+        if (socket && !this.checkIssuer(socket)) return;
         this.state = 1;
         if (this.recordingProcess)
             this.recordingProcess.kill('SIGINT');

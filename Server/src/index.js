@@ -93,9 +93,10 @@ io.on('connection', async (socket) => {
     })
 
     socket.on('stopRecording', ({ id }) => {
-        console.log('Got stop Recording with socket id: ', id);
         const dl = getDownloaders().find(dl => dl.id == id);
-        console.log(dl);
+        console.log('Got stop Recording with id && channel', id, dl.channel);
+        dl.stopRecording(socket);
+        dl.initialInfos(socket);
     })
 
     socket.on('disconnect', () => {

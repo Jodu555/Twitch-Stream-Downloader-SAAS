@@ -5,5 +5,12 @@ Twitch Stream Downloader Software as a Service (SAAS) Records an currently activ
 ## Socket breakdown
 
 - If a user is logged in
-  The socket sends to them the data update every x seconds | 4s - 5s
-  Only The Image update gets processed every x minute | 1s - 3s
+  The socket sends to them the data update every x seconds | 5s
+  Only The Image update gets processed every x minute | 25s
+
+## Video States
+
+- 0 = In Recording
+- 1 = Recording Finished (Nothing running)
+- 2 = In Rendering
+- 3 = Rendering Finished (Whole video process finished)
