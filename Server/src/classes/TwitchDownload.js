@@ -14,6 +14,7 @@ class TwitchDownload {
         this.id = uuidv4();
         this.channel = channel;
         this.issuerUUID = issuerUUID;
+        this.recordingFilePath = path.join(recordingsDirectory, this.channel + '.ts');
         this.recordingProcess;
         this.state = 0;
         this.lastemitspeed = null;
@@ -21,24 +22,25 @@ class TwitchDownload {
         const imageInterval = 25000;
 
         const statstimer = async () => {
-            if (this.state !== 0) return;
-            const sockets = await getIO().fetchSockets();
-            await Promise.all(sockets.map(async socket => {
-                await this.emitStats(socket);
-            }));
+            if (this.state !== 0 && fs.existsSync(this.recordingFilePath)) return;
+            this.toAll(this.emitStats);
             setTimeout(statstimer, statsInterval);
         }
         setTimeout(statstimer, statsInterval);
 
         const imagetimer = async () => {
-            if (this.state !== 0) return;
-            const sockets = await getIO().fetchSockets();
-            await Promise.all(sockets.map(async socket => {
-                await this.changeImage(socket);
-            }));
+            if (this.state !== 0 && fs.existsSync(this.recordingFilePath)) return;
+            this.toAll(this.changeImage);
             setTimeout(imagetimer, imageInterval);
         }
         setTimeout(imagetimer, imageInterval);
+    }
+
+    toAll(cb) {
+        const sockets = await getIO().fetchSockets();
+        await Promise.all(sockets.map(async socket => {
+            await cb(socket);
+        }));
     }
 
     checkIssuer(socket) {
@@ -50,10 +52,11 @@ class TwitchDownload {
 
         console.log('Got Initial Infos');
         socket.emit('infos', { id: this.id, name: this.channel, state: this.state })
-        await Promise.all([
-            this.emitStats(socket),
-            this.changeImage(socket)
-        ])
+        if (fs.existsSync(this.recordingFilePath))
+            await Promise.all([
+                this.emitStats(socket),
+                this.changeImage(socket)
+            ]);
     }
 
     loadFromID() {
@@ -96,10 +99,10 @@ class TwitchDownload {
     async collectStats() {
         return new Promise((resolve, reject) => {
             try {
-                const prevStats = fs.statSync(path.join(recordingsDirectory, this.channel + '.ts'));
+                const prevStats = fs.statSync(this.recordingFilePath);
                 setTimeout(async () => {
-                    const stats = fs.statSync(path.join(recordingsDirectory, this.channel + '.ts'));
-                    const length = await getVideoDurationInSeconds(path.join(recordingsDirectory, this.channel + '.ts'));
+                    const stats = fs.statSync(this.recordingFilePath);
+                    const length = await getVideoDurationInSeconds(this.recordingFilePath);
                     resolve({
                         length,
                         size: stats.size,
@@ -120,7 +123,7 @@ class TwitchDownload {
 
         const genCommand = (offset) => {
             let command = `ffmpeg -sseof -${offset} -i `
-            command += `"${path.join(recordingsDirectory, this.channel + '.ts')}" `;
+            command += `"${this.recordingFilePath}" `;
             command += '-update 1 -q:v 1 ';
             command += `"${imageLocation}"`;
 
@@ -141,8 +144,21 @@ class TwitchDownload {
     }
 
     startRecording() {
-        const command = `streamlink --output "${this.channel}.ts" twitch.tv/${this.channel} best`;
-        this.recordingProcess = this.executeProcess(command, process.cwd(), console.log, console.error, () => { });
+        const command = `streamlink --output "${this.recordingFilePath}" twitch.tv/${this.channel} best`;
+        this.recordingProcess = this.executeProcess(command, process.cwd(), (out) => {
+            console.log(out);
+            if (out.includes('Stream ended') || out.includes('Closing currently open stream...')) {
+                console.log('GOT STREAM STOP');
+                this.stopRecordingStreamStop();
+            }
+        }, console.error, () => {
+            this.stopRecordingStreamStop();
+        });
+    }
+
+    stopRecordingStreamStop() {
+        this.stopRecording();
+        this.toAll(this.initialInfos)
     }
 
     stopRecording(socket) {
