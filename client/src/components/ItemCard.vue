@@ -1,7 +1,7 @@
 <template>
 	<div class="card">
 		<pre>{{ value }}</pre>
-		<button
+		<!-- <button
 			@click="
 				() => {
 					this.value.state++;
@@ -18,7 +18,7 @@
 			"
 		>
 			--
-		</button>
+		</button> -->
 		<img v-if="value.imageurl" :src="value.imageurl" class="card-img-top py-2" alt="previewImage" />
 		<div class="card-body">
 			<h1 class="card-title text-center">{{ value.name }}</h1>
@@ -91,7 +91,6 @@ export default {
 			switch (this.value.state) {
 				case 0:
 					//Stop Recording
-					console.log(this.value.id);
 					this.$socket.emit('stopRecording', { id: this.value.id });
 					break;
 				case 1:

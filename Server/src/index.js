@@ -86,10 +86,10 @@ io.on('connection', async (socket) => {
     });
 
     socket.on('download', ({ channelname }) => {
-        getDownloaders().push(new TwitchDownload(channelname, socket.auth.user.UUID));
-        getDownloaders().forEach(dl => {
-            dl.initialInfos(socket);
-        })
+        const dl = new TwitchDownload(channelname, socket.auth.user.UUID);
+        getDownloaders().push(dl);
+        dl.startRecording();
+        dl.initialInfos(socket);
     })
 
     socket.on('stopRecording', ({ id }) => {
