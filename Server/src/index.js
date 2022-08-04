@@ -35,6 +35,29 @@ authHelper.addToken('SECR-DEV', { "UUID": "0d9a088d-6704-4880-b1f1-d9c806ca8554"
 authHelper.options.register = true;
 authHelper.install();
 
+process.stdin.resume();//so the program will not close instantly
+
+function exitHandler() {
+    console.log('Got Kill, doing cleanup!');
+    getDownloaders().forEach(dl => {
+        dl.stopRecording();
+        console.log('  => Cleaned up: ' + dl.channel);
+    })
+}
+
+//do something when app is closing
+process.on('exit', exitHandler);
+
+//catches ctrl+c event
+process.on('SIGINT', exitHandler);
+
+// catches "kill pid" (for example: nodemon restart)
+process.on('SIGUSR1', exitHandler);
+process.on('SIGUSR2', exitHandler);
+
+//catches uncaught exceptions
+process.on('uncaughtException', exitHandler.bind(null));
+
 let server;
 if (process.env.https) {
     const sslProperties = {
