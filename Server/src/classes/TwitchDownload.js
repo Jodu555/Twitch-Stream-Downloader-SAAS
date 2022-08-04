@@ -23,20 +23,20 @@ class TwitchDownload {
 
         const statstimer = async () => {
             if (this.state !== 0 && fs.existsSync(this.recordingFilePath)) return;
-            this.toAll(this.emitStats);
+            await this.toAll(this.emitStats);
             setTimeout(statstimer, statsInterval);
         }
         setTimeout(statstimer, statsInterval);
 
         const imagetimer = async () => {
             if (this.state !== 0 && fs.existsSync(this.recordingFilePath)) return;
-            this.toAll(this.changeImage);
+            await this.toAll(this.changeImage);
             setTimeout(imagetimer, imageInterval);
         }
         setTimeout(imagetimer, imageInterval);
     }
 
-    toAll(cb) {
+    async toAll(cb) {
         const sockets = await getIO().fetchSockets();
         await Promise.all(sockets.map(async socket => {
             await cb(socket);
@@ -156,9 +156,9 @@ class TwitchDownload {
         });
     }
 
-    stopRecordingStreamStop() {
+    async stopRecordingStreamStop() {
         this.stopRecording();
-        this.toAll(this.initialInfos)
+        await this.toAll(this.initialInfos)
     }
 
     stopRecording(socket) {

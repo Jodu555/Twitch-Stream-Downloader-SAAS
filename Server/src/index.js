@@ -49,14 +49,11 @@ function exitHandler() {
 process.on('exit', exitHandler);
 
 //catches ctrl+c event
-process.on('SIGINT', exitHandler);
+// process.on('SIGINT', exitHandler);
 
 // catches "kill pid" (for example: nodemon restart)
-process.on('SIGUSR1', exitHandler);
-process.on('SIGUSR2', exitHandler);
-
-//catches uncaught exceptions
-process.on('uncaughtException', exitHandler.bind(null));
+// process.on('SIGUSR1', exitHandler);
+// process.on('SIGUSR2', exitHandler);
 
 let server;
 if (process.env.https) {
