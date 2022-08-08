@@ -18,8 +18,15 @@ const routes = [
   },
 ]
 
+// const rBase = location.hostname == 'localhost' ? process.env.BASE_URL : '/cinema/'
+const rBase = location.hostname == 'localhost' ? './' : '/TwitchDownloader/'
+// const rBase = './';
+// console.log({ rBase, hst: location.hostname });
+// history: createWebHistory(process.env.BASE_URL),
+
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  base: rBase,
+  history: createWebHistory(rBase),
   routes
 })
 
