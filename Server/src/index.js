@@ -37,12 +37,12 @@ authHelper.install();
 
 process.stdin.resume();//so the program will not close instantly
 
-function exitHandler() {
+async function exitHandler() {
     console.log('Got Kill, doing cleanup!');
-    getDownloaders().forEach(dl => {
-        dl.stopRecording();
+    await Promise.all(getDownloaders().map(async dl => {
+        await dl.stopRecording();
         console.log('  => Cleaned up: ' + dl.channel);
-    })
+    }))
 }
 
 //do something when app is closing
@@ -112,10 +112,10 @@ io.on('connection', async (socket) => {
         dl.initialInfos(socket);
     })
 
-    socket.on('stopRecording', ({ id }) => {
+    socket.on('stopRecording', async ({ id }) => {
         const dl = getDownloaders().find(dl => dl.id == id);
         console.log('Got stop Recording with id && channel', id, dl.channel);
-        dl.stopRecording(socket);
+        await dl.stopRecording(socket);
         dl.initialInfos(socket);
     })
 

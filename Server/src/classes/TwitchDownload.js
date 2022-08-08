@@ -23,14 +23,14 @@ class TwitchDownload {
 
         const statstimer = async () => {
             if (this.state !== 0 && fs.existsSync(this.recordingFilePath)) return;
-            await this.toAll(this.emitStats);
+            await this.toAll((s) => this.emitStats(s));
             setTimeout(statstimer, statsInterval);
         }
         setTimeout(statstimer, statsInterval);
 
         const imagetimer = async () => {
             if (this.state !== 0 && fs.existsSync(this.recordingFilePath)) return;
-            await this.toAll(this.changeImage);
+            await this.toAll((s) => this.changeImage(s));
             setTimeout(imagetimer, imageInterval);
         }
         setTimeout(imagetimer, imageInterval);
@@ -146,26 +146,31 @@ class TwitchDownload {
     startRecording() {
         const command = `streamlink --output "${this.recordingFilePath}" twitch.tv/${this.channel} best`;
         this.recordingProcess = this.executeProcess(command, process.cwd(), (out) => {
-            console.log(out);
+            console.log('RECORDING', out);
             if (out.includes('Stream ended') || out.includes('Closing currently open stream...')) {
                 console.log('GOT STREAM STOP');
                 this.stopRecordingStreamStop();
             }
-        }, console.error, () => {
+        }, (err) => {
+            console.error('RECORDING ERR', err)
+        }, () => {
             this.stopRecordingStreamStop();
         });
     }
 
     async stopRecordingStreamStop() {
         this.stopRecording();
-        await this.toAll(this.initialInfos)
+        await this.toAll((c) => this.initialInfos(c))
     }
 
-    stopRecording(socket) {
+    async stopRecording(socket) {
         if (socket && !this.checkIssuer(socket)) return;
         this.state = 1;
-        if (this.recordingProcess)
-            this.recordingProcess.kill('SIGINT');
+        if (this.recordingProcess) {
+            console.log('Tried to stop Recording:', this.recordingProcess.pid);
+            this.recordingProcess.kill('SIGTERM');
+            return await new Promise((resolve, reject) => { setTimeout(resolve, 500); })
+        }
     }
 
     startRendering(socket) {

@@ -67,6 +67,13 @@ export default {
 
 		this.$socket.emit('initialInfos');
 	},
+	unmounted() {
+		this.$socket.off('imageChange');
+
+		this.$socket.off('stats');
+
+		this.$socket.off('infos');
+	},
 	methods: {
 		onAdd() {
 			this.$socket.emit('download', { channelname: this.channelname });
