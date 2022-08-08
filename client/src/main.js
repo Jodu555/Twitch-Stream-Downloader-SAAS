@@ -11,7 +11,7 @@ import "bootstrap"
 //     auth: 'SECR-DEV'
 // });
 
-const serverURL = location.hostname == 'localhost' ? 'http://localhost:3200' : 'http://0dba-2003-df-8742-fec9-2996-e4f7-5ceb-629a.ngrok.io';
+const serverURL = location.hostname == 'localhost' ? 'http://localhost:3200' : 'http://localhost:3200';
 
 const socketPlugin = {
     install: (app, options) => {
