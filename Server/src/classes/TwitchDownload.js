@@ -47,16 +47,17 @@ class TwitchDownload {
         return (socket.auth.user.UUID == this.issuerUUID) || socket.auth.user.UUID == process.env.OWNER_UUID;
     }
 
-    async initialInfos(socket) {
+    async initialInfos(socket, sendImage = true) {
         if (!this.checkIssuer(socket)) return;
 
         console.log('Got Initial Infos');
         socket.emit('infos', { id: this.id, name: this.channel, state: this.state })
-        if (fs.existsSync(this.recordingFilePath))
-            await Promise.all([
-                this.emitStats(socket),
-                this.changeImage(socket)
-            ]);
+        if (fs.existsSync(this.recordingFilePath)) {
+            const work = [];
+            work.push(this.emitStats(socket))
+            sendImage && work.push(this.changeImage(socket))
+            await Promise.all(work);
+        }
     }
 
     loadFromID() {
@@ -149,26 +150,31 @@ class TwitchDownload {
             console.log('RECORDING', out);
             if (out.includes('Stream ended') || out.includes('Closing currently open stream...')) {
                 console.log('GOT STREAM STOP');
-                this.stopRecordingStreamStop();
+                // this.stopRecordingStreamStop();
             }
         }, (err) => {
             console.error('RECORDING ERR', err)
-        }, () => {
-            this.stopRecordingStreamStop();
+        }, (err) => {
+            console.log('RECORDING EXIT', err);
+            // this.stopRecordingStreamStop();
         });
     }
 
     async stopRecordingStreamStop() {
-        this.stopRecording();
-        await this.toAll((c) => this.initialInfos(c))
+        console.log('stopRecordingStreamStop()');
+        await this.stopRecording();
+        await this.toAll((c) => this.initialInfos(c, false))
     }
 
     async stopRecording(socket) {
+        console.log('stopRecording()');
         if (socket && !this.checkIssuer(socket)) return;
         this.state = 1;
         if (this.recordingProcess) {
             console.log('Tried to stop Recording:', this.recordingProcess.pid);
-            this.recordingProcess.kill('SIGTERM');
+            // this.recordingProcess.stdout.push(null)
+            this.recordingProcess.stdout.write('\x03');
+            // this.recordingProcess.kill('SIGINT');
             return await new Promise((resolve, reject) => { setTimeout(resolve, 500); })
         }
     }
