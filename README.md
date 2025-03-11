@@ -29,7 +29,7 @@ Of course you then have to be responsible for the server and the bandwidth.
 
 ### Free
 
-- You get 2 Stream Recording's (after 2 Streams are recorded you have to delete or download at leasz one, before you can record another)
+- You get 2 Stream Recording's (after 2 Streams are recorded you have to delete or download at least one, before you can record another)
 - Maximum Recording Time is 8 hours
 - The Check for new Streams is done every 30 minutes
 - The Recorded Stream will be deleted after 2 days

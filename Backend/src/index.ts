@@ -85,7 +85,7 @@ async function main() {
             '',
             ...waiting.map(x => `  ${x} => Waiting`),
             '',
-            ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed} - ${x.ffmpegMetadata?.birate} - ${parseInt(x.ffmpegMetadata?.size) / 1024}MB`),
+            ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.birate} - ${parseInt(x.ffmpegMetadata?.size) / 1024}MB`),
         ];
     }));
 
