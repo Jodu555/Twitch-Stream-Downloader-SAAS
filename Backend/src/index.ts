@@ -3,10 +3,12 @@ import axios from 'axios';
 import morgan from 'morgan';
 import { CommandManager, Command } from '@jodu555/commandmanager';
 import path from 'path';
+import fs from 'fs';
+
 //                                              Pass here the standard pipe you want to use
 const commandManager = CommandManager.createCommandManager(process.stdin, process.stdout);
 
-import { spawn, exec } from 'child_process';
+import { spawn, exec, ChildProcessWithoutNullStreams } from 'child_process';
 
 const STREAM_URL = `https://twitch.tv/`;
 
@@ -14,6 +16,7 @@ const ADBLOCK_PROXYS = `--twitch-proxy-playlist=http://185.223.29.142:9595`;
 // const ADBLOCK_PROXYS = `--twitch-proxy-playlist=https://eu.luminous.dev,https://lb-eu.cdn-perfprod.com,https://eu2.luminous.dev,https://lb-eu3.cdn-perfprod.com`;
 
 interface TwitchMeta {
+    type: 'success';
     plugin: 'twitch';
     metadata: {
         id: string;
@@ -31,48 +34,49 @@ interface TwitchMeta {
     };
 }
 
-function getMetaData(streamerName: string) {
-    return new Promise<TwitchMeta>((resolve, reject) => {
-        exec(`streamlink --json ${ADBLOCK_PROXYS} ${STREAM_URL}${streamerName}`, (err, stdout, stderr) => {
+async function isLive(streamerName: string) {
+    const meta = await getMetaData(streamerName, false);
+    if (meta.type == 'error' && meta.error.includes('No playable streams')) {
+        console.log('FALSE');
+
+        return false;
+    }
+    return true;
+}
+
+interface TwitchMetaError {
+    type: 'error';
+    error: string;
+}
+
+function getMetaData(streamerName: string, useProxys = true): Promise<TwitchMeta | TwitchMetaError> {
+    return new Promise((resolve, reject) => {
+        exec(`streamlink --json ${useProxys ? ADBLOCK_PROXYS : ''} ${STREAM_URL}${streamerName}`, (err, stdout, stderr) => {
             try {
-                const json = JSON.parse(stdout) as TwitchMeta;
+                const json = JSON.parse(stdout);
+                console.log(json);
+
+                if (json.error) {
+                    resolve({ type: 'error', error: json.error });
+                    return;
+                }
+                json.type == 'success';
                 resolve(json);
             } catch (error) {
+                console.log('Error parsing JSON', error);
+
                 reject(error);
             }
         });
     });
 }
 
-async function recordStream(streamerName: string) {
-    const meta = await getMetaData(streamerName);
-
-    const tmpDir = path.join(__dirname, '..', 'TMP');
-
-    const proc = spawn('ffmpeg', [
-        '-i', meta.streams.best.master,
-        '-c', 'copy',
-        path.join(tmpDir, 'out.mp4')
-    ], {
-        cwd: tmpDir,
-    });
-
-    proc.stderr.on('data', (message) => {
-        message = message.toString();
-        const re = /frame=(.*)fps=(.*)q=(.*)size=(.*)time=(.*)bitrate=(.*)speed=(.*)x/gi;
-        const match = re.exec(message);
-        if (match != null) {
-            const [_, frame, fps, __, size, time, birate, speed] = match.map(x => x.trim());
-            console.log({ frame, fps, size, time, birate, speed });
-
-        }
-    });
-
-}
 
 main();
 
 const waiting = ['pokimane', 'potasticp', 'Cinna', 'F1nn5ter', 'fanfan', 'CottontailVA'];
+
+const processes = [] as RecordEntry[];
 
 async function main() {
     commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', (command, [...args], scope) => {
@@ -81,102 +85,100 @@ async function main() {
             '',
             ...waiting.map(x => `  ${x} => Waiting`),
             '',
+            ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed} - ${x.ffmpegMetadata?.birate} - ${parseInt(x.ffmpegMetadata?.size) / 1024}MB`),
         ];
     }));
 
-    commandManager.registerCommand(new Command(['record', 'r'], 'record <Name>', 'Records a new stream', (command, [...args], scope) => {
+    commandManager.registerCommand(new Command(['record', 'r'], 'record <Name>', 'Records a new stream', async (command, [...args], scope) => {
         const streamer = args[1];
-        recordStream(streamer);
+        const entry = new RecordEntry('JODU', streamer);
+        await entry.record();
+        processes.push(entry);
+        return '';
     }));
+
+    const tmpDir = path.join(__dirname, '..', 'TMP');
+
+
+    const stats = fs.statfsSync(tmpDir);
+    const gbFree = (stats.bsize * stats.bavail) / 1024 / 1024 / 1024;
+    console.log('Free Disk Space: ', gbFree, 'GB');
+
+}
+
+interface FfmpegMetadata {
+    frame: string;
+    fps: string;
+    size: string;
+    time: string;
+    birate: string;
+    speed: string;
 }
 
 class RecordEntry {
-    private id: string;
-    private twitchUsername: string;
+    public id: string;
+    public twitchStreamerName: string;
     private userUUID: string;
     public categories: string[];
     public titles: string[];
-    public fileSize: number;
-}
+    public pid: number;
+    private process: ChildProcessWithoutNullStreams;
+    public ffmpegMetadata: FfmpegMetadata;
 
-async function spawnFFmpegProcess(command: string, cwd: string = undefined, progress: (speed: number, percent: number) => void) {
-    return new Promise<{ code: number; output: string[]; duration: { h: number; m: number; s: number; }; highestSpeed: number; }>((resolve, reject) => {
-        const proc = spawn(command, { shell: true, cwd: cwd });
-        console.log(proc.pid);
-        let duration: { h: number; m: number; s: number; } = null;
-        let highestSpeed: number = 0;
-        let cumOutput = [];
+    constructor(userUUID: string, twitchStreamerName: string) {
+        this.id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        this.userUUID = userUUID;
+        this.twitchStreamerName = twitchStreamerName;
+        this.categories = [];
+        this.titles = [];
+    }
 
-        let latestUpdate = Date.now();
+    async record() {
+        if (!await isLive(this.twitchStreamerName)) {
+            console.log('Stream', this.twitchStreamerName, 'is not live!');
+            return;
+        }
+        const meta = await getMetaData(this.twitchStreamerName);
 
-        let timeout = setTimeout(() => {
-            const err = new Error('Timeout Reached: ' + JSON.stringify(cumOutput, null, 3));
-            reject(err);
-        }, 1000 * 60 * 1);
+        if (meta.type == 'error') {
+            console.log('Error getting meta data for', this.twitchStreamerName, meta);
+            return;
+        }
 
-        let interval = setInterval(() => {
-            const sAgo = (Date.now() - latestUpdate) / 1000;
-            if (sAgo > 5) {
-                console.log('Last Update ' + sAgo + 's ago');
+        this.titles.push(meta.metadata.title);
+        this.categories.push(meta.metadata.category);
+
+        const tmpDir = path.join(__dirname, '..', 'TMP');
+
+        this.process = spawn('ffmpeg', [
+            '-i', meta.streams.best.master,
+            '-c', 'copy',
+            path.join(tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`)
+        ], {
+            cwd: tmpDir,
+        });
+        this.pid = this.process.pid;
+
+        let cleaned = false;
+        const cleaup = () => {
+            if (cleaned) return;
+            cleaned = true;
+            this.process.kill();
+            //TODO: Handle Cleanup Database etc
+        };
+
+        this.process.stderr.on('data', (message) => {
+            message = message.toString();
+            const re = /frame=(.*)fps=(.*)q=(.*)size=(.*)time=(.*)bitrate=(.*)speed=(.*)x/gi;
+            const match = re.exec(message);
+            if (match != null) {
+                const [_, frame, fps, __, size, time, birate, speed] = match.map(x => x.trim());
+                this.ffmpegMetadata = { frame, fps, size, time, birate, speed } satisfies FfmpegMetadata;
             }
-
-            if (sAgo > 60 * 7) {
-                console.log('No output for 7 minutes, killing process', sAgo);
-                proc.kill();
-                clearInterval(interval);
-                reject(new Error('No output for 7 minutes, killing process: ' + JSON.stringify(cumOutput, null, 3)));
-            }
-        }, 1000);
-
-        proc.stderr.setEncoding('utf8');
-        proc.stderr.on('data', (data: string) => {
-            if (data == undefined) return;
-            const lines = data.split('\n');
-            lines.forEach((line) => {
-                if (line.includes('frame=') && line.includes('fps=') && line.includes('time=')) {
-                    if (duration == null) {
-                        try {
-                            const l = cumOutput.join(' ').trim().replaceAll('\r', '').replaceAll('\n', '').replaceAll('\t', '');
-                            const [_, rest] = l.split('Duration: ');
-                            const [time, __] = rest.split(',');
-                            const [h, m, sc] = time.split(':');
-                            const s = parseInt(sc);
-                            duration = { h: Number(h), m: Number(m), s };
-                        } catch (_) { }
-                    }
-                    try {
-                        const speed = parseFloat(line.split('speed=')[1].split('x')[0]);
-                        const [time, __] = line.split('time=')[1].split(' ');
-                        const [h, m, sc] = time.split(':');
-
-                        const s = parseInt(sc);
-                        const seconds = s + Number(m) * 60 + Number(h) * 60 * 60;
-                        const maxSeconds = duration.s + duration.m * 60 + duration.h * 60 * 60;
-
-                        const percent = (seconds / maxSeconds) * 100;
-
-                        if (speed > highestSpeed) highestSpeed = speed;
-                        latestUpdate = Date.now();
-                        progress(speed, percent);
-                        if (timeout) {
-                            clearTimeout(timeout);
-                            timeout = null;
-                        }
-                    } catch (_) { }
-                }
-            });
-            cumOutput.push(...lines);
-            // console.log('stderr: ', lines);
         });
 
-        proc.on('close', (code) => {
-            clearInterval(interval);
-            clearTimeout(timeout);
-            if (code == 0) {
-                resolve({ code, output: cumOutput, duration, highestSpeed });
-            } else {
-                reject({ code, output: cumOutput, duration, highestSpeed });
-            }
-        });
-    });
+        this.process.stderr.on('close', cleaup);
+        this.process.on('exit', cleaup);
+        this.process.on('close', cleaup);
+    }
 }
