@@ -128,11 +128,14 @@ function ffmpegTimeToSeconds(time: string) {
 }
 
 async function main() {
+    let counter = 0;
+    let lastCheck = Date.now();
     commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', (command, [...args], scope) => {
         console.log(processes.map(x => x.metas));
 
         return [
             'Record List:',
+            `Last Check: ${(Date.now() - lastCheck) / 1000}s`,
             '',
             ...sniffEntrys.map(x => `  ${x.twitchStreamerName} => Waiting (every ${x.everyxMinute} minute${x.everyxMinute > 1 ? 's' : ''})`),
             '',
@@ -161,11 +164,11 @@ async function main() {
     console.log('Free Disk Space: ', gbFree, 'GB');
 
 
-    let ct = 0;
+
 
     // Check every minute if there are any new streams
     setInterval(async () => {
-        ct++;
+        counter++;
 
         await Promise.all(processes.map(process => process.heartbeat()));
 
@@ -186,8 +189,10 @@ async function main() {
         //     });
         // }
 
-        if (ct >= Number.MAX_SAFE_INTEGER - 55)
-            ct = 0;
+        if (counter >= Number.MAX_SAFE_INTEGER - 55)
+            counter = 0;
+
+        lastCheck = Date.now();
 
     }, 1000 * 60);
 
