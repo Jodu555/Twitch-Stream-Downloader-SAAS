@@ -36,9 +36,9 @@ interface TwitchMeta {
 
 async function isLive(streamerName: string) {
     const meta = await getMetaData(streamerName, false);
-    if (meta.type == 'error' && meta.error.includes('No playable streams')) {
-        console.log('FALSE');
-
+    // if (meta.type == 'error' && meta.error.includes('No playable streams')) {
+    //     console.log('FALSE');
+    if (meta.type == 'error') {
         return false;
     }
     return true;
@@ -69,6 +69,15 @@ function getMetaData(streamerName: string, useProxys = true): Promise<TwitchMeta
             }
         });
     });
+}
+
+function bytesToHumanReadable(size: number, breakSize = 1024) {
+    let u = 0;
+    while (size >= breakSize || -size >= breakSize) {
+        size /= breakSize;
+        u++;
+    }
+    return (u ? size.toFixed(1) + ' ' : size) + ' KMGTPEZY'[u] + 'B';
 }
 
 
@@ -126,7 +135,7 @@ async function main() {
             '',
             ...waiting.map(x => `  ${x} => Waiting`),
             '',
-            ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.birate} - ${parseInt(x.ffmpegMetadata?.size) / 1024}MB`),
+            ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.birate} - ${bytesToHumanReadable(parseInt(x.ffmpegMetadata?.size))}`),
         ];
     }));
 
@@ -150,15 +159,6 @@ async function main() {
     const gbFree = (stats.bsize * stats.bavail) / 1024 / 1024 / 1024;
     console.log('Free Disk Space: ', gbFree, 'GB');
 
-    setInterval(async () => {
-        if (processes.length == 0)
-            return;
-
-        for (const process of processes) {
-            await process.heartbeat();
-        }
-    }, 1000);
-
 
     let ct = 0;
 
@@ -166,30 +166,23 @@ async function main() {
     setInterval(async () => {
         ct++;
 
+        await Promise.all(processes.map(process => process.heartbeat()));
+
         for (const sniffEntry of sniffEntrys) {
             if (ct % sniffEntry.everyxMinute != 0)
                 continue;
 
             if (!await isLive(this.twitchStreamerName)) {
                 console.log('Stream', this.twitchStreamerName, 'is not live!');
-                return;
-            }
-
-            const meta = await getMetaData(sniffEntry.twitchStreamerName);
-            if (meta.type == 'error') {
-                console.log('Error getting meta data for', sniffEntry.twitchStreamerName, meta);
                 continue;
             }
-
-            if (meta.type == 'success') {
-                const entry = new RecordEntry('JODU', sniffEntry.twitchStreamerName);
-                await entry.record();
-                processes.push(entry);
-                entry.recordingFinished(() => {
-                    console.log('Recording Finished for', entry);
-                    processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-                });
-            }
+            const entry = new RecordEntry('JODU', sniffEntry.twitchStreamerName);
+            await entry.record();
+            processes.push(entry);
+            entry.recordingFinished(() => {
+                console.log('Recording Finished for', entry);
+                processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+            });
         }
 
         if (ct >= Number.MAX_SAFE_INTEGER - 55)
@@ -206,14 +199,20 @@ interface FfmpegMetadata {
     time: string;
     birate: string;
     speed: string;
+    from: number;
+}
+
+interface MetaRepresent {
+    title: string;
+    category: string;
+    time: number;
 }
 
 class RecordEntry {
     public id: string;
     public twitchStreamerName: string;
     private userUUID: string;
-    public categories: string[];
-    public titles: string[];
+    public metas: MetaRepresent[];
     public pid: number;
     private process: ChildProcessWithoutNullStreams;
     public ffmpegMetadata: FfmpegMetadata;
@@ -225,8 +224,7 @@ class RecordEntry {
         this.id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         this.userUUID = userUUID;
         this.twitchStreamerName = twitchStreamerName;
-        this.categories = [];
-        this.titles = [];
+        this.metas = [];
         this.finishedCallbacks = [];
         //TODO: Do math based on user stuff
         // this.maxRecordingTimeSeconds = 8 * 60 * 60;
@@ -239,32 +237,35 @@ class RecordEntry {
 
     async heartbeat() {
 
-        if (this.ffmpegMetadata != null) {
-            const secondsLive = ffmpegTimeToSeconds(this.ffmpegMetadata.time);
-            if (secondsLive >= this.maxRecordingTimeSeconds) {
-                console.log('Stream', this.twitchStreamerName, 'is too long!');
-                this.cleanup();
-            }
-        }
-
         if (!await isLive(this.twitchStreamerName)) {
             console.log('Stream', this.twitchStreamerName, 'is not live!');
             return;
         }
-        const meta = await getMetaData(this.twitchStreamerName);
+        const meta = await getMetaData(this.twitchStreamerName, false);
         if (meta.type == 'error') {
             console.log('Error getting meta data for', this.twitchStreamerName, meta);
             return;
         }
 
 
-        if (this.titles.at(-1) != meta.metadata.title) {
-            this.titles.push(meta.metadata.title);
+        const lastMeta = this.metas.at(-1);
+        if (lastMeta != null) {
+            if (lastMeta.title != meta.metadata.title || lastMeta.category != meta.metadata.category) {
+                this.metas.push({ title: meta.metadata.title, category: meta.metadata.category, time: Date.now() });
+            }
         }
 
-        if (this.categories.at(-1) != meta.metadata.category) {
-            this.categories.push(meta.metadata.category);
+
+        if (this.ffmpegMetadata != null) {
+            const secondsLive = ffmpegTimeToSeconds(this.ffmpegMetadata.time);
+            if (secondsLive >= this.maxRecordingTimeSeconds) {
+                console.log('Metadata outdated with', this.ffmpegMetadata.from - Date.now(), 'ms');
+
+                console.log('Stream', this.twitchStreamerName, 'is too long!');
+                this.cleanup();
+            }
         }
+
     }
 
     async record() {
@@ -279,8 +280,7 @@ class RecordEntry {
             return;
         }
 
-        this.titles.push(meta.metadata.title);
-        this.categories.push(meta.metadata.category);
+        this.metas.push({ title: meta.metadata.title, category: meta.metadata.category, time: Date.now() });
 
         const tmpDir = path.join(__dirname, '..', 'TMP');
 
@@ -310,7 +310,7 @@ class RecordEntry {
             const match = re.exec(message);
             if (match != null) {
                 const [_, frame, fps, __, size, time, birate, speed] = match.map(x => x.trim());
-                this.ffmpegMetadata = { frame, fps, size, time, birate, speed } satisfies FfmpegMetadata;
+                this.ffmpegMetadata = { frame, fps, size, time, birate, speed, from: Date.now() } satisfies FfmpegMetadata;
             }
         });
 
