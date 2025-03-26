@@ -74,9 +74,50 @@ function getMetaData(streamerName: string, useProxys = true): Promise<TwitchMeta
 
 main();
 
+
+interface SniffEntry {
+    twitchStreamerName: string;
+    everyxMinute: number;
+}
+
+const sniffEntrys = [
+    {
+        twitchStreamerName: 'pokimane',
+        everyxMinute: 1,
+    },
+    {
+        twitchStreamerName: 'potasticp',
+        everyxMinute: 1,
+    },
+    {
+        twitchStreamerName: 'Cinna',
+        everyxMinute: 1,
+    },
+    {
+        twitchStreamerName: 'F1nn5ter',
+        everyxMinute: 1
+    },
+    {
+        twitchStreamerName: 'fanfan',
+        everyxMinute: 1,
+    },
+    {
+        twitchStreamerName: 'CottontailVA',
+        everyxMinute: 1,
+    },
+] satisfies SniffEntry[];
+
 const waiting = ['pokimane', 'potasticp', 'Cinna', 'F1nn5ter', 'fanfan', 'CottontailVA'];
 
 const processes = [] as RecordEntry[];
+
+function ffmpegTimeToSeconds(time: string) {
+    const [h, m, s] = time.split(':').map(x => parseInt(x));
+
+    const seconds = (h * 60 * 60) + (m * 60) + s;
+
+    return seconds;
+}
 
 async function main() {
     commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', (command, [...args], scope) => {
@@ -94,8 +135,13 @@ async function main() {
         const entry = new RecordEntry('JODU', streamer);
         await entry.record();
         processes.push(entry);
+        entry.recordingFinished(() => {
+            console.log('Recording Finished for', entry);
+            processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+        });
         return '';
     }));
+
 
     const tmpDir = path.join(__dirname, '..', 'TMP');
 
@@ -103,6 +149,53 @@ async function main() {
     const stats = fs.statfsSync(tmpDir);
     const gbFree = (stats.bsize * stats.bavail) / 1024 / 1024 / 1024;
     console.log('Free Disk Space: ', gbFree, 'GB');
+
+    setInterval(async () => {
+        if (processes.length == 0)
+            return;
+
+        for (const process of processes) {
+            await process.heartbeat();
+        }
+    }, 1000);
+
+
+    let ct = 0;
+
+    // Check every minute if there are any new streams
+    setInterval(async () => {
+        ct++;
+
+        for (const sniffEntry of sniffEntrys) {
+            if (ct % sniffEntry.everyxMinute != 0)
+                continue;
+
+            if (!await isLive(this.twitchStreamerName)) {
+                console.log('Stream', this.twitchStreamerName, 'is not live!');
+                return;
+            }
+
+            const meta = await getMetaData(sniffEntry.twitchStreamerName);
+            if (meta.type == 'error') {
+                console.log('Error getting meta data for', sniffEntry.twitchStreamerName, meta);
+                continue;
+            }
+
+            if (meta.type == 'success') {
+                const entry = new RecordEntry('JODU', sniffEntry.twitchStreamerName);
+                await entry.record();
+                processes.push(entry);
+                entry.recordingFinished(() => {
+                    console.log('Recording Finished for', entry);
+                    processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+                });
+            }
+        }
+
+        if (ct >= Number.MAX_SAFE_INTEGER - 55)
+            ct = 0;
+
+    }, 1000 * 60);
 
 }
 
@@ -124,6 +217,9 @@ class RecordEntry {
     public pid: number;
     private process: ChildProcessWithoutNullStreams;
     public ffmpegMetadata: FfmpegMetadata;
+    private maxRecordingTimeSeconds: number;
+    private finishedCallbacks: (() => void)[];
+    private cleanup: (() => void) | null;
 
     constructor(userUUID: string, twitchStreamerName: string) {
         this.id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -131,6 +227,44 @@ class RecordEntry {
         this.twitchStreamerName = twitchStreamerName;
         this.categories = [];
         this.titles = [];
+        this.finishedCallbacks = [];
+        //TODO: Do math based on user stuff
+        // this.maxRecordingTimeSeconds = 8 * 60 * 60;
+        this.maxRecordingTimeSeconds = Infinity;
+    }
+
+    recordingFinished(cb: () => void) {
+        this.finishedCallbacks.push(cb);
+    }
+
+    async heartbeat() {
+
+        if (this.ffmpegMetadata != null) {
+            const secondsLive = ffmpegTimeToSeconds(this.ffmpegMetadata.time);
+            if (secondsLive >= this.maxRecordingTimeSeconds) {
+                console.log('Stream', this.twitchStreamerName, 'is too long!');
+                this.cleanup();
+            }
+        }
+
+        if (!await isLive(this.twitchStreamerName)) {
+            console.log('Stream', this.twitchStreamerName, 'is not live!');
+            return;
+        }
+        const meta = await getMetaData(this.twitchStreamerName);
+        if (meta.type == 'error') {
+            console.log('Error getting meta data for', this.twitchStreamerName, meta);
+            return;
+        }
+
+
+        if (this.titles.at(-1) != meta.metadata.title) {
+            this.titles.push(meta.metadata.title);
+        }
+
+        if (this.categories.at(-1) != meta.metadata.category) {
+            this.categories.push(meta.metadata.category);
+        }
     }
 
     async record() {
@@ -160,11 +294,14 @@ class RecordEntry {
         this.pid = this.process.pid;
 
         let cleaned = false;
-        const cleaup = () => {
+        this.cleanup = () => {
             if (cleaned) return;
             cleaned = true;
             this.process.kill();
+            // this.process.kill('SIGKILL');
             //TODO: Handle Cleanup Database etc
+            console.log('Cleaned up for ', this);
+            this.finishedCallbacks.forEach(x => x());
         };
 
         this.process.stderr.on('data', (message) => {
@@ -177,8 +314,8 @@ class RecordEntry {
             }
         });
 
-        this.process.stderr.on('close', cleaup);
-        this.process.on('exit', cleaup);
-        this.process.on('close', cleaup);
+        this.process.stderr.on('close', this.cleanup);
+        this.process.on('exit', this.cleanup);
+        this.process.on('close', this.cleanup);
     }
 }
