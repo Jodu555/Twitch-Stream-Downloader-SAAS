@@ -12,8 +12,8 @@ import { spawn, exec, ChildProcessWithoutNullStreams } from 'child_process';
 
 const STREAM_URL = `https://twitch.tv/`;
 
-const ADBLOCK_PROXYS = `--twitch-proxy-playlist=http://185.223.29.142:9595`;
-// const ADBLOCK_PROXYS = `--twitch-proxy-playlist=https://eu.luminous.dev,https://lb-eu.cdn-perfprod.com,https://eu2.luminous.dev,https://lb-eu3.cdn-perfprod.com`;
+// const ADBLOCK_PROXYS = `--twitch-proxy-playlist=http://185.223.29.142:9595`;
+const ADBLOCK_PROXYS = `--twitch-proxy-playlist=https://eu.luminous.dev,https://lb-eu.cdn-perfprod.com,https://eu2.luminous.dev,https://lb-eu3.cdn-perfprod.com`;
 
 interface TwitchMeta {
     type: 'success';
@@ -54,7 +54,7 @@ function getMetaData(streamerName: string, useProxys = true): Promise<TwitchMeta
         exec(`streamlink --json ${useProxys ? ADBLOCK_PROXYS : ''} ${STREAM_URL}${streamerName}`, (err, stdout, stderr) => {
             try {
                 const json = JSON.parse(stdout);
-                console.log(json);
+                // console.log(json);
 
                 if (json.error) {
                     resolve({ type: 'error', error: json.error });
@@ -87,6 +87,7 @@ main();
 interface SniffEntry {
     twitchStreamerName: string;
     everyxMinute: number;
+    users?: string[];
 }
 
 const sniffEntrys = [
@@ -128,10 +129,12 @@ function ffmpegTimeToSeconds(time: string) {
 
 async function main() {
     commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', (command, [...args], scope) => {
+        console.log(processes.map(x => x.metas));
+
         return [
             'Record List:',
             '',
-            ...sniffEntrys.map(x => `  ${x.twitchStreamerName} => Waiting (every ${x.everyxMinute} minutes)`),
+            ...sniffEntrys.map(x => `  ${x.twitchStreamerName} => Waiting (every ${x.everyxMinute} minute${x.everyxMinute > 1 ? 's' : ''})`),
             '',
             ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.birate} - ${bytesToHumanReadable(parseInt(x.ffmpegMetadata?.size))}`),
         ];
@@ -166,22 +169,22 @@ async function main() {
 
         await Promise.all(processes.map(process => process.heartbeat()));
 
-        for (const sniffEntry of sniffEntrys) {
-            if (ct % sniffEntry.everyxMinute != 0)
-                continue;
+        // for (const sniffEntry of sniffEntrys) {
+        //     if (ct % sniffEntry.everyxMinute != 0)
+        //         continue;
 
-            if (!await isLive(this.twitchStreamerName)) {
-                console.log('Stream', this.twitchStreamerName, 'is not live!');
-                continue;
-            }
-            const entry = new RecordEntry('JODU', sniffEntry.twitchStreamerName);
-            await entry.record();
-            processes.push(entry);
-            entry.recordingFinished(() => {
-                console.log('Recording Finished for', entry);
-                processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-            });
-        }
+        //     if (!await isLive(sniffEntry.twitchStreamerName)) {
+        //         console.log('Stream', sniffEntry.twitchStreamerName, 'is not live!');
+        //         continue;
+        //     }
+        //     const entry = new RecordEntry('JODU', sniffEntry.twitchStreamerName);
+        //     await entry.record();
+        //     processes.push(entry);
+        //     entry.recordingFinished(() => {
+        //         console.log('Recording Finished for', entry);
+        //         processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+        //     });
+        // }
 
         if (ct >= Number.MAX_SAFE_INTEGER - 55)
             ct = 0;
