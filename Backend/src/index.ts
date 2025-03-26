@@ -127,6 +127,10 @@ function ffmpegTimeToSeconds(time: string) {
     return seconds;
 }
 
+function formatNumPrec(num: number | string, precision: number) {
+    return parseFloat(num.toString()).toFixed(precision);
+}
+
 async function main() {
     let counter = 0;
     let lastCheck = Date.now();
@@ -135,11 +139,11 @@ async function main() {
 
         return [
             'Record List:',
-            `Last Check: ${(Date.now() - lastCheck) / 1000}s`,
+            `  - Last Check: ${formatNumPrec((Date.now() - lastCheck) / 1000, 1)}s`,
             '',
             ...sniffEntrys.map(x => `  ${x.twitchStreamerName} => Waiting (every ${x.everyxMinute} minute${x.everyxMinute > 1 ? 's' : ''})`),
             '',
-            ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.birate} - ${bytesToHumanReadable(parseInt(x.ffmpegMetadata?.size))}`),
+            ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.birate} - ${bytesToHumanReadable(parseInt(x.ffmpegMetadata?.size))} from ${formatNumPrec((Date.now() - x.ffmpegMetadata?.from) / 1000, 2)}s`),
         ];
     }));
 
