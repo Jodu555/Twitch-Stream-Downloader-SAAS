@@ -116,8 +116,6 @@ const sniffEntrys = [
     },
 ] satisfies SniffEntry[];
 
-const waiting = ['pokimane', 'potasticp', 'Cinna', 'F1nn5ter', 'fanfan', 'CottontailVA'];
-
 const processes = [] as RecordEntry[];
 
 function ffmpegTimeToSeconds(time: string) {
@@ -133,7 +131,7 @@ async function main() {
         return [
             'Record List:',
             '',
-            ...waiting.map(x => `  ${x} => Waiting`),
+            ...sniffEntrys.map(x => `  ${x.twitchStreamerName} => Waiting (every ${x.everyxMinute} minutes)`),
             '',
             ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.birate} - ${bytesToHumanReadable(parseInt(x.ffmpegMetadata?.size))}`),
         ];
