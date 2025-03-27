@@ -13,6 +13,7 @@
   "dependencies": {
     "@jodu555/commandmanager": "^1.5.3",
     "axios": "^1.8.2",
+    "cors": "^2.8.5",
     "express": "^4.21.2",
     "morgan": "^1.10.0",
     "tree-kill": "^1.2.2"
