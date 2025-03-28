@@ -1,18 +1,19 @@
 <template>
 	<div>
 		<pre>
-			{{ { status, error } }}
+			{{ { status, error, sniffStatus, sniffError } }}
 		</pre>
 		<div class="py-3">
+			<!-- <div class="row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2"> -->
 			<div class="row gap-2">
-				<div v-for="streamer in streamers" :key="streamer.id" class="col-5 card" :class="{
+				<div v-for="streamer in streamers" :key="streamer.id" class="col-sm-4 col-5 card" :class="{
 					'border-danger': streamer.state == 'RECORDING',
 					'border-warning': streamer.state == 'TRANSCODING',
 					'border-success': streamer.state == 'FINISHED',
 				}">
 
-					<pre>{{ streamer }}</pre>
-					<div class="position-absolute translate-middle" style="transform: translate(15%, 35%);">
+					<!-- <pre>{{ streamer }}</pre> -->
+					<div class="position-absolute" style="transform: translate(15%, 35%);">
 						<div class="spinner-grow" :class="{
 							'text-danger': streamer.state == 'RECORDING',
 							'text-warning': streamer.state == 'TRANSCODING',
@@ -52,6 +53,56 @@
 					</div>
 				</div>
 			</div>
+			<div class="mt-5 row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2">
+				<div v-for="sniffEntry in sniffEntrys?.entrys" :key="sniffEntry.twitchStreamerName"
+					class="col-sm-4 col-md-5">
+					<div class="card">
+						<!-- <pre>{{ sniffEntry }}</pre> -->
+						<div class="card-body">
+							<h1 class="card-title text-center" style="text-transform: capitalize;">{{
+								sniffEntry.twitchStreamerName }}</h1>
+						</div>
+						<ul class="list-group list-group-flush border-secondary">
+
+							<li v-if="sniffEntry.everyxMinute == 1" class="list-group-item"><b>Letzte Überprüfung
+									vor:</b> {{
+										getLastCheck(sniffEntrys?.lastCheck || 0, true) }}s</li>
+							<li v-else="sniffEntry.everyxMinute == 1" class="list-group-item"><b>Letzte Überprüfung
+									vor:</b> {{
+										getLastCheck(sniffEntrys?.lastCheck || 0, false) }}m</li>
+
+
+							<li class="list-group-item"><b>Überprüfung alle:</b> {{ sniffEntry.everyxMinute }}
+								Minuten
+							</li>
+							<li class="list-group-item">
+								<button class="btn btn-outline-success">
+									Upgrade 🚀
+								</button>
+							</li> <!-- <li class="list-group-item"><b>Geschwindigkeit:</b> {{ streamer.ffmpegMetadata.bitrate }}</li>
+							<li class="list-group-item"><b>Status:</b> {{ streamer.state }}</li> -->
+						</ul>
+						<div class="card-body">
+							<!-- <div class="row justify-content-around">
+								<span class="col-auto text-muted">Letzte Überprüfung: {{ new
+									Date(sniffEntrys?.lastCheck || 0).toLocaleTimeString('de') }}</span>
+								<span class="col-auto text-muted">Überprüfung alle: {{ sniffEntry.everyxMinute }}
+									Minuten</span>
+							</div> -->
+
+							<div class="row justify-content-around py-2 gap-2 p-1">
+								<a :href="`https://twitch.tv/${sniffEntry.twitchStreamerName}`" target="_blank"
+									class="col btn btn-outline-info">Kanal</a>
+
+								<button class="col btn btn-outline-danger">
+									Delete
+								</button>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
 
 		</div>
 
@@ -62,28 +113,13 @@
 
 import { useIntervalFn } from '@vueuse/core';
 
-const streamer = {
-	"id": "2fvzpnfode4ipt6g3lugmn",
-	"twitchStreamerName": "sintica",
-	"metas": [
-		{
-			"title": "DÖNERSTAG - Besser spät als NIE! 🔥 | Harder Styles | !insta !holzkern !holy !madgaming !livefresh #Werbung",
-			"category": "DJs",
-			"time": 1743108348409
-		}
-	],
-	"state": "RECORDING",
-	"pid": 1173354,
-	"ffmpegMetadata": {
-		"frame": "719",
-		"fps": "107",
-		"size": "9216kB",
-		"time": "00:00:12.01",
-		"birate": "6285.7kbits/s",
-		"speed": "1.79",
-		"from": 1743108358632
-	}
-};
+function getLastCheck(lastCheck: number, seconds: boolean) {
+	let num = (new Date().getTime() - lastCheck) / 1000;
+	if (!seconds)
+		num = num / 60;
+	return parseFloat(num.toString()).toFixed(1);
+}
+
 interface Streamer {
 	id: string;
 	twitchStreamerName: string;
@@ -119,6 +155,12 @@ interface FfmpegMetadata {
 	from: number;
 }
 
+interface SniffEntry {
+	twitchStreamerName: string;
+	everyxMinute: number;
+	users?: string[];
+}
+
 function getLastImageTime(imageUrl: string) {
 	const url = new URL(imageUrl);
 	return parseInt(url.searchParams.get('time') ?? '0');
@@ -126,10 +168,30 @@ function getLastImageTime(imageUrl: string) {
 
 const { data: streamers, error, refresh, status } = await useFetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers');
 
-useIntervalFn(() => {
+const { data: sniffEntrys, error: sniffError, refresh: refreshSniffEntrys, status: sniffStatus } = await useFetch<{ lastCheck: number, entrys: SniffEntry[]; }>('http://138.201.131.52:8081/api/v1/sniffEntrys');
+
+const visibility = useDocumentVisibility();
+
+watch(visibility, () => {
+	console.log(visibility.value);
+	if (visibility.value == 'visible') {
+		resumeStreamers();
+		resumeSniff();
+	} else {
+		pauseStreamers();
+		pauseSniff();
+	}
+});
+
+const { pause: pauseStreamers, resume: resumeStreamers } = useIntervalFn(() => {
 	console.log(`refreshing the data again ${new Date().toISOString()}`);
-	refresh(); // will call the 'todos' endpoint, just above
-}, 1000); // call it back every 3s
+	refresh();
+}, 1000);
+
+const { pause: pauseSniff, resume: resumeSniff } = useIntervalFn(() => {
+	console.log(`refreshing the sniffdata again ${new Date().toISOString()}`);
+	refreshSniffEntrys();
+}, 1000 * 10);
 
 function bytesToHumanReadable(size: number, breakSize = 1024) {
 	let u = 0;

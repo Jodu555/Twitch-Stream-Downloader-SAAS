@@ -52,6 +52,14 @@ app.get('/api/v1/streamers/image/:id', async (req, res) => {
     res.sendFile(imageFilePath);
 });
 
+
+app.get('/api/v1/sniffEntrys', async (req, res) => {
+    res.json({
+        lastCheck: lastCheck,
+        entrys: sniffEntrys
+    });
+});
+
 const PORT = process.env.PORT || 8081;
 
 app.listen(PORT, () => {
@@ -154,11 +162,11 @@ const sniffEntrys = [
     },
     {
         twitchStreamerName: 'Cinna',
-        everyxMinute: 1,
+        everyxMinute: 5,
     },
     {
         twitchStreamerName: 'F1nn5ter',
-        everyxMinute: 1
+        everyxMinute: 20
     },
     {
         twitchStreamerName: 'fanfan',
@@ -184,9 +192,9 @@ function formatNumPrec(num: number | string, precision: number) {
     return parseFloat(num.toString()).toFixed(precision);
 }
 
+let lastCheck = Date.now();
 async function main() {
     let counter = 0;
-    let lastCheck = Date.now();
     commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', (command, [...args], scope) => {
         console.log(processes.map(x => x.metas));
 
