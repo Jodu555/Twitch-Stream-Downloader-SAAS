@@ -1,19 +1,33 @@
 <template>
 	<div>
 		<pre>
-			{{ { pending, error } }}
+			{{ { status, error } }}
 		</pre>
 		<div class="py-3">
 			<div class="row gap-2">
-				<div v-for="streamer in streamers" :key="streamer.id" class="col-5 card">
+				<div v-for="streamer in streamers" :key="streamer.id" class="col-5 card" :class="{
+					'border-danger': streamer.state == 'RECORDING',
+					'border-warning': streamer.state == 'TRANSCODING',
+					'border-success': streamer.state == 'FINISHED',
+				}">
+
 					<pre>{{ streamer }}</pre>
+					<div class="position-absolute translate-middle" style="transform: translate(15%, 35%);">
+						<div class="spinner-grow" :class="{
+							'text-danger': streamer.state == 'RECORDING',
+							'text-warning': streamer.state == 'TRANSCODING',
+							'text-success': streamer.state == 'FINISHED',
+						}" style="width: 3rem; height: 3rem;" role="status">
+							<span class="visually-hidden">Live...</span>
+						</div>
+					</div>
 					<img v-if="streamer.imageUrl" :src="streamer.imageUrl" class="card-img-top py-2"
 						alt="previewImage" />
 					<div class="card-body">
 						<h1 class="card-title text-center" style="text-transform: capitalize;">{{
 							streamer.twitchStreamerName }}</h1>
 					</div>
-					<ul v-if="streamer.ffmpegMetadata != null" class="list-group list-group-flush">
+					<ul v-if="streamer.ffmpegMetadata != null" class="list-group list-group-flush border-secondary">
 						<li class="list-group-item"><b>Dauer:</b> {{ streamer.ffmpegMetadata.time }}</li>
 						<li class="list-group-item"><b>Größe:</b> {{
 							bytesToHumanReadable(parseInt(streamer.ffmpegMetadata.size)) }}
@@ -31,8 +45,7 @@
 						<div class="row justify-content-around py-2">
 							<a :href="`https://twitch.tv/${streamer.twitchStreamerName}`" target="_blank"
 								class="col-4 btn btn-outline-info">Kanal</a>
-							<button @click="actionButton" :disabled="streamer.state == 2"
-								class="col-6 btn btn-outline-warning">
+							<button :disabled="streamer.state == 'TRANSCODING'" class="col-6 btn btn-outline-warning">
 								Test
 							</button>
 						</div>
@@ -101,7 +114,7 @@ interface FfmpegMetadata {
 	fps: string;
 	size: string;
 	time: string;
-	birate: string;
+	bitrate: string;
 	speed: string;
 	from: number;
 }
@@ -111,7 +124,7 @@ function getLastImageTime(imageUrl: string) {
 	return parseInt(url.searchParams.get('time') ?? '0');
 }
 
-const { pending, data: streamers, error, refresh } = await useFetch('http://138.201.131.52:8081/api/v1/streamers');
+const { data: streamers, error, refresh, status } = await useFetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers');
 
 useIntervalFn(() => {
 	console.log(`refreshing the data again ${new Date().toISOString()}`);

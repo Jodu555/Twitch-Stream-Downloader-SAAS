@@ -27,7 +27,7 @@ app.get('/api/v1/streamers', async (req, res) => {
             ffmpegMetadata: x.ffmpegMetadata,
             transcodingPid: x.transcodingPid,
             recordingFilePath: x.recordingFilePath,
-            imageLocation: x.imageLocation,
+            imageFilePath: x.imageFilePath,
             imageUrl: x.imageUrl,
         };
     }));
@@ -43,13 +43,13 @@ app.get('/api/v1/streamers/image/:id', async (req, res) => {
         return;
     }
 
-    const imageLocation = process.imageLocation;
-    if (imageLocation == null) {
+    const imageFilePath = process.imageFilePath;
+    if (imageFilePath == null) {
         res.status(404).send('Image Location Not Found');
         return;
     }
 
-    res.sendFile(imageLocation);
+    res.sendFile(imageFilePath);
 });
 
 const PORT = process.env.PORT || 8081;
@@ -253,16 +253,20 @@ async function main() {
 
     }, 1000 * 60);
 
-    setTimeout(async () => {
-        console.log('Starting Hardcoded Recording');
-        const entry = new RecordEntry('JODU', 'Sintica');
-        await entry.record();
-        processes.push(entry);
-        entry.onRecordingFinished(() => {
-            console.log('Recording Finished for', entry);
-            processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-        });
-    }, 1000);
+    setInterval(async () => {
+        await Promise.all(processes.map(process => process.captureScreenshot()));
+    }, 1000 * 30);
+
+    // setTimeout(async () => {
+    //     console.log('Starting Hardcoded Recording');
+    //     const entry = new RecordEntry('JODU', 'Sintica');
+    //     await entry.record();
+    //     processes.push(entry);
+    //     entry.onRecordingFinished(() => {
+    //         console.log('Recording Finished for', entry);
+    //         processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+    //     });
+    // }, 1000);
 
 }
 
@@ -308,7 +312,7 @@ class RecordEntry {
     private cleanup: (() => void) | null;
 
     public recordingFilePath: string;
-    public imageLocation: string;
+    public imageFilePath: string;
     public imageUrl: string;
 
     private tmpDir: string;
@@ -364,30 +368,30 @@ class RecordEntry {
             }
         }
 
-        this.captureScreenshot();
+        // this.captureScreenshot();
 
     }
 
     async captureScreenshot() {
         if (this.state !== 'RECORDING') return;
 
-        this.imageLocation = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.png`);
+        this.imageFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.png`);
         const genCommand = (offset: number) => {
             let command = `ffmpeg -sseof -${offset} -i "${this.recordingFilePath}"`;
             command += ' -vframes 1 -y ';
-            command += `"${this.imageLocation}"`;
+            command += `"${this.imageFilePath}"`;
             return command;
         };
 
         try {
             let output = await this.deepExecPromisify(genCommand(3), process.cwd());
-            if (fs.existsSync(this.imageLocation)) {
+            if (fs.existsSync(this.imageFilePath)) {
                 this.imageUrl = `http://138.201.131.52:8081/api/v1/streamers/image/${this.id}?time=${new Date().getTime()}`;
                 return;
             }
 
             output = await this.deepExecPromisify(genCommand(10), process.cwd());
-            if (fs.existsSync(this.imageLocation)) {
+            if (fs.existsSync(this.imageFilePath)) {
                 this.imageUrl = `http://138.201.131.52:8081/api/v1/streamers/image/${this.id}?time=${new Date().getTime()}`;
                 return;
             }
@@ -502,6 +506,12 @@ class RecordEntry {
             // this.process.kill('SIGKILL');
             //TODO: Handle Cleanup Database etc
             console.log('Cleaned up for ', this);
+
+            //Delete the video file
+            fs.rmSync(this.recordingFilePath, { force: true });
+            fs.rmSync(this.imageFilePath, { force: true });
+            this.state = 'FINISHED';
+
             this.finishedCallbacks.forEach(x => x());
         };
 
