@@ -368,7 +368,7 @@ class RecordEntry {
         this.imageLocation = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.png`);
         const genCommand = (offset: number) => {
             let command = `ffmpeg -sseof -${offset} -i "${this.recordingFilePath}"`;
-            command += ' -vframes 1 ';
+            command += ' -vframes 1 -y ';
             command += `"${this.imageLocation}"`;
             return command;
         };
