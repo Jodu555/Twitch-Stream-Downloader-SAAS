@@ -23,9 +23,9 @@ app.get('/api/v1/streamers', async (req, res) => {
             metas: x.metas,
             state: x.getState(),
             pid: x.pid,
+            videoMeta: x.videoMeta,
             ffmpegMetadata: x.ffmpegMetadata,
             transcodingPid: x.transcodingPid,
-            ffmpegTranscodeMetadata: x.ffmpegTranscodeMetadata,
             recordingFilePath: x.recordingFilePath,
             imageLocation: x.imageLocation,
             imageUrl: x.imageUrl,
@@ -266,6 +266,11 @@ async function main() {
 
 }
 
+interface VideoMeta {
+    time: string;
+    size: string;
+}
+
 interface FfmpegMetadata {
     frame: string;
     fps: string;
@@ -289,13 +294,14 @@ class RecordEntry {
     public metas: MetaRepresent[];
     private state: 'WAITING' | 'RECORDING' | 'TRANSCODING' | 'FINISHED' = 'WAITING';
 
+    public videoMeta: VideoMeta;
+    public ffmpegMetadata: FfmpegMetadata;
+
     public pid: number;
     private process: ChildProcessWithoutNullStreams;
-    public ffmpegMetadata: FfmpegMetadata;
 
     public transcodingPid: number;
     private transcodingProcess: ChildProcessWithoutNullStreams;
-    public ffmpegTranscodeMetadata: FfmpegMetadata;
 
     private maxRecordingTimeSeconds: number;
     private finishedCallbacks: (() => void)[];
@@ -403,6 +409,12 @@ class RecordEntry {
         });
     }
 
+    async stopRecordAndTranscode() {
+        if (this.state != 'RECORDING')
+            return;
+        await this.cleanup();
+    }
+
     async record() {
         if (!await isLive(this.twitchStreamerName)) {
             console.log('Stream', this.twitchStreamerName, 'is not live!');
@@ -439,6 +451,10 @@ class RecordEntry {
             this.process.kill();
             // this.process.kill('SIGKILL');
             //TODO: Handle Cleanup Database etc
+            this.videoMeta = {
+                time: this.ffmpegMetadata?.time,
+                size: this.ffmpegMetadata?.size,
+            };
             console.log('Cleaned up for ', this);
             // this.finishedCallbacks.forEach(x => x());
             await this.startTranscoding();
@@ -495,7 +511,7 @@ class RecordEntry {
             const match = re.exec(message);
             if (match != null) {
                 const [_, frame, fps, __, size, time, bitrate, speed] = match.map(x => x.trim());
-                this.ffmpegTranscodeMetadata = { frame, fps, size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
+                this.ffmpegMetadata = { frame, fps, size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
             }
         });
 

@@ -71,19 +71,23 @@ const streamer = {
 		"from": 1743108358632
 	}
 };
-
 interface Streamer {
 	id: string;
 	twitchStreamerName: string;
 	metas: MetaRepresent[];
 	state: 'WAITING' | 'RECORDING' | 'TRANSCODING' | 'FINISHED';
 	pid: number;
+	videoMeta: VideoMeta;
 	ffmpegMetadata: FfmpegMetadata;
 	transcodingPid: number;
-	ffmpegTranscodeMetadata: FfmpegMetadata;
 	recordingFilePath: string;
 	imageLocation: string;
 	imageUrl: string;
+}
+
+interface VideoMeta {
+	time: string;
+	size: string;
 }
 
 interface MetaRepresent {
