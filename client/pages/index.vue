@@ -5,8 +5,11 @@
 		</pre>
 		<div class="py-3">
 			<!-- <div class="row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2"> -->
-			<div class="row gap-2">
-				<div v-for="streamer in streamers" :key="streamer.id" class="col-sm-4 col-5 card" :class="{
+			<h1 class="text-center mt-2 mb-3">
+				Recordings
+			</h1>
+			<div class="row gap-3">
+				<div v-for="(streamer, idx) in streamers" :key="streamer.id" class="col-4 card" :class="{
 					'border-danger': streamer.state == 'RECORDING',
 					'border-warning': streamer.state == 'TRANSCODING',
 					'border-success': streamer.state == 'FINISHED',
@@ -25,11 +28,13 @@
 					<img v-if="streamer.imageUrl" :src="streamer.imageUrl" class="card-img-top py-2"
 						alt="previewImage" />
 					<div class="card-body">
+						<span class="text-muted">Slot {{ idx + 1 }} / {{ userData.availableSlots }}</span>
 						<h1 class="card-title text-center" style="text-transform: capitalize;">{{
 							streamer.twitchStreamerName }}</h1>
 					</div>
 					<ul v-if="streamer.ffmpegMetadata != null" class="list-group list-group-flush border-secondary">
-						<li class="list-group-item"><b>Dauer:</b> {{ streamer.ffmpegMetadata.time }}</li>
+						<li class="list-group-item"><b>Dauer:</b> {{ streamer.ffmpegMetadata.time }} / {{
+							userData.maxRecodingTime }}hrs</li>
 						<li class="list-group-item"><b>Größe:</b> {{
 							bytesToHumanReadable(parseInt(streamer.ffmpegMetadata.size)) }}
 						</li>
@@ -52,7 +57,34 @@
 						</div>
 					</div>
 				</div>
+				<template v-if="(streamers?.length || 0) < userData.availableSlots">
+					<div v-for="idx in userData.availableSlots - (streamers?.length || 0)" :key="streamers?.length"
+						class="col-3 card">
+						<div class="card-body">
+							<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx + 1 }} /
+								{{
+									userData.availableSlots }}</h1>
+						</div>
+					</div>
+				</template>
+
+				<div class="col-3 card">
+					<!-- <pre>{{ sniffEntry }}</pre> -->
+					<div class="card-body">
+						<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
+							userData.availableSlots }} / 🔒
+						</h1>
+						<div class="mt-4 d-grid gap-2">
+							<button class="btn btn-outline-success">
+								<span class="h4">Unlock more 🔓</span>
+							</button>
+						</div>
+					</div>
+				</div>
 			</div>
+			<h1 class="text-center mt-5 mb-3">
+				Watching
+			</h1>
 			<div class="mt-5 row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2">
 				<div v-for="sniffEntry in sniffEntrys?.entrys" :key="sniffEntry.twitchStreamerName"
 					class="col-sm-4 col-md-5">
@@ -110,6 +142,11 @@
 </template>
 
 <script setup lang="ts">
+
+const userData = ref({
+	availableSlots: 1,
+	maxRecodingTime: 8,
+});
 
 import { useIntervalFn } from '@vueuse/core';
 
