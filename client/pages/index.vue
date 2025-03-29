@@ -107,7 +107,7 @@
 							<li class="list-group-item"><b>Überprüfung alle:</b> {{ sniffEntry.everyxMinute }}
 								Minuten
 							</li>
-							<li class="list-group-item">
+							<li class="list-group-item" v-if="sniffEntry.everyxMinute !== 1">
 								<button class="btn btn-outline-success">
 									Upgrade 🚀
 								</button>

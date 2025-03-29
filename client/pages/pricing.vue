@@ -67,7 +67,7 @@
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key as PricingTableKey].price
-                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key as PricingTableKey].features" :key="feature">{{
                                     feature }}</li>
@@ -93,27 +93,23 @@
                     <tbody>
                         <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
                             <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof PricingTableObject)
-                            }}
+                                }}
                             </th>
                             <td v-for="value in Object.keys(pricingTable)" :key="value">
-                                <template
-                                    v-if="pricingTable[value as PricingTableKey][key as keyof PricingTableObject] == true && pricingTable[value as PricingTableKey][key as keyof PricingTableObject] !== 1">
+                                <template v-if="getSub(value, key) === true">
                                     <svg class="bi" width="24" height="24">
                                         <use xlink:href="#check" />
                                     </svg>
                                 </template>
+                                <template v-else-if="getSub(value, key) === false">
+                                </template>
                                 <template v-else-if="value != 'free'">
-                                    <b>{{ pricingTable[value as PricingTableKey][key as keyof PricingTableObject] }}</b>
+                                    <b>{{ getSub(value, key) }}</b>
                                 </template>
                                 <template v-else>
-                                    {{ pricingTable[value as PricingTableKey][key as keyof PricingTableObject] }}
+                                    {{ getSub(value, key) }}
                                 </template>
                             </td>
-
-                            <!-- <td><svg class="bi" width="24" height="24">
-                                    <use xlink:href="#check" />
-                                </svg></td>
-                            <td>-->
                         </tr>
                     </tbody>
                 </table>
@@ -126,11 +122,16 @@
 
 interface PricingTableObject {
     adFree: boolean;
+    watchWhileRecording: boolean;
     simulRecordings: number;
     staleVideos: number;
     maxRecordingTime: number;
     streamerCheckEvery: number;
     videoRetentionDays: number;
+}
+
+function getSub(value: string, key: string) {
+    return pricingTable.value[value as PricingTableKey][key as keyof PricingTableObject];
 }
 
 type PricingTableKey = 'free' | 'premium' | 'ultimate';
@@ -152,6 +153,8 @@ function limitationToNiceName(key: keyof PricingTableObject) {
     switch (key) {
         case 'adFree':
             return 'Ad-Free';
+        case 'watchWhileRecording':
+            return 'Watch While Recording';
         case 'simulRecordings':
             return 'Simul. Recordings';
         case 'staleVideos':
@@ -197,6 +200,7 @@ const cardTable = ref<CardTable>({
         price: 25,
         features: [
             'Completely Ad-Free',
+            'Watch Live While Recording',
             '8 Simultaneous Stream Recordings',
             '20 Recorded Streams',
             '24 Hours Recording Time',
@@ -209,6 +213,7 @@ const cardTable = ref<CardTable>({
 const pricingTable = ref<PricingTable>({
     free: {
         adFree: true,
+        watchWhileRecording: false,
         simulRecordings: 1,
         staleVideos: 2,
         maxRecordingTime: 8,
@@ -217,6 +222,7 @@ const pricingTable = ref<PricingTable>({
     },
     premium: {
         adFree: true,
+        watchWhileRecording: false,
         simulRecordings: 5,
         staleVideos: 7,
         maxRecordingTime: 24,
@@ -225,6 +231,7 @@ const pricingTable = ref<PricingTable>({
     },
     ultimate: {
         adFree: true,
+        watchWhileRecording: true,
         simulRecordings: 8,
         staleVideos: 20,
         maxRecordingTime: 24,
