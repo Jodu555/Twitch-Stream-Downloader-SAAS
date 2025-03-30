@@ -93,7 +93,7 @@ class RecordEntry {
 
 
         const lastMeta = this.metas.at(-1);
-        if (lastMeta != null) {
+        if (lastMeta != null && meta.metadata.title != null && meta.metadata.category != null) {
             if (lastMeta.title != meta.metadata.title || lastMeta.category != meta.metadata.category) {
                 this.metas.push({ title: meta.metadata.title, category: meta.metadata.category, time: Date.now() });
             }

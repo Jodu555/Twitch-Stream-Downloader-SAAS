@@ -120,23 +120,11 @@
 
 <script lang="ts" setup>
 
-interface PricingTableObject {
-    adFree: boolean;
-    // watchWhileRecording: boolean;
-    simulRecordings: number;
-    staleVideos: number;
-    maxRecordingTime: number;
-    streamerCheckEvery: number;
-    videoRetentionDays: number;
-}
+const pricingTable = usePricingTable();
 
 function getSub(value: string, key: string) {
     return pricingTable.value[value as PricingTableKey][key as keyof PricingTableObject];
 }
-
-type PricingTableKey = 'free' | 'premium' | 'ultimate';
-
-type PricingTable = Record<PricingTableKey, PricingTableObject>;
 
 function keyToNiceName(key: PricingTableKey) {
     switch (key) {
@@ -155,10 +143,12 @@ function limitationToNiceName(key: keyof PricingTableObject) {
             return 'Ad-Free';
         // case 'watchWhileRecording':
         //     return 'Watch While Recording';
-        case 'simulRecordings':
-            return 'Simul. Recordings';
-        case 'staleVideos':
-            return 'Stale Videos';
+        case 'recordingSlots':
+            return 'Recording Slots';
+        case 'videoSlots':
+            return 'Video Slots';
+        case 'streamerSlots':
+            return 'Streamer Slots';
         case 'maxRecordingTime':
             return 'Max. Recording Time';
         case 'streamerCheckEvery':
@@ -180,6 +170,7 @@ const cardTable = ref<CardTable>({
             'Completely Ad-Free',
             '1 Simultaneous Stream Recording',
             '2 Recorded Streams',
+            '3 Streamer Monitorings',
             '8 Hours Recording Time',
             '30 Minute Check for new Streams',
             '2 Days Video Retention',
@@ -191,6 +182,7 @@ const cardTable = ref<CardTable>({
             'Completely Ad-Free',
             '5 Simultaneous Stream Recordings',
             '7 Recorded Streams',
+            '7 Streamer Monitorings',
             '24 Hours Recording Time',
             '1 Minute Check for new Streams',
             '7 Days Video Retention',
@@ -203,6 +195,7 @@ const cardTable = ref<CardTable>({
             // 'Watch Live While Recording',
             '8 Simultaneous Stream Recordings',
             '20 Recorded Streams',
+            '11 Streamer Monitorings',
             '24 Hours Recording Time',
             '1 Minute Check for new Streams',
             '14 Days Video Retention',
@@ -210,35 +203,6 @@ const cardTable = ref<CardTable>({
     },
 });
 
-const pricingTable = ref<PricingTable>({
-    free: {
-        adFree: true,
-        // watchWhileRecording: false,
-        simulRecordings: 1,
-        staleVideos: 2,
-        maxRecordingTime: 8,
-        streamerCheckEvery: 30,
-        videoRetentionDays: 2,
-    },
-    premium: {
-        adFree: true,
-        // watchWhileRecording: false,
-        simulRecordings: 5,
-        staleVideos: 7,
-        maxRecordingTime: 24,
-        streamerCheckEvery: 1,
-        videoRetentionDays: 7,
-    },
-    ultimate: {
-        adFree: true,
-        // watchWhileRecording: true,
-        simulRecordings: 8,
-        staleVideos: 20,
-        maxRecordingTime: 24,
-        streamerCheckEvery: 1,
-        videoRetentionDays: 14,
-    },
-});
 
 </script>
 

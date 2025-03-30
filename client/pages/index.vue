@@ -29,13 +29,13 @@
 						<img :src="streamer.imageUrl" class="card-img-top py-2" alt="previewImage" />
 					</template>
 					<div class="card-body">
-						<span class="text-muted">Slot {{ idx + 1 }} / {{ userData.availableSlots }}</span>
+						<span class="text-muted">Slot {{ idx + 1 }} / {{ userData.recordingSlots }}</span>
 						<h1 class="card-title text-center" style="text-transform: capitalize;">{{
 							streamer.twitchStreamerName }}</h1>
 					</div>
 					<ul v-if="streamer.ffmpegMetadata != null" class="list-group list-group-flush border-secondary">
 						<li class="list-group-item"><b>Dauer:</b> {{ streamer.ffmpegMetadata.time }} / {{
-							userData.maxRecodingTime }}hrs</li>
+							userData.maxRecordingTime }}hrs</li>
 						<li class="list-group-item"><b>Größe:</b> {{
 							bytesToHumanReadable(parseInt(streamer.ffmpegMetadata.size)) }}
 						</li>
@@ -58,13 +58,14 @@
 						</div>
 					</div>
 				</div>
-				<template v-if="(streamers?.length || 0) < userData.availableSlots">
-					<div v-for="idx in userData.availableSlots - (streamers?.length || 0)" :key="streamers?.length"
+				<template v-if="(streamers?.length || 0) < userData.recordingSlots">
+					<div v-for="idx in userData.recordingSlots - (streamers?.length || 0)" :key="streamers?.length"
 						class="col-3 card">
 						<div class="card-body">
-							<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx + 1 }} /
+							<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
+								(streamers?.length || 0) }} /
 								{{
-									userData.availableSlots }}</h1>
+									userData.recordingSlots }}</h1>
 						</div>
 					</div>
 				</template>
@@ -73,7 +74,7 @@
 					<!-- <pre>{{ sniffEntry }}</pre> -->
 					<div class="card-body">
 						<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
-							userData.availableSlots }} / 🔒
+							userData.recordingSlots }} / 🔒
 						</h1>
 						<div class="mt-4 d-grid gap-2">
 							<button class="btn btn-outline-success">
@@ -84,14 +85,15 @@
 				</div>
 			</div>
 			<h1 class="text-center mt-5 mb-3">
-				Watching
+				Monitoring
 			</h1>
 			<div class="mt-5 row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2">
-				<div v-for="sniffEntry in sniffEntrys?.entrys" :key="sniffEntry.twitchStreamerName"
+				<div v-for="(sniffEntry, idx) in sniffEntrys?.entrys" :key="sniffEntry.twitchStreamerName"
 					class="col-sm-4 col-md-5">
 					<div class="card">
 						<!-- <pre>{{ sniffEntry }}</pre> -->
 						<div class="card-body">
+							<span class="text-muted">Slot {{ idx + 1 }} / {{ userData.streamerSlots }}</span>
 							<h1 class="card-title text-center" style="text-transform: capitalize;">{{
 								sniffEntry.twitchStreamerName }}</h1>
 						</div>
@@ -135,6 +137,32 @@
 						</div>
 					</div>
 				</div>
+				<template v-if="(sniffEntrys?.entrys?.length || 0) < userData.streamerSlots">
+					<div v-for="idx in userData.streamerSlots - (sniffEntrys?.entrys?.length || 0)"
+						:key="sniffEntrys?.entrys?.length" class="col-sm-4 col-md-5">
+						<div class="card">
+							<div class="card-body">
+								<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
+									(sniffEntrys?.entrys.length || 0) }} /
+									{{
+										userData.streamerSlots }}</h1>
+							</div>
+						</div>
+					</div>
+				</template>
+
+				<div class="col-3 card">
+					<div class="card-body">
+						<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
+							userData.streamerSlots }} / 🔒
+						</h1>
+						<div class="mt-4 d-grid gap-2">
+							<button class="btn btn-outline-success">
+								<span class="h4">Unlock more 🔓</span>
+							</button>
+						</div>
+					</div>
+				</div>
 			</div>
 
 		</div>
@@ -143,13 +171,11 @@
 </template>
 
 <script setup lang="ts">
-
-const userData = ref({
-	availableSlots: 1,
-	maxRecodingTime: 8,
-});
-
 import { useIntervalFn } from '@vueuse/core';
+import { useUserData } from '~/utils/userData';
+
+const userData = useUserData();
+
 
 function getLastCheck(lastCheck: number, seconds: boolean) {
 	let num = (new Date().getTime() - lastCheck) / 1000;

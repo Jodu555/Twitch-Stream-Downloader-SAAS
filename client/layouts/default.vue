@@ -16,6 +16,9 @@
 							<NuxtLink to="/" class="nav-link" active-class="active">View</NuxtLink>
 						</li>
 						<li class="nav-item">
+							<NuxtLink to="/videos" class="nav-link" active-class="active">Videos</NuxtLink>
+						</li>
+						<li class="nav-item">
 							<NuxtLink to="/pricing" class="nav-link" active-class="active">Pricing</NuxtLink>
 						</li>
 					</ul>
