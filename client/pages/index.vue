@@ -88,7 +88,7 @@
 				Monitoring
 			</h1>
 			<div class="mt-5 row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2">
-				<div v-for="(sniffEntry, idx) in sniffEntrys?.entrys" :key="sniffEntry.twitchStreamerName"
+				<div v-for="(sniffEntry, idx) in sniffEntrys" :key="sniffEntry.twitchStreamerName"
 					class="col-sm-4 col-md-5">
 					<div class="card">
 						<!-- <pre>{{ sniffEntry }}</pre> -->
@@ -137,13 +137,13 @@
 						</div>
 					</div>
 				</div>
-				<template v-if="(sniffEntrys?.entrys?.length || 0) < userData.streamerSlots">
-					<div v-for="idx in userData.streamerSlots - (sniffEntrys?.entrys?.length || 0)"
-						:key="sniffEntrys?.entrys?.length" class="col-sm-4 col-md-5">
+				<template v-if="(sniffEntrys?.length || 0) < userData.streamerSlots">
+					<div v-for="idx in userData.streamerSlots - (sniffEntrys?.length || 0)" :key="sniffEntrys?.length"
+						class="col-sm-4 col-md-5">
 						<div class="card">
 							<div class="card-body">
 								<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
-									(sniffEntrys?.entrys.length || 0) }} /
+									(sniffEntrys?.length || 0) }} /
 									{{
 										userData.streamerSlots }}</h1>
 							</div>
@@ -233,7 +233,7 @@ function getLastImageTime(imageUrl: string) {
 
 const { data: streamers, error, refresh, status } = await useFetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers');
 
-const { data: sniffEntrys, error: sniffError, refresh: refreshSniffEntrys, status: sniffStatus } = await useFetch<{ lastCheck: number, entrys: SniffEntry[]; }>('http://138.201.131.52:8081/api/v1/sniffEntrys');
+const { data: sniffEntrys, error: sniffError, refresh: refreshSniffEntrys, status: sniffStatus } = await useFetch<SniffEntry[]>('http://138.201.131.52:8081/api/v1/sniffEntrys');
 
 const visibility = useDocumentVisibility();
 

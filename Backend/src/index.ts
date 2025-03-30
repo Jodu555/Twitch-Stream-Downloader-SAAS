@@ -7,6 +7,8 @@ import path from 'path';
 import RecordEntry from './RecordEntry';
 import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 
@@ -15,6 +17,24 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors());
 
+import { Database } from '@jodu555/mysqlapi';
+const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
+database.connect();
+
+database.createTable('sniffEntries', {
+    userUUID: {
+        type: 'varchar(64)',
+    },
+    twitchStreamerName: {
+        type: 'varchar(64)',
+    },
+    everyxMinute: {
+        type: 'INT',
+    },
+    lastCheck: {
+        type: 'BIGINT',
+    },
+});
 
 app.get('/api/v1/streamers', async (req, res) => {
     res.json(processes.map(x => {
@@ -77,10 +97,8 @@ app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
 
 
 app.get('/api/v1/sniffEntrys', async (req, res) => {
-    res.json({
-        lastCheck: lastCheck,
-        entrys: sniffEntrys
-    });
+    const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
+    res.json(sniffEntrys);
 });
 
 const PORT = process.env.PORT || 8081;
@@ -89,63 +107,28 @@ app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
 
-//                                              Pass here the standard pipe you want to use
 const commandManager = CommandManager.createCommandManager(process.stdin, process.stdout);
-
-
-
-main();
-
 
 interface SniffEntry {
     twitchStreamerName: string;
     everyxMinute: number;
-    users?: string[];
+    userUUID: string;
     lastCheck: number;
 }
-
-const sniffEntrys = [
-    {
-        twitchStreamerName: 'pokimane',
-        everyxMinute: 1,
-        lastCheck: Date.now(),
-    },
-    {
-        twitchStreamerName: 'potasticp',
-        everyxMinute: 1,
-        lastCheck: Date.now(),
-    },
-    {
-        twitchStreamerName: 'Cinna',
-        everyxMinute: 5,
-        lastCheck: Date.now(),
-    },
-    {
-        twitchStreamerName: 'F1nn5ter',
-        everyxMinute: 20,
-        lastCheck: Date.now(),
-    },
-    {
-        twitchStreamerName: 'fanfan',
-        everyxMinute: 1,
-        lastCheck: Date.now(),
-    },
-    {
-        twitchStreamerName: 'CottontailVA',
-        everyxMinute: 1,
-        lastCheck: Date.now(),
-    },
-] satisfies SniffEntry[];
 
 const processes = [] as RecordEntry[];
 
 const enbaleSniffEntries = false;
 
 let lastCheck = Date.now();
+main();
 async function main() {
+
     let counter = 0;
-    commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', (command, [...args], scope) => {
+    commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', async (command, [...args], scope) => {
         console.log(processes.map(x => x.metas));
+
+        const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
 
         return [
             'Record List:',
@@ -186,18 +169,20 @@ async function main() {
 
         await Promise.all(processes.map(process => process.heartbeat()));
 
-
+        const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
         for (const sniffEntry of sniffEntrys) {
             if (counter % sniffEntry.everyxMinute != 0)
                 continue;
 
-            sniffEntry.lastCheck = Date.now();
+            await database.get<SniffEntry>('sniffEntries').update({ twitchStreamerName: sniffEntry.twitchStreamerName, userUUID: sniffEntry.userUUID }, {
+                lastCheck: Date.now()
+            });
             if (enbaleSniffEntries) {
                 if (!await isLive(sniffEntry.twitchStreamerName)) {
                     console.log('Stream', sniffEntry.twitchStreamerName, 'is not live!');
                     continue;
                 }
-                const entry = new RecordEntry('JODU', sniffEntry.twitchStreamerName);
+                const entry = new RecordEntry(sniffEntry.userUUID, sniffEntry.twitchStreamerName);
                 await entry.record();
                 processes.push(entry);
                 entry.onRecordingFinished(() => {

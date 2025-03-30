@@ -38,7 +38,9 @@ class RecordEntry {
     public twitchStreamerName: string;
     private userUUID: string;
     public metas: MetaRepresent[];
-    private state: 'WAITING' | 'RECORDING' | 'TRANSCODING' | 'FINISHED' = 'WAITING';
+    private state: 'WAITING' | 'RECORDING' | 'TRANSCODING' | 'FINISHED' | 'DELETED' = 'WAITING';
+
+    public fnishedAt: number;
 
     public videoMeta: VideoMeta;
     public ffmpegMetadata: FfmpegMetadata;
@@ -277,8 +279,8 @@ class RecordEntry {
             fs.rmSync(this.recordingFilePath, { force: true });
             fs.rmSync(this.imageFilePath, { force: true });
             this.state = 'FINISHED';
-
             this.finishedCallbacks.forEach(x => x());
+            this.fnishedAt = Date.now();
         };
 
         this.transcodingProcess.stderr.on('data', (message) => {
