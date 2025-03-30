@@ -32,7 +32,7 @@ function ffmpegTimeToSeconds(time: string) {
 
     return seconds;
 }
-const WATCHING_LIVE = true;
+const WATCHING_LIVE = false;
 class RecordEntry {
     public id: string;
     public twitchStreamerName: string;

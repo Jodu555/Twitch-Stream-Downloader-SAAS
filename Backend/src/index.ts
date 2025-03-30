@@ -101,32 +101,39 @@ interface SniffEntry {
     twitchStreamerName: string;
     everyxMinute: number;
     users?: string[];
+    lastCheck: number;
 }
 
 const sniffEntrys = [
     {
         twitchStreamerName: 'pokimane',
         everyxMinute: 1,
+        lastCheck: Date.now(),
     },
     {
         twitchStreamerName: 'potasticp',
         everyxMinute: 1,
+        lastCheck: Date.now(),
     },
     {
         twitchStreamerName: 'Cinna',
         everyxMinute: 5,
+        lastCheck: Date.now(),
     },
     {
         twitchStreamerName: 'F1nn5ter',
-        everyxMinute: 20
+        everyxMinute: 20,
+        lastCheck: Date.now(),
     },
     {
         twitchStreamerName: 'fanfan',
         everyxMinute: 1,
+        lastCheck: Date.now(),
     },
     {
         twitchStreamerName: 'CottontailVA',
         everyxMinute: 1,
+        lastCheck: Date.now(),
     },
 ] satisfies SniffEntry[];
 
@@ -179,11 +186,13 @@ async function main() {
 
         await Promise.all(processes.map(process => process.heartbeat()));
 
-        if (enbaleSniffEntries) {
-            for (const sniffEntry of sniffEntrys) {
-                if (counter % sniffEntry.everyxMinute != 0)
-                    continue;
 
+        for (const sniffEntry of sniffEntrys) {
+            if (counter % sniffEntry.everyxMinute != 0)
+                continue;
+
+            sniffEntry.lastCheck = Date.now();
+            if (enbaleSniffEntries) {
                 if (!await isLive(sniffEntry.twitchStreamerName)) {
                     console.log('Stream', sniffEntry.twitchStreamerName, 'is not live!');
                     continue;
@@ -197,6 +206,7 @@ async function main() {
                 });
             }
         }
+
 
 
         if (counter >= Number.MAX_SAFE_INTEGER - 55)

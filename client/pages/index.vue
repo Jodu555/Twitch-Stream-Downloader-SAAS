@@ -16,17 +16,18 @@
 				}">
 
 					<!-- <pre>{{ streamer }}</pre> -->
-					<div class="position-absolute" style="transform: translate(15%, 35%);">
-						<div class="spinner-grow" :class="{
-							'text-danger': streamer.state == 'RECORDING',
-							'text-warning': streamer.state == 'TRANSCODING',
-							'text-success': streamer.state == 'FINISHED',
-						}" style="width: 3rem; height: 3rem;" role="status">
-							<span class="visually-hidden">Live...</span>
+					<template v-if="streamer.imageUrl">
+						<div class="position-absolute" style="transform: translate(15%, 35%);">
+							<div class="spinner-grow" :class="{
+								'text-danger': streamer.state == 'RECORDING',
+								'text-warning': streamer.state == 'TRANSCODING',
+								'text-success': streamer.state == 'FINISHED',
+							}" style="width: 3rem; height: 3rem;" role="status">
+								<span class="visually-hidden">Live...</span>
+							</div>
 						</div>
-					</div>
-					<img v-if="streamer.imageUrl" :src="streamer.imageUrl" class="card-img-top py-2"
-						alt="previewImage" />
+						<img :src="streamer.imageUrl" class="card-img-top py-2" alt="previewImage" />
+					</template>
 					<div class="card-body">
 						<span class="text-muted">Slot {{ idx + 1 }} / {{ userData.availableSlots }}</span>
 						<h1 class="card-title text-center" style="text-transform: capitalize;">{{
@@ -98,10 +99,10 @@
 
 							<li v-if="sniffEntry.everyxMinute == 1" class="list-group-item"><b>Letzte Überprüfung
 									vor:</b> {{
-										getLastCheck(sniffEntrys?.lastCheck || 0, true) }}s</li>
+										getLastCheck(sniffEntry.lastCheck, true) }}s</li>
 							<li v-else="sniffEntry.everyxMinute == 1" class="list-group-item"><b>Letzte Überprüfung
 									vor:</b> {{
-										getLastCheck(sniffEntrys?.lastCheck || 0, false) }}m</li>
+										getLastCheck(sniffEntry.lastCheck || 0, false) }}m</li>
 
 
 							<li class="list-group-item"><b>Überprüfung alle:</b> {{ sniffEntry.everyxMinute }}
@@ -196,6 +197,7 @@ interface SniffEntry {
 	twitchStreamerName: string;
 	everyxMinute: number;
 	users?: string[];
+	lastCheck: number;
 }
 
 function getLastImageTime(imageUrl: string) {
@@ -229,6 +231,17 @@ const { pause: pauseSniff, resume: resumeSniff } = useIntervalFn(() => {
 	console.log(`refreshing the sniffdata again ${new Date().toISOString()}`);
 	refreshSniffEntrys();
 }, 1000 * 10);
+
+
+onMounted(() => {
+	resumeStreamers();
+	resumeSniff();
+});
+
+onUnmounted(() => {
+	pauseStreamers();
+	pauseSniff();
+});
 
 function bytesToHumanReadable(size: number, breakSize = 1024) {
 	let u = 0;
