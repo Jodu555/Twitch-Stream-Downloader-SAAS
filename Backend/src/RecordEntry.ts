@@ -32,12 +32,12 @@ function ffmpegTimeToSeconds(time: string) {
 
     return seconds;
 }
-const WATCHING_LIVE = false;
 class RecordEntry {
     public id: string;
     public twitchStreamerName: string;
     private userUUID: string;
     public metas: MetaRepresent[];
+    private watchingLive: boolean;
     private state: 'WAITING' | 'RECORDING' | 'TRANSCODING' | 'FINISHED' | 'DELETED' = 'WAITING';
 
     public fnishedAt: number;
@@ -61,7 +61,7 @@ class RecordEntry {
 
     private tmpDir: string;
 
-    constructor(userUUID: string, twitchStreamerName: string) {
+    constructor(userUUID: string, twitchStreamerName: string, watchingLive?: boolean) {
         this.id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         this.userUUID = userUUID;
         this.twitchStreamerName = twitchStreamerName;
@@ -71,6 +71,7 @@ class RecordEntry {
         // this.maxRecordingTimeSeconds = 8 * 60 * 60;
         this.maxRecordingTimeSeconds = Infinity;
         this.tmpDir = path.join(__dirname, '..', 'TMP');
+        this.watchingLive = watchingLive ?? false;
     }
 
     onRecordingFinished(cb: () => void) {
@@ -117,7 +118,7 @@ class RecordEntry {
     }
 
     async captureScreenshot() {
-        if (WATCHING_LIVE) return;
+        if (this.watchingLive) return;
         if (this.state !== 'RECORDING') return;
 
         this.imageFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.png`);
@@ -187,14 +188,25 @@ class RecordEntry {
 
 
         // -hls_segment_filename "segment_%07d.ts" -master_pl_name "output.m3u8" "playlist.m3u8"
-        if (WATCHING_LIVE) {
+        if (this.watchingLive) {
             //The Portion to be able to watch live
             this.recordingFilePath = path.join(this.tmpDir, 'hls', `${this.twitchStreamerName}-${this.id}`, `master.m3u8`);
             fs.mkdirSync(path.join(this.recordingFilePath, '..'), { recursive: true });
+            console.log('Starting Process', [
+                '-i', meta.streams.best.master,
+                '-c', 'copy',
+                '-f', 'hls',
+                '-hls_time', '2',
+                '-hls_playlist_type', 'event',
+                '-hls_segment_filename', `${path.join(this.recordingFilePath, '..', 'segment_%07d.ts')}`,
+                this.recordingFilePath
+            ]);
+
             this.process = spawn('ffmpeg', [
                 '-i', meta.streams.best.master,
+                '-c', 'copy',
                 '-f', 'hls',
-                '-hls_time', '3',
+                '-hls_time', '2',
                 '-hls_playlist_type', 'event',
                 '-hls_segment_filename', `${path.join(this.recordingFilePath, '..', 'segment_%07d.ts')}`,
                 this.recordingFilePath
@@ -232,13 +244,44 @@ class RecordEntry {
             await this.startTranscoding();
         };
 
+        const getDirSize = () => {
+            const dir = path.join(this.recordingFilePath, '..');
+            const files = fs.readdirSync(dir);
+            console.log(dir, files.length);
+            return files.map(x => fs.statSync(path.join(dir, x)).size).reduce((x, acc) => x + acc, 0);
+        };
+
+        const cache = {
+            time: Date.now(),
+            size: getDirSize().toString(),
+        };
+
         this.process.stderr.on('data', (message) => {
             message = message.toString();
             const re = /frame=(.*)fps=(.*)q=(.*)size=(.*)time=(.*)bitrate=(.*)speed=(.*)x/gi;
             const match = re.exec(message);
             if (match != null) {
                 const [_, frame, fps, __, size, time, bitrate, speed] = match.map(x => x.trim());
-                this.ffmpegMetadata = { frame, fps, size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
+
+                if (this.watchingLive) {
+                    let inc = 0;
+                    console.log(cache, { frame, fps, __, size, time, bitrate, speed });
+
+                    const cacheTime = cache.time;
+                    if (Date.now() >= (cacheTime + 1000 * 5)) {
+                        cache.size = getDirSize().toString();
+                        cache.time = Date.now();
+                    }
+                    cache.size = cache.size;
+                    this.ffmpegMetadata = { frame, fps, size: cache.size, time, bitrate: "0", speed: speed, from: Date.now() } satisfies FfmpegMetadata;
+                } else {
+                    const cacheTime = cache.time;
+                    if (Date.now() >= (cacheTime + 1000 * 2)) {
+                        cache.size = fs.statSync(this.recordingFilePath).size.toString();
+                        cache.time = Date.now();
+                    }
+                    this.ffmpegMetadata = { frame, fps, size: cache.size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
+                }
             }
         });
 
@@ -253,9 +296,7 @@ class RecordEntry {
 
         this.state = 'TRANSCODING';
 
-        const tmpDir = path.join(__dirname, '..', 'TMP');
-
-        const outputFilePath = path.join(tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
+        const outputFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
 
         this.transcodingProcess = spawn('ffmpeg', [
             '-i', this.recordingFilePath,

@@ -15,7 +15,7 @@
 					'border-success': streamer.state == 'FINISHED',
 				}">
 
-					<!-- <pre>{{ streamer }}</pre> -->
+					<pre>{{ streamer }}</pre>
 					<template v-if="streamer.imageUrl">
 						<div class="position-absolute" style="transform: translate(15%, 35%);">
 							<div class="spinner-grow" :class="{
@@ -39,7 +39,10 @@
 						<li class="list-group-item"><b>Größe:</b> {{
 							bytesToHumanReadable(parseInt(streamer.ffmpegMetadata.size)) }}
 						</li>
-						<li class="list-group-item"><b>Geschwindigkeit:</b> {{ streamer.ffmpegMetadata.bitrate }}</li>
+						<li class="list-group-item"><b>Geschwindigkeit:</b> {{ streamer.ffmpegMetadata.bitrate !== '0' ?
+							streamer.ffmpegMetadata.bitrate :
+							streamer.ffmpegMetadata.speed }}{{ streamer.ffmpegMetadata.bitrate !== '0' ? '' : 'x' }}
+						</li>
 						<li class="list-group-item"><b>Status:</b> {{ streamer.state }}</li>
 					</ul>
 					<div class="card-body">

@@ -14,7 +14,7 @@ const app = express();
 
 app.use(express.json());
 
-app.use(morgan('dev'));
+// app.use(morgan('dev'));
 app.use(cors());
 
 import { Database } from '@jodu555/mysqlapi';
@@ -205,15 +205,26 @@ async function main() {
         await Promise.all(processes.map(process => process.captureScreenshot()));
     }, 1000 * 30);
 
-    // setTimeout(async () => {
-    //     console.log('Starting Hardcoded Recording');
-    //     const entry = new RecordEntry('JODU', 'Sintica');
-    //     await entry.record();
-    //     processes.push(entry);
-    //     entry.onRecordingFinished(() => {
-    //         console.log('Recording Finished for', entry);
-    //         processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-    //     });
-    // }, 1000);
+    setTimeout(async () => {
+        console.log('Starting Hardcoded Recording');
+        {
+            const entry = new RecordEntry('JODU', 'xchocobars', true);
+            await entry.record();
+            processes.push(entry);
+            entry.onRecordingFinished(() => {
+                console.log('Recording Finished for', entry);
+                processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+            });
+        }
+        {
+            const entry = new RecordEntry('JODU', 'jinnytty', false);
+            await entry.record();
+            processes.push(entry);
+            entry.onRecordingFinished(() => {
+                console.log('Recording Finished for', entry);
+                processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+            });
+        }
+    }, 1000);
 
 }
