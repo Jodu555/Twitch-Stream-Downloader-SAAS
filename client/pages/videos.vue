@@ -1,8 +1,50 @@
 <template>
     <div>
+        <ClientOnly>
+            <Modal size="xl" v-model:show="showTitel">
+                <template #title> Titles and Categories of the Stream from {{videos?.find(x => x.id ==
+                    titleViewID)?.twitchStreamerName}}</template>
+                <template #body>
+                    <!-- <h5 class="text-center">Auto Generated Titles based on the stream ones</h5>
+                    <div class="table-responsive-md">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Title</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="meta in videos?.find(x => x.id == titleViewID)?.metas" class="">
+                                    <td>{{ meta.title }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div> -->
+                    <h5 class="text-center">Stream Titles</h5>
+                    <div class="table-responsive-md">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Time</th>
+                                    <th scope="col">Title</th>
+                                    <th scope="col">Category</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="meta in videos?.find(x => x.id == titleViewID)?.metas" class="">
+                                    <td scope="row">{{ new Date(meta.time).toLocaleString('de') }}</td>
+                                    <td>{{ meta.title }}</td>
+                                    <td>{{ meta.category }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+            </Modal>
+        </ClientOnly>
         <pre>
-			<!-- {{ { status, error, sniffStatus, sniffError } }} -->
-		</pre>
+    <!-- {{ { status, error, sniffStatus, sniffError } }} -->
+</pre>
         <div class="py-3">
             <!-- <div class="row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2"> -->
             <h1 class="text-center mt-2 mb-3">
@@ -55,9 +97,9 @@
                             }}</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
-                            <button class="col-6 btn btn-outline-secondary">Titel</button>
-                            <button disabled title="Coming Soon"
-                                class="col-4 btn btn-outline-primary-emphasis">Upload</button>
+                            <button class="col-6 btn btn-outline-secondary"
+                                @click="showTitel = true; titleViewID = video.id">Titel</button>
+                            <span class="col-4 text-info-emphasis text-center align-middle">Coming Soon</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
                             <button class="col-6 btn btn-outline-success">Herunterladen</button>
@@ -104,6 +146,8 @@ import { useUserData } from '~/utils/userData';
 
 const userData = useUserData();
 
+const titleViewID = ref('');
+const showTitel = ref(false);
 
 function getLastCheck(lastCheck: number, seconds: boolean) {
     let num = (new Date().getTime() - lastCheck) / 1000;
@@ -167,6 +211,8 @@ function until(ms: number) {
     const timeAgo = useTimeAgo(new Date(ms));
     return timeAgo.value;
 }
+
+// const { data: aiTitles, error: aiTitlesError, refresh: refreshAITitles, status: aiTitlesStatus, execute } = await useFetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos');
 
 const { data: videos, error, refresh, status } = await useFetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos');
 

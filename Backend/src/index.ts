@@ -61,6 +61,32 @@ app.get('/api/v1/videos', async (req, res) => {
     res.json(processes.filter(x => x.getState() == 'FINISHED').map(translateRecordForFrontend));
 });
 
+app.delete('/api/v1/videos/:id', async (req, res) => {
+    const process = processes.find(x => x.id == req.params.id);
+    if (process == null) {
+        res.status(404).send('Process Not Found');
+        return;
+    }
+    await process.callCleanup();
+    await process.delete();
+    // process.cleanup();
+    res.send('Deleted');
+});
+
+app.get('/api/v1/videos/:id/transcode', async (req, res) => {
+    const process = processes.find(x => x.id == req.params.id);
+    if (process == null) {
+        res.status(404).send('Process Not Found');
+        return;
+    }
+    if (process.getState() != 'RECORDING') {
+        res.status(404).send('Process Not in state recording');
+        return;
+    }
+    await process.callCleanup();
+    res.send('Transcoded');
+});
+
 app.get('/api/v1/streamers/image/:id', async (req, res) => {
     const process = processes.find(x => x.id == req.params.id);
     if (process == null) {

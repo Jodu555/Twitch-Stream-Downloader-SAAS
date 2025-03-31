@@ -53,7 +53,7 @@ class RecordEntry {
 
     private maxRecordingTimeSeconds: number;
     private finishedCallbacks: (() => void)[];
-    private cleanup: (() => void) | null;
+    private cleanup: (() => Promise<void>) | null;
 
     public recordingFilePath: string;
     public imageFilePath: string;
@@ -276,7 +276,7 @@ class RecordEntry {
         this.process.on('close', this.cleanup);
     }
 
-    async startTranscoding() {
+    private async startTranscoding() {
         if (this.state != 'RECORDING')
             return;
 
@@ -327,6 +327,10 @@ class RecordEntry {
         this.transcodingProcess.stderr.on('close', this.cleanup);
         this.transcodingProcess.on('exit', this.cleanup);
         this.transcodingProcess.on('close', this.cleanup);
+    }
+
+    async delete() {
+        this.state = 'DELETED';
     }
 }
 
