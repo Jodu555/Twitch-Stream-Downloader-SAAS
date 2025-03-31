@@ -40,7 +40,7 @@ class RecordEntry {
     public watchingLive: boolean;
     private state: 'WAITING' | 'RECORDING' | 'TRANSCODING' | 'FINISHED' | 'DELETED' = 'WAITING';
 
-    public fnishedAt: number;
+    public finishedAt: number;
 
     public videoMeta: VideoMeta;
     public ffmpegMetadata: FfmpegMetadata;
@@ -311,7 +311,7 @@ class RecordEntry {
             }
             this.state = 'FINISHED';
             this.finishedCallbacks.forEach(x => x());
-            this.fnishedAt = Date.now();
+            this.finishedAt = Date.now();
         };
 
         this.transcodingProcess.stderr.on('data', (message) => {

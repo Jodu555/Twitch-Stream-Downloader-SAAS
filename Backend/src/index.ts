@@ -43,6 +43,7 @@ function translateRecordForFrontend(x: RecordEntry) {
         metas: x.metas,
         state: x.getState(),
         watchingLive: x.watchingLive,
+        finishedAt: x.finishedAt,
         pid: x.pid,
         videoMeta: x.videoMeta,
         ffmpegMetadata: x.ffmpegMetadata,

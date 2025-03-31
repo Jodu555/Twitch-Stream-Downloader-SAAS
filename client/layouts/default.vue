@@ -16,9 +16,16 @@
 							<NuxtLink to="/" class="nav-link" active-class="active">View</NuxtLink>
 						</li>
 						<li class="nav-item">
-							<NuxtLink to="/videos" class="nav-link" active-class="active">Videos</NuxtLink>
+							<NuxtLink to="/videos" class="nav-link position-relative" active-class="active">
+								Videos
+								<span
+									class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+									2
+									<span class="visually-hidden">Open Videos</span>
+								</span>
+							</NuxtLink>
 						</li>
-						<li class="nav-item">
+						<li class="nav-item ms-3">
 							<NuxtLink to="/pricing" class="nav-link" active-class="active">Pricing</NuxtLink>
 						</li>
 					</ul>
