@@ -209,7 +209,7 @@ async function main() {
     setInterval(async () => {
         counter++;
 
-        await Promise.all(processes.map(process => process.heartbeat()));
+        await Promise.all(processes.filter(x => x.getState() == 'RECORDING').map(process => process.heartbeat()));
 
         const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
         for (const sniffEntry of sniffEntrys) {
@@ -244,7 +244,7 @@ async function main() {
     }, 1000 * 60);
 
     setInterval(async () => {
-        await Promise.all(processes.map(process => process.captureScreenshot()));
+        await Promise.all(processes.filter(x => x.getState() == 'RECORDING').map(process => process.captureScreenshot()));
     }, 1000 * 30);
 
     setTimeout(async () => {
