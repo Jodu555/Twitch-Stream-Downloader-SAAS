@@ -14,20 +14,24 @@
 					'border-warning': streamer.state == 'TRANSCODING',
 					'border-success': streamer.state == 'FINISHED',
 				}">
-
-					<pre>{{ streamer }}</pre>
-					<template v-if="streamer.imageUrl">
-						<div class="position-absolute" style="transform: translate(15%, 35%);">
-							<div class="spinner-grow" :class="{
-								'text-danger': streamer.state == 'RECORDING',
-								'text-warning': streamer.state == 'TRANSCODING',
-								'text-success': streamer.state == 'FINISHED',
-							}" style="width: 3rem; height: 3rem;" role="status">
-								<span class="visually-hidden">Live...</span>
-							</div>
+					<!-- <pre>{{ streamer }}</pre> -->
+					<div v-if="streamer.watchingLive || streamer.imageUrl" class="position-absolute"
+						style="transform: translate(15%, 35%);">
+						<div class="spinner-grow" :class="{
+							'text-danger': streamer.state == 'RECORDING',
+							'text-warning': streamer.state == 'TRANSCODING',
+							'text-success': streamer.state == 'FINISHED',
+						}" style="width: 3rem; height: 3rem;" role="status">
+							<span class="visually-hidden">Live...</span>
 						</div>
+					</div>
+					<template v-if="streamer.imageUrl">
 						<img :src="streamer.imageUrl" class="card-img-top py-2" alt="previewImage" />
 					</template>
+					<ClientOnly v-if="streamer.twitchStreamerName == 'xchocobars'" fallback="Loading video...">
+						<VideoPlayer class="card-img-top py-2"
+							:link="`http://138.201.131.52:8081/api/v1/live/${streamer.id}/hls/master.m3u8`" />
+					</ClientOnly>
 					<div class="card-body">
 						<span class="text-muted">Slot {{ idx + 1 }} / {{ userData.recordingSlots }}</span>
 						<h1 class="card-title text-center" style="text-transform: capitalize;">{{
@@ -189,6 +193,7 @@ function getLastCheck(lastCheck: number, seconds: boolean) {
 
 interface Streamer {
 	id: string;
+	watchingLive: boolean;
 	twitchStreamerName: string;
 	metas: MetaRepresent[];
 	state: 'WAITING' | 'RECORDING' | 'TRANSCODING' | 'FINISHED';

@@ -43,6 +43,7 @@ app.get('/api/v1/streamers', async (req, res) => {
             twitchStreamerName: x.twitchStreamerName,
             metas: x.metas,
             state: x.getState(),
+            watchingLive: x.watchingLive,
             pid: x.pid,
             videoMeta: x.videoMeta,
             ffmpegMetadata: x.ffmpegMetadata,

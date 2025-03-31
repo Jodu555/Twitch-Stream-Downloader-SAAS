@@ -37,7 +37,7 @@ class RecordEntry {
     public twitchStreamerName: string;
     private userUUID: string;
     public metas: MetaRepresent[];
-    private watchingLive: boolean;
+    public watchingLive: boolean;
     private state: 'WAITING' | 'RECORDING' | 'TRANSCODING' | 'FINISHED' | 'DELETED' = 'WAITING';
 
     public fnishedAt: number;

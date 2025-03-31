@@ -5,7 +5,7 @@ export type PricingTable = Record<PricingTableKey, PricingTableObject>;
 
 export interface PricingTableObject {
     adFree: boolean;
-    // watchWhileRecording: boolean;
+    watchWhileRecording: boolean;
     recordingSlots: number;
     videoSlots: number;
     streamerSlots: number;
@@ -18,7 +18,7 @@ export function usePricingTable() {
     const pricingTable = ref<PricingTable>({
         free: {
             adFree: true,
-            // watchWhileRecording: false,
+            watchWhileRecording: false,
             recordingSlots: 1,
             videoSlots: 2,
             streamerSlots: 3,
@@ -28,7 +28,7 @@ export function usePricingTable() {
         },
         premium: {
             adFree: true,
-            // watchWhileRecording: false,
+            watchWhileRecording: false,
             recordingSlots: 4,
             videoSlots: 6,
             streamerSlots: 8,
@@ -38,7 +38,7 @@ export function usePricingTable() {
         },
         ultimate: {
             adFree: true,
-            // watchWhileRecording: true,
+            watchWhileRecording: true,
             recordingSlots: 8,
             videoSlots: 20,
             streamerSlots: 15,
