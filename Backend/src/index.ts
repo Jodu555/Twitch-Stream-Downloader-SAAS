@@ -174,7 +174,7 @@ async function main() {
         processes.push(entry);
         entry.onRecordingFinished(() => {
             console.log('Recording Finished for', entry);
-            processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+            // processes.splice(processes.findIndex(e => e.id == entry.id), 1);
         });
         return '';
     }));
@@ -229,7 +229,7 @@ async function main() {
                 processes.push(entry);
                 entry.onRecordingFinished(() => {
                     console.log('Recording Finished for', entry);
-                    processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+                    // processes.splice(processes.findIndex(e => e.id == entry.id), 1);
                 });
             }
         }
@@ -262,10 +262,10 @@ async function main() {
             const entry = new RecordEntry('JODU', 'jinnytty', true);
             await entry.record();
             processes.push(entry);
-            // entry.onRecordingFinished(() => {
-            //     console.log('Recording Finished for', entry);
-            //     processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-            // });
+            entry.onRecordingFinished(() => {
+                console.log('Recording Finished for', entry);
+                // processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+            });
         }
     }, 1000);
 
