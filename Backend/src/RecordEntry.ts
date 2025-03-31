@@ -165,6 +165,10 @@ class RecordEntry {
         await this.cleanup();
     }
 
+    async callCleanup() {
+        await this.cleanup();
+    }
+
     async record() {
         if (!await isLive(this.twitchStreamerName)) {
             console.log('Stream', this.twitchStreamerName, 'is not live!');
@@ -180,27 +184,13 @@ class RecordEntry {
         this.metas.push({ title: meta.metadata.title, category: meta.metadata.category, time: Date.now() });
 
 
-
-
-
         this.state = 'RECORDING';
-
-
 
         // -hls_segment_filename "segment_%07d.ts" -master_pl_name "output.m3u8" "playlist.m3u8"
         if (this.watchingLive) {
             //The Portion to be able to watch live
             this.recordingFilePath = path.join(this.tmpDir, 'hls', `${this.twitchStreamerName}-${this.id}`, `master.m3u8`);
             fs.mkdirSync(path.join(this.recordingFilePath, '..'), { recursive: true });
-            console.log('Starting Process', [
-                '-i', meta.streams.best.master,
-                '-c', 'copy',
-                '-f', 'hls',
-                '-hls_time', '2',
-                '-hls_playlist_type', 'event',
-                '-hls_segment_filename', `${path.join(this.recordingFilePath, '..', 'segment_%07d.ts')}`,
-                this.recordingFilePath
-            ]);
 
             this.process = spawn('ffmpeg', [
                 '-i', meta.streams.best.master,
@@ -247,7 +237,6 @@ class RecordEntry {
         const getDirSize = () => {
             const dir = path.join(this.recordingFilePath, '..');
             const files = fs.readdirSync(dir);
-            console.log(dir, files.length);
             return files.map(x => fs.statSync(path.join(dir, x)).size).reduce((x, acc) => x + acc, 0);
         };
 
@@ -264,9 +253,6 @@ class RecordEntry {
                 const [_, frame, fps, __, size, time, bitrate, speed] = match.map(x => x.trim());
 
                 if (this.watchingLive) {
-                    let inc = 0;
-                    console.log(cache, { frame, fps, __, size, time, bitrate, speed });
-
                     const cacheTime = cache.time;
                     if (Date.now() >= (cacheTime + 1000 * 5)) {
                         cache.size = getDirSize().toString();
@@ -308,7 +294,7 @@ class RecordEntry {
         this.transcodingPid = this.transcodingProcess.pid;
 
         let cleaned = false;
-        this.cleanup = () => {
+        this.cleanup = async () => {
             if (cleaned) return;
             cleaned = true;
             this.process.kill();
@@ -317,8 +303,12 @@ class RecordEntry {
             console.log('Cleaned up for ', this);
 
             //Delete the video file
-            fs.rmSync(this.recordingFilePath, { force: true });
-            fs.rmSync(this.imageFilePath, { force: true });
+            if (this.watchingLive) {
+                fs.rmSync(path.join(this.recordingFilePath, '..'), { recursive: true, force: true });
+            } else {
+                fs.rmSync(this.recordingFilePath, { force: true });
+                this.imageFilePath && fs.rmSync(this.imageFilePath, { force: true });
+            }
             this.state = 'FINISHED';
             this.finishedCallbacks.forEach(x => x());
             this.fnishedAt = Date.now();

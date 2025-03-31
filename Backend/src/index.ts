@@ -36,29 +36,31 @@ database.createTable('sniffEntries', {
     },
 });
 
+function translateRecordForFrontend(x: RecordEntry) {
+    return {
+        id: x.id,
+        twitchStreamerName: x.twitchStreamerName,
+        metas: x.metas,
+        state: x.getState(),
+        watchingLive: x.watchingLive,
+        pid: x.pid,
+        videoMeta: x.videoMeta,
+        ffmpegMetadata: x.ffmpegMetadata,
+        transcodingPid: x.transcodingPid,
+        recordingFilePath: x.recordingFilePath,
+        imageFilePath: x.imageFilePath,
+        imageUrl: x.imageUrl,
+    };
+}
+
 app.get('/api/v1/streamers', async (req, res) => {
-    res.json(processes.map(x => {
-        return {
-            id: x.id,
-            twitchStreamerName: x.twitchStreamerName,
-            metas: x.metas,
-            state: x.getState(),
-            watchingLive: x.watchingLive,
-            pid: x.pid,
-            videoMeta: x.videoMeta,
-            ffmpegMetadata: x.ffmpegMetadata,
-            transcodingPid: x.transcodingPid,
-            recordingFilePath: x.recordingFilePath,
-            imageFilePath: x.imageFilePath,
-            imageUrl: x.imageUrl,
-        };
-    }));
+    res.json(processes.filter(x => x.getState() != 'FINISHED').map(translateRecordForFrontend));
+});
+app.get('/api/v1/videos', async (req, res) => {
+    res.json(processes.filter(x => x.getState() == 'FINISHED').map(translateRecordForFrontend));
 });
 
 app.get('/api/v1/streamers/image/:id', async (req, res) => {
-    console.log(`Searching Process: "${req.params.id}"`);
-
-
     const process = processes.find(x => x.id == req.params.id);
     if (process == null) {
         res.status(404).send('Process Not Found');
@@ -75,9 +77,6 @@ app.get('/api/v1/streamers/image/:id', async (req, res) => {
 });
 
 app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
-    console.log(`Searching Process: "${req.params.id}"`);
-
-
     const process = processes.find(x => x.id == req.params.id);
     if (process == null) {
         res.status(404).send('Process Not Found');
@@ -153,6 +152,21 @@ async function main() {
         return '';
     }));
 
+    commandManager.registerCommand(new Command(['transcode', 't'], 'transcode <ID>', 'Starts the transcoding process for a given ID', async (command, [...args], scope) => {
+        const id = args[1];
+        const entry = processes.find(x => x.id == id);
+        if (entry == null) {
+            return 'Entry not found';
+        }
+        if (entry.getState() !== 'RECORDING') {
+            return 'Entry is not in state recording';
+        }
+
+        await entry.callCleanup();
+
+        return 'Started Transcoding for ' + id;
+    }));
+
 
     const tmpDir = path.join(__dirname, '..', 'TMP');
 
@@ -208,23 +222,23 @@ async function main() {
 
     setTimeout(async () => {
         console.log('Starting Hardcoded Recording');
+        // {
+        //     const entry = new RecordEntry('JODU', 'xchocobars', true);
+        //     await entry.record();
+        //     processes.push(entry);
+        //     entry.onRecordingFinished(() => {
+        //         console.log('Recording Finished for', entry);
+        //         processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+        //     });
+        // }
         {
-            const entry = new RecordEntry('JODU', 'xchocobars', true);
+            const entry = new RecordEntry('JODU', 'jinnytty', true);
             await entry.record();
             processes.push(entry);
-            entry.onRecordingFinished(() => {
-                console.log('Recording Finished for', entry);
-                processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-            });
-        }
-        {
-            const entry = new RecordEntry('JODU', 'jinnytty', false);
-            await entry.record();
-            processes.push(entry);
-            entry.onRecordingFinished(() => {
-                console.log('Recording Finished for', entry);
-                processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-            });
+            // entry.onRecordingFinished(() => {
+            //     console.log('Recording Finished for', entry);
+            //     processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+            // });
         }
     }, 1000);
 

@@ -9,12 +9,13 @@
 				Recordings
 			</h1>
 			<div class="row gap-3">
-				<div v-for="(streamer, idx) in streamers" :key="streamer.id" class="col-4 card" :class="{
-					'border-danger': streamer.state == 'RECORDING',
-					'border-warning': streamer.state == 'TRANSCODING',
-					'border-success': streamer.state == 'FINISHED',
-				}">
-					<!-- <pre>{{ streamer }}</pre> -->
+				<div v-for="(streamer, idx) in streamers?.filter(x => x.state != 'FINISHED')" :key="streamer.id"
+					class="col-4 card" :class="{
+						'border-danger': streamer.state == 'RECORDING',
+						'border-warning': streamer.state == 'TRANSCODING',
+						'border-success': streamer.state == 'FINISHED',
+					}">
+					<pre>{{ streamer }}</pre>
 					<div v-if="streamer.watchingLive || streamer.imageUrl" class="position-absolute"
 						style="transform: translate(15%, 35%);">
 						<div class="spinner-grow" :class="{
@@ -28,7 +29,7 @@
 					<template v-if="streamer.imageUrl">
 						<img :src="streamer.imageUrl" class="card-img-top py-2" alt="previewImage" />
 					</template>
-					<ClientOnly v-if="streamer.twitchStreamerName == 'xchocobars'" fallback="Loading video...">
+					<ClientOnly v-if="streamer.watchingLive" fallback="Loading video...">
 						<VideoPlayer class="card-img-top py-2"
 							:link="`http://138.201.131.52:8081/api/v1/live/${streamer.id}/hls/master.m3u8`" />
 					</ClientOnly>
