@@ -57,7 +57,7 @@
                     'border-success': false,
                 }">
 
-                    <pre>{{ video }}</pre>
+                    <!-- <pre>{{ video }}</pre> -->
                     <!-- <template v-if="streamer.imageUrl">
                         <div class="position-absolute" style="transform: translate(15%, 35%);">
                             <div class="spinner-grow" :class="{
@@ -79,7 +79,7 @@
                         <li class="list-group-item"><b>Dauer:</b> {{ video.ffmpegMetadata.time }} / {{
                             userData.maxRecordingTime }}hrs</li>
                         <li class="list-group-item"><b>Größe:</b> {{
-                            bytesToHumanReadable(parseInt(video.ffmpegMetadata.size)) }}
+                            bytesToHumanReadable(parseInt(video.videoMeta.size)) }}
                         </li>
                         <li class="list-group-item text-danger fw-bold"><b>Deletion:</b> {{ until(video.finishedAt
                             +
@@ -97,8 +97,8 @@
                             }}</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
-                            <button class="col-6 btn btn-outline-secondary"
-                                @click="showTitel = true; titleViewID = video.id">Titel</button>
+                            <button class="col-7 btn btn-outline-secondary"
+                                @click="showTitel = true; titleViewID = video.id">Titel & Kategorien</button>
                             <span class="col-4 text-info-emphasis text-center align-middle">Coming Soon</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
@@ -185,6 +185,10 @@ interface RecordedVideo {
     finishedAt: number;
     twitchStreamerName: string;
     metas: MetaRepresent[];
+    videoMeta: {
+        time: string;
+        size: string;
+    };
     ffmpegMetadata?: FfmpegMetadata;
 }
 

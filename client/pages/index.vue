@@ -8,14 +8,14 @@
 			<h1 class="text-center mt-2 mb-3">
 				Recordings
 			</h1>
-			<div class="row gap-3">
+			<div class="row">
 				<div v-for="(streamer, idx) in streamers?.filter(x => x.state != 'FINISHED')" :key="streamer.id"
-					class="col-4 card" :class="{
+					class="col-4 card mb-3 p-2" :class="{
 						'border-danger': streamer.state == 'RECORDING',
 						'border-warning': streamer.state == 'TRANSCODING',
 						'border-success': streamer.state == 'FINISHED',
 					}">
-					<pre>{{ streamer }}</pre>
+					<!-- <pre>{{ streamer }}</pre> -->
 					<div v-if="streamer.watchingLive || streamer.imageUrl" class="position-absolute"
 						style="transform: translate(15%, 35%);">
 						<div class="spinner-grow" :class="{
@@ -60,15 +60,16 @@
 						<div class="row justify-content-around py-2">
 							<a :href="`https://twitch.tv/${streamer.twitchStreamerName}`" target="_blank"
 								class="col-4 btn btn-outline-info">Kanal</a>
-							<button :disabled="streamer.state == 'TRANSCODING'" class="col-6 btn btn-outline-warning">
-								Test
+							<button :disabled="streamer.state == 'TRANSCODING'" @click="stopRecording(streamer.id)"
+								class="col-6 btn btn-outline-warning">
+								Stop Recording
 							</button>
 						</div>
 					</div>
 				</div>
 				<template v-if="(streamers?.length || 0) < userData.recordingSlots">
 					<div v-for="idx in userData.recordingSlots - (streamers?.length || 0)" :key="streamers?.length"
-						class="col-3 card">
+						class="col-3 card me-2">
 						<div class="card-body">
 							<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
 								(streamers?.length || 0) }} /
@@ -184,6 +185,15 @@ import { useUserData } from '~/utils/userData';
 
 const userData = useUserData();
 
+async function stopRecording(id: string) {
+	const result = await $fetch(`http://138.201.131.52:8081/api/v1/videos/${id}/transcode`, {
+		method: 'GET',
+	});
+
+	console.log(result);
+
+}
+
 
 function getLastCheck(lastCheck: number, seconds: boolean) {
 	let num = (new Date().getTime() - lastCheck) / 1000;
@@ -258,12 +268,12 @@ watch(visibility, () => {
 });
 
 const { pause: pauseStreamers, resume: resumeStreamers } = useIntervalFn(() => {
-	console.log(`refreshing the data again ${new Date().toISOString()}`);
+	// console.log(`refreshing the data again ${new Date().toISOString()}`);
 	refresh();
 }, 1000);
 
 const { pause: pauseSniff, resume: resumeSniff } = useIntervalFn(() => {
-	console.log(`refreshing the sniffdata again ${new Date().toISOString()}`);
+	// console.log(`refreshing the sniffdata again ${new Date().toISOString()}`);
 	refreshSniffEntrys();
 }, 1000 * 10);
 

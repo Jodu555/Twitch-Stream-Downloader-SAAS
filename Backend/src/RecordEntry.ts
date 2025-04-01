@@ -242,7 +242,7 @@ class RecordEntry {
 
         const cache = {
             time: Date.now(),
-            size: getDirSize().toString(),
+            size: '0',
         };
 
         this.process.stderr.on('data', (message) => {
@@ -314,13 +314,23 @@ class RecordEntry {
             this.finishedAt = Date.now();
         };
 
+        const cache = {
+            time: Date.now(),
+            size: '0',
+        };
+
         this.transcodingProcess.stderr.on('data', (message) => {
             message = message.toString();
             const re = /frame=(.*)fps=(.*)q=(.*)size=(.*)time=(.*)bitrate=(.*)speed=(.*)x/gi;
             const match = re.exec(message);
             if (match != null) {
                 const [_, frame, fps, __, size, time, bitrate, speed] = match.map(x => x.trim());
-                this.ffmpegMetadata = { frame, fps, size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
+                const cacheTime = cache.time;
+                if (Date.now() >= (cacheTime + 1000 * 2)) {
+                    cache.size = fs.statSync(this.recordingFilePath).size.toString();
+                    cache.time = Date.now();
+                }
+                this.ffmpegMetadata = { frame, fps, size: cache.size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
             }
         });
 

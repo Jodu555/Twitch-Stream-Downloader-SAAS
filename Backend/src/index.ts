@@ -116,7 +116,17 @@ app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
         return;
     }
 
-    const result = path.join(hlsFilePath, '..', req.params.filename);
+    const hlsDir = path.join(hlsFilePath, '..');
+
+    const filename = req.params.filename;
+
+    const files = fs.readdirSync(hlsDir);
+    if (!files.includes(filename)) {
+        res.status(404).send('HLS File Not Found');
+        return;
+    }
+
+    const result = path.join(hlsFilePath, '..', filename);
 
     res.sendFile(result);
 
@@ -167,9 +177,11 @@ async function main() {
         ];
     }));
 
-    commandManager.registerCommand(new Command(['record', 'r'], 'record <Name>', 'Records a new stream', async (command, [...args], scope) => {
+    commandManager.registerCommand(new Command(['record', 'r'], 'record <Name> <watchLive>', 'Records a new stream', async (command, [...args], scope) => {
         const streamer = args[1];
-        const entry = new RecordEntry('JODU', streamer);
+        const watchLive = args[2] ? (args[2] == '1' || args[2] == 'true') : false;
+        console.log('Recording:', streamer, ' with watchLive Flag:', watchLive);
+        const entry = new RecordEntry('JODU', streamer, watchLive);
         await entry.record();
         processes.push(entry);
         entry.onRecordingFinished(() => {
@@ -259,7 +271,12 @@ async function main() {
         //     });
         // }
         {
-            const entry = new RecordEntry('JODU', 'jinnytty', true);
+            const streamer = 'jinnytty';
+            if (!await isLive(streamer)) {
+                console.log('Stream', streamer, 'is not live!');
+                return;
+            }
+            const entry = new RecordEntry('JODU', streamer, true);
             await entry.record();
             processes.push(entry);
             entry.onRecordingFinished(() => {
