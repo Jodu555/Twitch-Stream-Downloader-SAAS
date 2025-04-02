@@ -237,7 +237,7 @@ class RecordEntry {
         const getDirSize = () => {
             const dir = path.join(this.recordingFilePath, '..');
             const files = fs.readdirSync(dir);
-            return files.map(x => fs.statSync(path.join(dir, x)).size).reduce((x, acc) => x + acc, 0);
+            return files.filter(x => !x.endsWith('.tmp')).map(x => fs.statSync(path.join(dir, x)).size).reduce((x, acc) => x + acc, 0);
         };
 
         const cache = {
@@ -327,7 +327,7 @@ class RecordEntry {
                 const [_, frame, fps, __, size, time, bitrate, speed] = match.map(x => x.trim());
                 const cacheTime = cache.time;
                 if (Date.now() >= (cacheTime + 1000 * 2)) {
-                    cache.size = fs.statSync(this.recordingFilePath).size.toString();
+                    cache.size = fs.statSync(outputFilePath).size.toString();
                     cache.time = Date.now();
                 }
                 this.ffmpegMetadata = { frame, fps, size: cache.size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;

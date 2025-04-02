@@ -52,8 +52,9 @@
 							streamer.twitchStreamerName }}</h1>
 					</div>
 					<ul v-if="streamer.ffmpegMetadata != null" class="list-group list-group-flush border-secondary">
-						<li class="list-group-item"><b>Dauer:</b> {{ streamer.ffmpegMetadata.time }} / {{
-							userData.maxRecordingTime }}hrs</li>
+						<li class="list-group-item"><b>Dauer:</b> {{ streamer.ffmpegMetadata.time }} / {{ streamer.state
+							== 'RECORDING' ?
+							userData.maxRecordingTime + 'hrs' : streamer.videoMeta.time }}</li>
 						<li class="list-group-item"><b>Größe:</b> {{
 							bytesToHumanReadable(parseInt(streamer.ffmpegMetadata.size)) }}
 						</li>

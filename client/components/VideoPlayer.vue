@@ -11,7 +11,26 @@ const props = defineProps<{
     link: string;
 }>();
 
-const video = ref(null);
+const video = ref<HTMLVideoElement>();
+const hls = ref<Hls>();
+
+const visibility = useDocumentVisibility();
+
+watch(visibility, () => {
+    const vid = video.value;
+    if (!vid) return;
+    console.log(visibility.value);
+    if (visibility.value == 'visible') {
+        // hls.value?.to
+        vid.play();
+        hls.value?.resumeBuffering();
+        vid.currentTime = vid.duration - 5;
+    } else {
+        vid.pause();
+        hls.value?.pauseBuffering();
+    }
+});
+
 
 onMounted(() => {
     prepareVideoPlayer();
@@ -21,12 +40,16 @@ onUpdated(() => {
     prepareVideoPlayer();
 });
 
+onUnmounted(() => {
+    hls.value?.destroy();
+});
+
 function prepareVideoPlayer() {
-    let hls = new Hls();
-    let stream = props.link;
-    hls.loadSource(stream);
+    hls.value = new Hls();
+    const stream = props.link;
+    hls.value.loadSource(stream);
     if (video.value) {
-        hls.attachMedia(video.value);
+        hls.value.attachMedia(video.value);
     }
 }
 

@@ -50,8 +50,8 @@
             <h1 class="text-center mt-2 mb-3">
                 Videos
             </h1>
-            <div class="row gap-3">
-                <div v-for="(video, idx) in videos" :key="video.id" class="col-4 card" :class="{
+            <div class="row">
+                <div v-for="(video, idx) in videos" :key="video.id" class="col-3 mb-3 card" :class="{
                     'border-danger': false,
                     'border-warning': false,
                     'border-success': false,
@@ -111,7 +111,7 @@
                 </div>
                 <template v-if="(videos?.length || 0) < userData.videoSlots">
                     <div v-for="idx in userData.recordingSlots - (videos?.length || 0)" :key="videos?.length"
-                        class="col-3 card">
+                        class="col-3 mb-3 card">
                         <div class="card-body">
                             <h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
                                 (videos?.length || 0) }} /
@@ -121,7 +121,7 @@
                     </div>
                 </template>
 
-                <div class="col-3 card">
+                <div class="col-3 mb-3 card">
                     <!-- <pre>{{ sniffEntry }}</pre> -->
                     <div class="card-body">
                         <h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
