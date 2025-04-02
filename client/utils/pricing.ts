@@ -1,5 +1,5 @@
 
-export type PricingTableKey = 'free' | 'premium' | 'ultimate';
+export type PricingTableKey = 'free' | 'premium' | 'advanced';
 
 export type PricingTable = Record<PricingTableKey, PricingTableObject>;
 
@@ -36,7 +36,7 @@ export function usePricingTable() {
             streamerCheckEvery: 1,
             videoRetentionDays: 7,
         },
-        ultimate: {
+        advanced: {
             adFree: true,
             watchWhileRecording: true,
             recordingSlots: 8,

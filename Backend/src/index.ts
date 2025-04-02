@@ -57,8 +57,25 @@ function translateRecordForFrontend(x: RecordEntry) {
 app.get('/api/v1/streamers', async (req, res) => {
     res.json(processes.filter(x => x.getState() != 'FINISHED').map(translateRecordForFrontend));
 });
+
 app.get('/api/v1/videos', async (req, res) => {
     res.json(processes.filter(x => x.getState() == 'FINISHED').map(translateRecordForFrontend));
+});
+
+app.get('/api/v1/streamers/record/:name/?:watchLive', async (req, res) => {
+    const twitchUsername = req.params.name;
+    const watchLive = req.params.watchLive == 'true';
+    const entry = new RecordEntry('JODU', twitchUsername, watchLive);
+    await entry.record();
+    processes.push(entry);
+    entry.onRecordingFinished(() => {
+        console.log('Recording Finished for', entry);
+    });
+    res.json({
+        id: entry.id,
+        twitchStreamerName: entry.twitchStreamerName,
+        watchLive,
+    });
 });
 
 app.delete('/api/v1/videos/:id', async (req, res) => {
@@ -287,3 +304,11 @@ async function main() {
     }, 1000);
 
 }
+
+process.on('uncaughtException', (err) => {
+    console.log('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (err) => {
+    console.log('Unhandled Rejection:', err);
+});

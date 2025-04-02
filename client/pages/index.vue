@@ -5,6 +5,19 @@
 		</pre>
 		<div class="py-3">
 			<!-- <div class="row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2"> -->
+			<form @submit.prevent="startRecording" class="d-flex justify-content-center">
+				<div class="col-5">
+					<label for="twitchUsername" class="form-label">Twitch
+						Username</label>
+					<div class="input-group mb-3">
+						<input type="text" v-model="twitchUsernameToRecord" class="form-control" id="twitchUsername"
+							placeholder="Twitch Username" aria-label="Twitch Username">
+						<button class="btn btn-outline-primary" type="submit">Start
+							Recording</button>
+					</div>
+				</div>
+			</form>
+
 			<h1 class="text-center mt-2 mb-3">
 				Recordings
 			</h1>
@@ -69,7 +82,7 @@
 				</div>
 				<template v-if="(streamers?.length || 0) < userData.recordingSlots">
 					<div v-for="idx in userData.recordingSlots - (streamers?.length || 0)" :key="streamers?.length"
-						class="col-3 card me-2">
+						class="col-3 card mb-3 me-2">
 						<div class="card-body">
 							<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
 								(streamers?.length || 0) }} /
@@ -79,7 +92,7 @@
 					</div>
 				</template>
 
-				<div class="col-3 card">
+				<div class="col-3 mb-3 card">
 					<!-- <pre>{{ sniffEntry }}</pre> -->
 					<div class="card-body">
 						<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
@@ -160,15 +173,17 @@
 					</div>
 				</template>
 
-				<div class="col-3 card">
-					<div class="card-body">
-						<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
-							userData.streamerSlots }} / 🔒
-						</h1>
-						<div class="mt-4 d-grid gap-2">
-							<button class="btn btn-outline-success">
-								<span class="h4">Unlock more 🔓</span>
-							</button>
+				<div class="col-sm-4 col-md-5">
+					<div class="card">
+						<div class="card-body">
+							<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
+								userData.streamerSlots }} / 🔒
+							</h1>
+							<div class="mt-4 d-grid gap-2">
+								<button class="btn btn-outline-success">
+									<span class="h4">Unlock more 🔓</span>
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -183,7 +198,18 @@
 import { useIntervalFn } from '@vueuse/core';
 import { useUserData } from '~/utils/userData';
 
+const twitchUsernameToRecord = ref('');
+
 const userData = useUserData();
+
+async function startRecording() {
+	const result = await $fetch(`http://138.201.131.52:8081/api/v1/streamers/record/${twitchUsernameToRecord.value}/false`, {
+		method: 'GET',
+	});
+
+	console.log(result);
+
+}
 
 async function stopRecording(id: string) {
 	const result = await $fetch(`http://138.201.131.52:8081/api/v1/videos/${id}/transcode`, {

@@ -53,7 +53,7 @@
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key as PricingTableKey].price
-                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key as PricingTableKey].features" :key="feature">{{
                                     feature }}</li>
@@ -79,7 +79,7 @@
                     <tbody>
                         <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
                             <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof PricingTableObject)
-                                }}
+                            }}
                             </th>
                             <td v-for="value in Object.keys(pricingTable)" :key="value">
                                 <template v-if="getSub(value, key) === true">
@@ -118,8 +118,8 @@ function keyToNiceName(key: PricingTableKey) {
             return 'Free';
         case 'premium':
             return 'Premium';
-        case 'ultimate':
-            return 'Ultimate';
+        case 'advanced':
+            return 'Advanced';
     }
 }
 
@@ -174,7 +174,7 @@ const cardTable = ref<CardTable>({
             '7 Days Video Retention',
         ],
     },
-    ultimate: {
+    advanced: {
         price: 25,
         features: [
             'Completely Ad-Free',
