@@ -3,6 +3,7 @@
 		<pre>
 			{{ { status, error, sniffStatus, sniffError } }}
 		</pre>
+		<div class="col-3" id="paypal-button-container"></div>
 		<div class="py-3">
 			<!-- <div class="row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2"> -->
 			<form @submit.prevent="startRecording" class="d-flex justify-content-center">
@@ -304,10 +305,84 @@ const { pause: pauseSniff, resume: resumeSniff } = useIntervalFn(() => {
 	refreshSniffEntrys();
 }, 1000 * 10);
 
-
-onMounted(() => {
+import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
+onMounted(async () => {
 	resumeStreamers();
 	resumeSniff();
+
+	try {
+		const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
+
+		if (paypal == null || paypal == undefined) {
+			console.error("failed to load the PayPal JS SDK script");
+			return;
+		}
+		await paypal.Buttons?.({
+			fundingSource: 'paypal',
+			// onInit
+			style: {
+				color: 'gold',
+				shape: 'rect',
+				disableMaxWidth: true,
+			},
+			async onApprove(data) {
+				// Capture the funds from the transaction.
+				// const response = await fetch("/my-server/capture-paypal-order", {
+				// 	method: "POST",
+				// 	body: JSON.stringify({
+				// 		orderID: data.orderID
+				// 	})
+				// });
+
+				// const details = await response.json();
+
+				// Show success message to buyer
+				alert(`Transaction completed by ${JSON.stringify(data, null, 2)}`);
+			},
+			onCancel(data) {
+				console.log(data);
+
+				// Show a cancel page, or return to cart
+				window.location.assign("/your-cancel-page");
+			},
+			onError(err) {
+				console.log(err);
+				// For example, redirect to a specific error page
+				window.location.assign("/your-error-page-here");
+			},
+			async createOrder() {
+				try {
+					// const response = await fetch("/my-server/create-paypal-order", {
+					// 	method: "POST",
+					// 	headers: { "Content-Type": "application/json" },
+					// 	body: JSON.stringify({
+					// 		cart: [{ id: "YOUR_PRODUCT_ID", quantity: "YOUR_PRODUCT_QUANTITY" }],
+					// 	}),
+					// });
+
+					// const orderData = await response.json();
+
+					// if (!orderData.id) {
+					// 	const errorDetail = orderData.details[0];
+					// 	const errorMessage = errorDetail
+					// 		? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
+					// 		: "Unexpected error occurred, please try again.";
+
+					// 	throw new Error(errorMessage);
+					// }
+
+					return '';
+
+				} catch (error) {
+					console.error(error);
+					throw error;
+				}
+			}
+		}).render("#paypal-button-container");
+	} catch (error) {
+		console.error("failed to load the PayPal JS SDK script", error);
+	}
+
 });
 
 onUnmounted(() => {
@@ -325,3 +400,5 @@ function bytesToHumanReadable(size: number, breakSize = 1024) {
 }
 
 </script>
+
+<style></style>
