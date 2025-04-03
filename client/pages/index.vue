@@ -11,6 +11,13 @@
 					<label for="twitchUsername" class="form-label">Twitch
 						Username</label>
 					<div class="input-group mb-3">
+						<div class="input-group-text">
+							<label class="form-check-label me-3" for="checkDefault">
+								Watch Live
+							</label>
+							<input class="form-check-input mt-0" v-model="twitchRecordWatchLive" type="checkbox"
+								aria-label="Checkbox for following text input">
+						</div>
 						<input type="text" v-model="twitchUsernameToRecord" class="form-control" id="twitchUsername"
 							placeholder="Twitch Username" aria-label="Twitch Username">
 						<button class="btn btn-outline-primary" type="submit">Start
@@ -83,7 +90,7 @@
 					</div>
 				</div>
 				<template v-if="(streamers?.length || 0) < userData.recordingSlots">
-					<div v-for="idx in userData.recordingSlots - (streamers?.length || 0)" :key="streamers?.length"
+					<div v-for="idx in userData.recordingSlots - (streamers?.length || 0)" :key="idx"
 						class="col-3 card mb-3 me-2">
 						<div class="card-body">
 							<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
@@ -138,8 +145,7 @@
 								<button class="btn btn-outline-success">
 									Upgrade 🚀
 								</button>
-							</li> <!-- <li class="list-group-item"><b>Geschwindigkeit:</b> {{ streamer.ffmpegMetadata.bitrate }}</li>
-							<li class="list-group-item"><b>Status:</b> {{ streamer.state }}</li> -->
+							</li>
 						</ul>
 						<div class="card-body">
 							<!-- <div class="row justify-content-around">
@@ -201,6 +207,7 @@ import { useIntervalFn } from '@vueuse/core';
 import { useUserData } from '~/utils/userData';
 
 const twitchUsernameToRecord = ref('');
+const twitchRecordWatchLive = ref(false);
 
 const userData = useUserData();
 
@@ -210,7 +217,7 @@ async function startRecording() {
 			id: string;
 			twitchStreamerName: string;
 			watchLive: boolean;
-		}>(`http://138.201.131.52:8081/api/v1/streamers/record/${twitchUsernameToRecord.value}/true`, {
+		}>(`http://138.201.131.52:8081/api/v1/streamers/record/${twitchUsernameToRecord.value}/${twitchRecordWatchLive.value}`, {
 			method: 'GET',
 		});
 		console.log('Result', result);
@@ -313,7 +320,6 @@ const { pause: pauseSniff, resume: resumeSniff } = useIntervalFn(() => {
 	refreshSniffEntrys();
 }, 1000 * 10);
 
-import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
 onMounted(async () => {
 	resumeStreamers();
 	resumeSniff();

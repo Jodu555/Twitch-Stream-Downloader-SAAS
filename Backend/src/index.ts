@@ -42,8 +42,8 @@ export interface DatabaseRecordEntry {
     twitchStreamerName: string;
     userUUID: string;
     state: RecordEntryState;
-    metas: MetaRepresent[];
-    videoMeta: VideoMeta;
+    metas: string;
+    videoMeta: string;
     recordingFilePath: string;
     imageFilePath: string;
     imageUrl: string;
@@ -70,12 +70,12 @@ database.createTable('recordEntries', {
         null: false,
     },
     metas: {
-        type: 'JSON',
+        type: 'TEXT',
         null: false,
     },
     videoMeta: {
-        type: 'JSON',
-        null: false,
+        type: 'TEXT',
+        null: true,
     },
     recordingFilePath: {
         type: 'varchar(255)',
@@ -83,9 +83,11 @@ database.createTable('recordEntries', {
     },
     imageFilePath: {
         type: 'varchar(255)',
+        null: true,
     },
     imageUrl: {
         type: 'varchar(255)',
+        null: true,
     }
 });
 

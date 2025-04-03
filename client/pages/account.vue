@@ -3,7 +3,8 @@
         <h1 class="text-center">Account</h1>
         <div>
             <ul class="d-flex justify-content-around nav nav-tabs">
-                <li v-for="tab in tabs" :style="{ cursor: tab.disabled ? 'not-allowed' : 'pointer' }" class="nav-item">
+                <li v-for="tab in tabs" :key="tab.name" :style="{ cursor: tab.disabled ? 'not-allowed' : 'pointer' }"
+                    class="nav-item">
                     <a class="nav-link" :class="{
                         active: selectedTab == tab.name,
                         disabled: tab.disabled,
@@ -12,12 +13,10 @@
             </ul>
         </div>
         <div class="tab-content">
-            <div v-if="selectedTab == 'Infos'" class="tab-pane fade"
-                :class="{ active: selectedTab == 'Infos', show: selectedTab == 'Infos' }">
+            <div class="tab-pane fade" :class="{ active: selectedTab == 'Infos', show: selectedTab == 'Infos' }">
                 <h2 class="text-center mt-3">Infos</h2>
             </div>
-            <div v-if="selectedTab == 'Invoices'" class="tab-pane fade"
-                :class="{ active: selectedTab == 'Invoices', show: selectedTab == 'Invoices' }">
+            <div class="tab-pane fade" :class="{ active: selectedTab == 'Invoices', show: selectedTab == 'Invoices' }">
                 <h2 class="text-center mt-3">Invoices</h2>
                 <div class="table-responsive-lg">
                     <table class="table align-middle">
@@ -51,11 +50,11 @@
                 </div>
 
             </div>
-            <div v-if="selectedTab == 'Subscription Status'" class="tab-pane fade"
+            <div class="tab-pane fade"
                 :class="{ active: selectedTab == 'Subscription Status', show: selectedTab == 'Subscription Status' }">
                 <h2 class="text-center mt-3">Subscription Status</h2>
             </div>
-            <div v-if="selectedTab == 'Linked Accounts'" class="tab-pane fade">
+            <div class="tab-pane fade">
                 <h2 class="text-center">Linked Accounts</h2>
             </div>
         </div>
@@ -64,14 +63,16 @@
 
 <script lang="ts" setup>
 
+type TabKeys = 'Infos' | 'Invoices' | 'Subscription Status' | 'Linked Accounts';
+
 const tabs = [
     { name: 'Infos', disabled: false, },
     { name: 'Invoices', disabled: false },
     { name: 'Subscription Status', disabled: false },
     { name: 'Linked Accounts', disabled: true },
-];
+] as { name: TabKeys, disabled: boolean; }[];
 
-const selectedTab = ref('Invoices');
+const selectedTab = ref<TabKeys>('Infos');
 
 interface BaseInvoice {
     ID: string;
@@ -108,10 +109,10 @@ const invoices = ref<Invoice[]>([
 
 
 import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
-onMounted(async () => {
-    try {
-        const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
+const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
 
+watch(selectedTab, async () => {
+    if (selectedTab.value == 'Invoices') {
         if (paypal == null || paypal == undefined) {
             console.error("failed to load the PayPal JS SDK script");
             return;
@@ -179,6 +180,13 @@ onMounted(async () => {
                 }
             }
         }).render("#paypal-button-container");
+    }
+});
+
+onMounted(async () => {
+    try {
+
+
     } catch (error) {
         console.error("failed to load the PayPal JS SDK script", error);
     }

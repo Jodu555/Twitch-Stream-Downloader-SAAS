@@ -51,6 +51,15 @@ function prepareVideoPlayer() {
     hls.value.loadSource(stream);
     if (video.value) {
         hls.value.attachMedia(video.value);
+        hls.value.on(Hls.Events.MANIFEST_PARSED, () => {
+            console.log('manifest parsed');
+        });
+        hls.value.on(Hls.Events.FRAG_LOADED, () => {
+            console.log('fragment loaded');
+        });
+        hls.value.on(Hls.Events.ERROR, (event, data) => {
+            console.log('error', event, data);
+        });
     }
 }
 

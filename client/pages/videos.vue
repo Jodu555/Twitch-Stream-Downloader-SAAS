@@ -110,7 +110,7 @@
                     </div>
                 </div>
                 <template v-if="(videos?.length || 0) < userData.videoSlots">
-                    <div v-for="idx in userData.recordingSlots - (videos?.length || 0)" :key="videos?.length"
+                    <div v-for="idx in userData.recordingSlots - (videos?.length || 0)" :key="idx"
                         class="col-3 mb-3 card">
                         <div class="card-body">
                             <h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
