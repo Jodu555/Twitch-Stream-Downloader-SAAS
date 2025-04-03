@@ -79,7 +79,21 @@ class RecordEntry {
         this.watchingLive = watchingLive ?? false;
     }
 
-    async updateDatabase() {
+    async createRecordInDatabase() {
+        await database.get<DatabaseRecordEntry>('recordEntries').create({
+            ID: this.id,
+            twitchStreamerName: this.twitchStreamerName,
+            userUUID: this.userUUID,
+            state: this.state,
+            metas: this.metas,
+            videoMeta: this.videoMeta,
+            recordingFilePath: this.recordingFilePath,
+            imageFilePath: this.imageFilePath,
+            imageUrl: this.imageUrl,
+        });
+    }
+
+    async updateRecordInDatabase() {
         await database.get<DatabaseRecordEntry>('recordEntries').update({ ID: this.id }, {
             twitchStreamerName: this.twitchStreamerName,
             userUUID: this.userUUID,
@@ -131,7 +145,7 @@ class RecordEntry {
             }
         }
 
-        await this.updateDatabase();
+        await this.updateRecordInDatabase();
 
         // this.captureScreenshot();
 
@@ -156,7 +170,7 @@ class RecordEntry {
                 const output = await this.deepExecPromisify(genCommand(back), process.cwd());
                 if (fs.existsSync(this.imageFilePath)) {
                     this.imageUrl = `http://138.201.131.52:8081/api/v1/streamers/image/${this.id}?time=${new Date().getTime()}`;
-                    await this.updateDatabase();
+                    await this.updateRecordInDatabase();
                     return;
                 }
             }
@@ -185,9 +199,9 @@ class RecordEntry {
     }
 
     async callCleanup() {
-        await this.updateDatabase();
+        await this.updateRecordInDatabase();
         await this.cleanup();
-        await this.updateDatabase();
+        await this.updateRecordInDatabase();
     }
 
     async record() {
@@ -206,7 +220,7 @@ class RecordEntry {
 
 
         this.state = 'RECORDING';
-        await this.updateDatabase();
+        await this.createRecordInDatabase();
 
         // -hls_segment_filename "segment_%07d.ts" -master_pl_name "output.m3u8" "playlist.m3u8"
         if (this.watchingLive) {
@@ -236,7 +250,7 @@ class RecordEntry {
                 cwd: this.tmpDir,
             });
         }
-        await this.updateDatabase();
+        await this.updateRecordInDatabase();
 
 
         this.pid = this.process.pid;
@@ -252,7 +266,7 @@ class RecordEntry {
                 size: this.ffmpegMetadata?.size,
             };
             console.log('Cleaned up for ', this);
-            await this.updateDatabase();
+            await this.updateRecordInDatabase();
             await this.startTranscoding();
         };
 
@@ -305,7 +319,7 @@ class RecordEntry {
         this.state = 'TRANSCODING';
 
         const outputFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
-        await this.updateDatabase();
+        await this.updateRecordInDatabase();
         this.transcodingProcess = spawn('ffmpeg', [
             '-i', this.recordingFilePath,
             '-c', 'copy',
@@ -334,9 +348,9 @@ class RecordEntry {
             this.state = 'FINISHED';
             this.finishedCallbacks.forEach(x => x());
             this.finishedAt = Date.now();
-            await this.updateDatabase();
+            await this.updateRecordInDatabase();
         };
-        await this.updateDatabase();
+        await this.updateRecordInDatabase();
 
         const cache = {
             time: Date.now(),
@@ -365,7 +379,7 @@ class RecordEntry {
 
     async delete() {
         this.state = 'DELETED';
-        await this.updateDatabase();
+        await this.updateRecordInDatabase();
     }
 }
 

@@ -4,11 +4,16 @@ import express from 'express';
 import fs from 'fs';
 import morgan from 'morgan';
 import path from 'path';
+import dotenv from 'dotenv';
+dotenv.config();
+
+import { Database } from '@jodu555/mysqlapi';
+const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
+database.connect();
+
 import RecordEntry, { MetaRepresent, RecordEntryState, VideoMeta } from './RecordEntry';
 import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
-import dotenv from 'dotenv';
-dotenv.config();
 
 const app = express();
 
@@ -16,10 +21,6 @@ app.use(express.json());
 
 // app.use(morgan('dev'));
 app.use(cors());
-
-import { Database } from '@jodu555/mysqlapi';
-const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
-database.connect();
 
 database.createTable('sniffEntries', {
     userUUID: {
@@ -114,7 +115,7 @@ app.get('/api/v1/videos', async (req, res) => {
     res.json(processes.filter(x => x.getState() == 'FINISHED').map(translateRecordForFrontend));
 });
 
-app.get('/api/v1/streamers/record/:name/?:watchLive', async (req, res) => {
+app.get('/api/v1/streamers/record/:name/:watchLive?', async (req, res) => {
     const twitchUsername = req.params.name;
     const watchLive = req.params.watchLive == 'true';
     const entry = new RecordEntry('JODU', twitchUsername, watchLive);

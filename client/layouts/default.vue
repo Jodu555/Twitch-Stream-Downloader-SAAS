@@ -8,7 +8,7 @@
 					<span class="navbar-toggler-icon"></span>
 				</button>
 				<div class="collapse navbar-collapse" id="navbarNav">
-					<ul class="navbar-nav">
+					<ul class="navbar-nav me-auto">
 						<li class="nav-item">
 							<NuxtLink to="/" class="nav-link" active-class="active">Home</NuxtLink>
 						</li>
@@ -29,6 +29,11 @@
 							<NuxtLink to="/pricing" class="nav-link" active-class="active">Pricing</NuxtLink>
 						</li>
 					</ul>
+					<div class="d-flex">
+						<div class="btn btn-outline-info">
+							<NuxtLink to="/account" class="nav-link">Account</NuxtLink>
+						</div>
+					</div>
 				</div>
 			</div>
 		</nav>

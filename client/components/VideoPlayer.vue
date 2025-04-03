@@ -19,6 +19,7 @@ const visibility = useDocumentVisibility();
 watch(visibility, () => {
     const vid = video.value;
     if (!vid) return;
+    if (!vid.muted) return;
     console.log(visibility.value);
     if (visibility.value == 'visible') {
         // hls.value?.to
