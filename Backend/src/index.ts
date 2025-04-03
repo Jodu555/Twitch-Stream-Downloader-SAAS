@@ -4,7 +4,7 @@ import express from 'express';
 import fs from 'fs';
 import morgan from 'morgan';
 import path from 'path';
-import RecordEntry from './RecordEntry';
+import RecordEntry, { MetaRepresent, RecordEntryState, VideoMeta } from './RecordEntry';
 import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
 import dotenv from 'dotenv';
@@ -34,6 +34,58 @@ database.createTable('sniffEntries', {
     lastCheck: {
         type: 'BIGINT',
     },
+});
+
+export interface DatabaseRecordEntry {
+    ID: string;
+    twitchStreamerName: string;
+    userUUID: string;
+    state: RecordEntryState;
+    metas: MetaRepresent[];
+    videoMeta: VideoMeta;
+    recordingFilePath: string;
+    imageFilePath: string;
+    imageUrl: string;
+}
+
+database.createTable('recordEntries', {
+    options: {
+        PK: 'ID',
+    },
+    ID: {
+        type: 'varchar(64)',
+        null: false,
+    },
+    twitchStreamerName: {
+        type: 'varchar(64)',
+        null: false,
+    },
+    userUUID: {
+        type: 'varchar(64)',
+        null: false,
+    },
+    state: {
+        type: 'VARCHAR(32)',
+        null: false,
+    },
+    metas: {
+        type: 'JSON',
+        null: false,
+    },
+    videoMeta: {
+        type: 'JSON',
+        null: false,
+    },
+    recordingFilePath: {
+        type: 'varchar(255)',
+        null: false,
+    },
+    imageFilePath: {
+        type: 'varchar(255)',
+    },
+    imageUrl: {
+        type: 'varchar(255)',
+    }
 });
 
 function translateRecordForFrontend(x: RecordEntry) {
@@ -133,6 +185,11 @@ app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
         return;
     }
 
+    if (process.getState() !== 'RECORDING') {
+        res.status(404).send('Process Not in state recording');
+        return;
+    }
+
     const hlsDir = path.join(hlsFilePath, '..');
 
     const filename = req.params.filename;
@@ -148,7 +205,6 @@ app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
     res.sendFile(result);
 
 });
-
 
 app.get('/api/v1/sniffEntrys', async (req, res) => {
     const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
@@ -190,7 +246,7 @@ async function main() {
             '',
             ...sniffEntrys.map(x => `  ${x.twitchStreamerName} => Waiting (every ${x.everyxMinute} minute${x.everyxMinute > 1 ? 's' : ''})`),
             '',
-            ...processes.map(x => `  ${x.twitchStreamerName} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.bitrate} - ${bytesToHumanReadable(parseInt(x.ffmpegMetadata?.size))} from ${formatNumPrec((Date.now() - x.ffmpegMetadata?.from) / 1000, 2)}s`),
+            ...processes.map(x => `  ${x.twitchStreamerName} - ${x.getState()} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.bitrate} - ${bytesToHumanReadable(parseInt(x.ffmpegMetadata?.size))} from ${formatNumPrec((Date.now() - x.ffmpegMetadata?.from) / 1000, 2)}s`),
         ];
     }));
 
@@ -234,7 +290,7 @@ async function main() {
 
 
 
-    // Check every minute if there are any new streams
+    // Interval for process heartbeat + sniffEntry Check
     setInterval(async () => {
         counter++;
 
@@ -263,8 +319,6 @@ async function main() {
             }
         }
 
-
-
         if (counter >= Number.MAX_SAFE_INTEGER - 55)
             counter = 0;
 
@@ -272,10 +326,12 @@ async function main() {
 
     }, 1000 * 60);
 
+    // Interval for Process Screenshots
     setInterval(async () => {
         await Promise.all(processes.filter(x => x.getState() == 'RECORDING').map(process => process.captureScreenshot()));
     }, 1000 * 30);
 
+    // Timeout for Hardcoded Recordings for testing
     setTimeout(async () => {
         console.log('Starting Hardcoded Recording');
         // {
