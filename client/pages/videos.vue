@@ -6,20 +6,20 @@
                     titleViewID)?.twitchStreamerName}}</template>
                 <template #body>
                     <!-- <h5 class="text-center">Auto Generated Titles based on the stream ones</h5>
-                    <div class="table-responsive-md">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Title</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="meta in videos?.find(x => x.id == titleViewID)?.metas" class="">
-                                    <td>{{ meta.title }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div> -->
+                        <div class="table-responsive-md">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Title</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="meta in videos?.find(x => x.id == titleViewID)?.metas" class="">
+                                        <td>{{ meta.title }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div> -->
                     <h5 class="text-center">Stream Titles</h5>
                     <div class="table-responsive-md">
                         <table class="table">
@@ -31,11 +31,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="meta in videos?.find(x => x.id == titleViewID)?.metas" class="">
-                                    <td scope="row">{{ new Date(meta.time).toLocaleString('de') }}</td>
-                                    <td>{{ meta.title }}</td>
-                                    <td>{{ meta.category }}</td>
-                                </tr>
+                                <template v-if="videos?.find(x => x.id == titleViewID)?.metas != null">
+                                    <tr v-for="meta in videos?.find(x => x.id == titleViewID)?.metas" class="">
+                                        <td scope="row">{{ new Date(meta.time).toLocaleString('de') }}</td>
+                                        <td>{{ meta.title }}</td>
+                                        <td>{{ meta.category }}</td>
+                                    </tr>
+                                </template>
                             </tbody>
                         </table>
                     </div>
@@ -43,10 +45,9 @@
             </Modal>
         </ClientOnly>
         <pre>
-    <!-- {{ { status, error, sniffStatus, sniffError } }} -->
+    {{ { status, error } }}
 </pre>
         <div class="py-3">
-            <!-- <div class="row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2"> -->
             <h1 class="text-center mt-2 mb-3">
                 Videos
             </h1>
@@ -56,27 +57,13 @@
                     'border-warning': false,
                     'border-success': false,
                 }">
-
-                    <!-- <pre>{{ video }}</pre> -->
-                    <!-- <template v-if="streamer.imageUrl">
-                        <div class="position-absolute" style="transform: translate(15%, 35%);">
-                            <div class="spinner-grow" :class="{
-                                'text-danger': streamer.state == 'RECORDING',
-                                'text-warning': streamer.state == 'TRANSCODING',
-                                'text-success': streamer.state == 'FINISHED',
-                            }" style="width: 3rem; height: 3rem;" role="status">
-                                <span class="visually-hidden">Live...</span>
-                            </div>
-                        </div>
-                        <img :src="streamer.imageUrl" class="card-img-top py-2" alt="previewImage" />
-                    </template> -->
                     <div class="card-body">
                         <span class="text-muted">Slot {{ idx + 1 }} / {{ userData.recordingSlots }}</span>
                         <h1 class="card-title text-center" style="text-transform: capitalize;">{{
                             video.twitchStreamerName }}</h1>
                     </div>
-                    <ul v-if="video.ffmpegMetadata != null" class="list-group list-group-flush border-secondary">
-                        <li class="list-group-item"><b>Dauer:</b> {{ video.ffmpegMetadata.time }} / {{
+                    <ul v-if="video.videoMeta != null" class="list-group list-group-flush border-secondary">
+                        <li class="list-group-item"><b>Dauer:</b> {{ video.videoMeta.time }} / {{
                             userData.maxRecordingTime }}hrs</li>
                         <li class="list-group-item"><b>Größe:</b> {{
                             bytesToHumanReadable(parseInt(video.videoMeta.size)) }}
@@ -85,7 +72,6 @@
                             +
                             userData.videoRetentionDays * 24 * 60 *
                             60 * 1000) }}</li>
-                        <!-- <li class="list-group-item"><b>Status:</b> {{ video.state }}</li> -->
                     </ul>
                     <div class="card-body">
                         <div class="row justify-content-around">
@@ -109,7 +95,8 @@
                         </div>
                     </div>
                 </div>
-                <template v-if="(videos?.length || 0) < userData.videoSlots">
+                <template
+                    v-if="(videos?.length || 0) < userData.videoSlots && userData.recordingSlots - (videos?.length || 0) > 0">
                     <div v-for="idx in userData.recordingSlots - (videos?.length || 0)" :key="idx"
                         class="col-3 mb-3 card">
                         <div class="card-body">
@@ -122,7 +109,6 @@
                 </template>
 
                 <div class="col-3 mb-3 card">
-                    <!-- <pre>{{ sniffEntry }}</pre> -->
                     <div class="card-body">
                         <h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
                             userData.recordingSlots }} / 🔒

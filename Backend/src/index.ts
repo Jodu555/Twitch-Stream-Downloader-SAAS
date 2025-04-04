@@ -44,7 +44,9 @@ export interface DatabaseRecordEntry {
     state: RecordEntryState;
     metas: string;
     videoMeta: string;
+    finishedAt: number;
     recordingFilePath: string;
+    outputFilePath: string;
     imageFilePath: string;
     imageUrl: string;
 }
@@ -77,7 +79,15 @@ database.createTable('recordEntries', {
         type: 'TEXT',
         null: true,
     },
+    finishedAt: {
+        type: 'BIGINT',
+        null: true,
+    },
     recordingFilePath: {
+        type: 'varchar(255)',
+        null: false,
+    },
+    outputFilePath: {
         type: 'varchar(255)',
         null: false,
     },
@@ -91,30 +101,12 @@ database.createTable('recordEntries', {
     }
 });
 
-function translateRecordForFrontend(x: RecordEntry) {
-    return {
-        id: x.id,
-        twitchStreamerName: x.twitchStreamerName,
-        metas: x.metas,
-        state: x.getState(),
-        watchingLive: x.watchingLive,
-        finishedAt: x.finishedAt,
-        pid: x.pid,
-        videoMeta: x.videoMeta,
-        ffmpegMetadata: x.ffmpegMetadata,
-        transcodingPid: x.transcodingPid,
-        recordingFilePath: x.recordingFilePath,
-        imageFilePath: x.imageFilePath,
-        imageUrl: x.imageUrl,
-    };
-}
-
 app.get('/api/v1/streamers', async (req, res) => {
-    res.json(processes.filter(x => x.getState() != 'FINISHED').map(translateRecordForFrontend));
+    res.json(processes.filter(x => x.getState() != 'FINISHED').map(x => x.toFrontend()));
 });
 
 app.get('/api/v1/videos', async (req, res) => {
-    res.json(processes.filter(x => x.getState() == 'FINISHED').map(translateRecordForFrontend));
+    res.json(processes.filter(x => x.getState() == 'FINISHED').map(x => x.toFrontend()));
 });
 
 app.get('/api/v1/streamers/record/:name/:watchLive?', async (req, res) => {
@@ -236,6 +228,18 @@ const enbaleSniffEntries = false;
 let lastCheck = Date.now();
 main();
 async function main() {
+
+    console.log('Backfilling Records');
+
+    const entries = await database.get<DatabaseRecordEntry>('recordEntries').get();
+
+    for (const entry of entries) {
+        const record = RecordEntry.fromDatabase(entry);
+        processes.push(record);
+    }
+
+    console.log('Backfilled', entries.length, 'Record/s');
+
 
     let counter = 0;
     commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', async (command, [...args], scope) => {

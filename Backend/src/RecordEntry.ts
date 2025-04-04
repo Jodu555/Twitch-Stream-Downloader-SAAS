@@ -60,11 +60,13 @@ class RecordEntry {
     private finishedCallbacks: (() => void)[];
     private cleanup: (() => Promise<void>) | null;
 
+    public outputFilePath: string;
     public recordingFilePath: string;
     public imageFilePath: string;
     public imageUrl: string;
 
     private tmpDir: string;
+    private notLiveAttempts: number;
 
     constructor(userUUID: string, twitchStreamerName: string, watchingLive?: boolean) {
         this.id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -77,6 +79,41 @@ class RecordEntry {
         this.maxRecordingTimeSeconds = Infinity;
         this.tmpDir = path.join(__dirname, '..', 'TMP');
         this.watchingLive = watchingLive ?? false;
+        this.notLiveAttempts = 0;
+        this.outputFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
+    }
+
+    static fromDatabase(entry: DatabaseRecordEntry) {
+        const record = new RecordEntry(entry.userUUID, entry.twitchStreamerName, false);
+        record.id = entry.ID;
+        record.state = entry.state;
+        record.metas = JSON.parse(entry.metas);
+        record.videoMeta = JSON.parse(entry.videoMeta);
+        record.recordingFilePath = entry.recordingFilePath;
+        record.outputFilePath = entry.outputFilePath;
+        record.finishedAt = entry.finishedAt;
+        // record.imageFilePath = entry.imageFilePath;
+        // record.imageUrl = entry.imageUrl;
+        return record;
+    }
+
+    toFrontend() {
+        return {
+            id: this.id,
+            twitchStreamerName: this.twitchStreamerName,
+            metas: this.metas,
+            state: this.getState(),
+            watchingLive: this.watchingLive,
+            finishedAt: this.finishedAt,
+            pid: this.pid,
+            videoMeta: this.videoMeta,
+            ffmpegMetadata: this.ffmpegMetadata,
+            transcodingPid: this.transcodingPid,
+            recordingFilePath: this.recordingFilePath,
+            outputFilePath: this.outputFilePath,
+            imageFilePath: this.imageFilePath,
+            imageUrl: this.imageUrl,
+        };
     }
 
     async createRecordInDatabase() {
@@ -88,8 +125,10 @@ class RecordEntry {
             metas: JSON.stringify(this.metas, null, 3),
             videoMeta: JSON.stringify(this.videoMeta, null, 3),
             recordingFilePath: this.recordingFilePath,
+            outputFilePath: this.outputFilePath,
             imageFilePath: this.imageFilePath,
             imageUrl: this.imageUrl,
+            finishedAt: this.finishedAt,
         });
     }
 
@@ -118,6 +157,13 @@ class RecordEntry {
 
         if (!await isLive(this.twitchStreamerName)) {
             console.log('Stream', this.twitchStreamerName, 'is not live!');
+            this.notLiveAttempts++;
+            if (this.notLiveAttempts > 5) {
+                if (this.state == 'RECORDING') {
+                    await this.cleanup();
+                }
+                return;
+            }
             return;
         }
         const meta = await getMetaData(this.twitchStreamerName, false);
@@ -260,12 +306,14 @@ class RecordEntry {
             if (cleaned) return;
             cleaned = true;
             this.process.kill();
-            // this.process.kill('SIGKILL');
+            if (!this.process.killed) {
+                this.process.kill('SIGKILL');
+            }
             this.videoMeta = {
                 time: this.ffmpegMetadata?.time,
                 size: this.ffmpegMetadata?.size,
             };
-            console.log('Cleaned up for ', this);
+            console.log('Cleaned up for ', this.toFrontend());
             await this.updateRecordInDatabase();
             await this.startTranscoding();
         };
@@ -318,12 +366,11 @@ class RecordEntry {
 
         this.state = 'TRANSCODING';
 
-        const outputFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
         await this.updateRecordInDatabase();
         this.transcodingProcess = spawn('ffmpeg', [
             '-i', this.recordingFilePath,
             '-c', 'copy',
-            outputFilePath
+            this.outputFilePath
         ], {
             cwd: this.tmpDir,
         });
@@ -336,7 +383,7 @@ class RecordEntry {
             this.process.kill();
             // this.process.kill('SIGKILL');
             //TODO: Handle Cleanup Database etc
-            console.log('Cleaned up for ', this);
+            console.log('Cleaned up for ', this.toFrontend());
 
             //Delete the video file
             if (this.watchingLive) {
@@ -365,7 +412,7 @@ class RecordEntry {
                 const [_, frame, fps, __, size, time, bitrate, speed] = match.map(x => x.trim());
                 const cacheTime = cache.time;
                 if (Date.now() >= (cacheTime + 1000 * 2)) {
-                    cache.size = fs.statSync(outputFilePath).size.toString();
+                    cache.size = fs.statSync(this.outputFilePath).size.toString();
                     cache.time = Date.now();
                 }
                 this.ffmpegMetadata = { frame, fps, size: cache.size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
