@@ -352,6 +352,10 @@ async function main() {
                     console.log('Stream', sniffEntry.twitchStreamerName, 'is not live!');
                     continue;
                 }
+                if (processes.find(x => x.userUUID == sniffEntry.userUUID && x.twitchStreamerName == sniffEntry.twitchStreamerName)) {
+                    console.log('Process already exists for', sniffEntry.twitchStreamerName);
+                    continue;
+                }
                 const entry = new RecordEntry(sniffEntry.userUUID, sniffEntry.twitchStreamerName);
                 await entry.record();
                 processes.push(entry);

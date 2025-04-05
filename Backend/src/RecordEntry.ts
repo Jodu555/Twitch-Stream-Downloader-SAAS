@@ -38,9 +38,11 @@ function ffmpegTimeToSeconds(time: string) {
     return seconds;
 }
 class RecordEntry {
+    private tmpDir: string;
+
     public id: string;
     public twitchStreamerName: string;
-    private userUUID: string;
+    public userUUID: string;
     public metas: MetaRepresent[];
     public watchingLive: boolean;
     private state: RecordEntryState;
@@ -65,7 +67,6 @@ class RecordEntry {
     public imageFilePath: string;
     public imageUrl: string;
 
-    private tmpDir: string;
     private notLiveAttempts: number;
 
     constructor(userUUID: string, twitchStreamerName: string, watchingLive?: boolean) {
@@ -92,8 +93,8 @@ class RecordEntry {
         record.recordingFilePath = entry.recordingFilePath;
         record.outputFilePath = entry.outputFilePath;
         record.finishedAt = entry.finishedAt;
-        // record.imageFilePath = entry.imageFilePath;
-        // record.imageUrl = entry.imageUrl;
+        record.imageFilePath = entry.imageFilePath;
+        record.imageUrl = entry.imageUrl;
         return record;
     }
 
@@ -142,6 +143,7 @@ class RecordEntry {
             recordingFilePath: this.recordingFilePath,
             imageFilePath: this.imageFilePath,
             imageUrl: this.imageUrl,
+            finishedAt: this.finishedAt,
         });
     }
 
