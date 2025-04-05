@@ -14,6 +14,17 @@ export interface PricingTableObject {
     videoRetentionDays: number;
 }
 
+export function getRoleColor(key: PricingTableKey) {
+    switch (key) {
+        case 'free':
+            return 'text-secondary-emphasis';
+        case 'premium':
+            return 'text-light-emphasis';
+        case 'advanced':
+            return 'text-warning-emphasis';
+    }
+}
+
 export function usePricingTable() {
     const pricingTable = ref<PricingTable>({
         free: {

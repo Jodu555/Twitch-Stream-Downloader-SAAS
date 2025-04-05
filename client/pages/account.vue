@@ -74,7 +74,8 @@
                         <div class="card-body">
                             <h5 class="card-title">Current Subscription</h5>
                             <div class="card-header fw-normal py-3">
-                                <h4 class="my-0">{{ keyToNiceName('premium' as PricingTableKey) }}</h4>
+                                <h4 class="my-0" :class="{ [getRoleColor('premium' as PricingTableKey)]: true, }">{{
+                                    keyToNiceName('premium' as PricingTableKey) }}</h4>
                             </div>
                             <ul class="mt-3 mb-4">
                                 <li v-for="feature in cardTable['premium' as PricingTableKey].features" :key="feature">

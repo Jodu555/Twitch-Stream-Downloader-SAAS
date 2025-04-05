@@ -49,11 +49,13 @@
                 <div v-for="key in Object.keys(cardTable)" :key="key" class="col">
                     <div class="card mb-4 rounded-3 shadow-sm">
                         <div class="card-header py-3">
-                            <h4 class="my-0 fw-normal">{{ keyToNiceName(key as PricingTableKey) }}</h4>
+                            <h4 class="my-0 fw-normal" :class="{
+                                [getRoleColor(key as PricingTableKey)]: true,
+                            }">{{ keyToNiceName(key as PricingTableKey) }}</h4>
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key as PricingTableKey].price
-                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key as PricingTableKey].features" :key="feature">{{
                                     feature }}</li>
@@ -72,14 +74,16 @@
                         <tr>
                             <th style="width: 34%;"></th>
 
-                            <th style="width: 22%;" v-for="key in Object.keys(pricingTable)" :key="key">{{
+                            <th style="width: 22%;" v-for="key in Object.keys(pricingTable)" :key="key" :class="{
+                                [getRoleColor(key as PricingTableKey)]: true,
+                            }">{{
                                 keyToNiceName(key as PricingTableKey) }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
                             <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof PricingTableObject)
-                                }}
+                            }}
                             </th>
                             <td v-for="value in Object.keys(pricingTable)" :key="value">
                                 <template v-if="getSub(value, key) === true">
