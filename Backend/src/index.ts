@@ -317,6 +317,7 @@ async function main() {
         for (const record of records) {
             fs.rmSync(record.outputFilePath, { force: true });
             await database.get<DatabaseRecordEntry>('recordEntries').delete({ ID: record.id });
+            processes.splice(processes.findIndex(x => x.id == record.id), 1);
             console.log('Deleted', record.toFrontend());
         }
         return '';
