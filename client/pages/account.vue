@@ -167,8 +167,8 @@ const invoices = ref<Invoice[]>([
 import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
 const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
 
-watch(selectedTab, async () => {
-    if (selectedTab.value == 'Invoices') {
+onMounted(async () => {
+    try {
         if (paypal == null || paypal == undefined) {
             console.error("failed to load the PayPal JS SDK script");
             return;
@@ -236,13 +236,6 @@ watch(selectedTab, async () => {
                 }
             }
         }).render("#paypal-button-container");
-    }
-});
-
-onMounted(async () => {
-    try {
-
-
     } catch (error) {
         console.error("failed to load the PayPal JS SDK script", error);
     }
