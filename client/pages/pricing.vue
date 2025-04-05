@@ -53,7 +53,7 @@
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key as PricingTableKey].price
-                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key as PricingTableKey].features" :key="feature">{{
                                     feature }}</li>
@@ -79,7 +79,7 @@
                     <tbody>
                         <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
                             <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof PricingTableObject)
-                            }}
+                                }}
                             </th>
                             <td v-for="value in Object.keys(pricingTable)" :key="value">
                                 <template v-if="getSub(value, key) === true">
@@ -106,89 +106,13 @@
 
 <script lang="ts" setup>
 
+import { cardTable, keyToNiceName, limitationToNiceName, type PricingTableKey, type PricingTableObject } from '~/utils/pricing';
+
 const pricingTable = usePricingTable();
 
 function getSub(value: string, key: string) {
     return pricingTable.value[value as PricingTableKey][key as keyof PricingTableObject];
 }
-
-function keyToNiceName(key: PricingTableKey) {
-    switch (key) {
-        case 'free':
-            return 'Free';
-        case 'premium':
-            return 'Premium';
-        case 'advanced':
-            return 'Advanced';
-    }
-}
-
-function limitationToNiceName(key: keyof PricingTableObject) {
-    switch (key) {
-        case 'adFree':
-            return 'Ad-Free';
-        case 'watchWhileRecording':
-            return 'Watch While Recording';
-        case 'recordingSlots':
-            return 'Recording Slots';
-        case 'videoSlots':
-            return 'Video Slots';
-        case 'streamerSlots':
-            return 'Streamer Slots';
-        case 'maxRecordingTime':
-            return 'Max. Recording Time';
-        case 'streamerCheckEvery':
-            return 'Streamer Check Every Minutes';
-        case 'videoRetentionDays':
-            return 'Video Retention Days';
-    }
-}
-
-type CardTable = Record<PricingTableKey, {
-    price: number;
-    features: string[];
-}>;
-
-const cardTable = ref<CardTable>({
-    free: {
-        price: 0,
-        features: [
-            'Completely Ad-Free',
-            '1 Simultaneous Stream Recording',
-            '2 Recorded Streams',
-            '3 Streamer Monitorings',
-            '8 Hours Recording Time',
-            '30 Minute Check for new Streams',
-            '2 Days Video Retention',
-        ],
-    },
-    premium: {
-        price: 10,
-        features: [
-            'Completely Ad-Free',
-            '5 Simultaneous Stream Recordings',
-            '7 Recorded Streams',
-            '7 Streamer Monitorings',
-            '24 Hours Recording Time',
-            '1 Minute Check for new Streams',
-            '7 Days Video Retention',
-        ],
-    },
-    advanced: {
-        price: 25,
-        features: [
-            'Completely Ad-Free',
-            'Watch Live While Recording',
-            '8 Simultaneous Stream Recordings',
-            '20 Recorded Streams',
-            '11 Streamer Monitorings',
-            '24 Hours Recording Time',
-            '1 Minute Check for new Streams',
-            '14 Days Video Retention',
-        ],
-    },
-});
-
 
 </script>
 
