@@ -215,7 +215,7 @@ app.post('/api/v1/sniffEntrys', async (req, res) => {
     }
     await database.get<SniffEntry>('sniffEntries').create({
         everyxMinute: 1,
-        lastCheck: 0,
+        lastCheck: Date.now() - 1000 * 60,
         twitchStreamerName: twitchStreamerName,
         userUUID: 'JODU',
     });

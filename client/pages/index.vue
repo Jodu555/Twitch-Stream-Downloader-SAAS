@@ -118,6 +118,17 @@
 			<h1 class="text-center mt-5 mb-3">
 				Monitoring
 			</h1>
+			<form @submit.prevent="addMonitoring()" class="d-flex justify-content-center">
+				<div class="col-5">
+					<label for="twitchUsernameMon" class="form-label">Twitch
+						Username</label>
+					<div class="input-group mb-3">
+						<input type="text" v-model="twitchUsernameToMonitor" class="form-control" id="twitchUsernameMon"
+							placeholder="Twitch Username" aria-label="Twitch Username">
+						<button class="btn btn-outline-primary" type="submit">Add Monitoring</button>
+					</div>
+				</div>
+			</form>
 			<div class="mt-5 row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2">
 				<div v-for="(sniffEntry, idx) in sniffEntrys" :key="sniffEntry.twitchStreamerName"
 					class="col-sm-4 col-md-5">
@@ -159,7 +170,8 @@
 								<a :href="`https://twitch.tv/${sniffEntry.twitchStreamerName}`" target="_blank"
 									class="col btn btn-outline-info">Kanal</a>
 
-								<button class="col btn btn-outline-danger">
+								<button @click="deleteMonitoringEntry(sniffEntry.twitchStreamerName)"
+									class="col btn btn-outline-danger">
 									Delete
 								</button>
 							</div>
@@ -209,34 +221,69 @@ import { useUserData } from '~/utils/userData';
 const twitchUsernameToRecord = ref('');
 const twitchRecordWatchLive = ref(false);
 
+const twitchUsernameToMonitor = ref('');
+
 const userData = useUserData();
 
 async function startRecording() {
-	try {
-		const result = await $fetch<{
-			id: string;
-			twitchStreamerName: string;
-			watchLive: boolean;
-		}>(`http://138.201.131.52:8081/api/v1/streamers/record/${twitchUsernameToRecord.value}/${twitchRecordWatchLive.value}`, {
-			method: 'GET',
-		});
-		console.log('Result', result);
-		twitchUsernameToRecord.value = '';
-	} catch (error) {
-		console.log(error);
+	const { data: response, error } = await tryCatch($fetch<{
+		id: string;
+		twitchStreamerName: string;
+		watchLive: boolean;
+	}>(`http://138.201.131.52:8081/api/v1/streamers/record/${twitchUsernameToRecord.value}/${twitchRecordWatchLive.value}`, {
+		method: 'GET',
+	}));
 
+	if (error) {
+		console.log(error);
+		return;
 	}
+	console.log('Result', response);
+	twitchUsernameToRecord.value = '';
 }
 
 async function stopRecording(id: string) {
-	const result = await $fetch(`http://138.201.131.52:8081/api/v1/videos/${id}/transcode`, {
+	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/videos/${id}/transcode`, {
 		method: 'GET',
-	});
-
-	console.log(result);
+	}));
+	if (error) {
+		console.log(error);
+		return;
+	}
+	await refresh();
+	console.log(response);
 
 }
 
+async function deleteMonitoringEntry(name: string) {
+	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/sniffEntrys/${name}`, {
+		method: 'DELETE',
+	}));
+
+	if (error) {
+		console.log(error);
+		return;
+	}
+	await refreshSniffEntrys();
+	console.log(response);
+}
+
+async function addMonitoring() {
+	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/sniffEntrys/`, {
+		method: 'POST',
+		body: {
+			twitchStreamerName: twitchUsernameToMonitor.value,
+		},
+	}));
+
+	if (error) {
+		console.log(error);
+		return;
+	}
+	await refreshSniffEntrys();
+	twitchUsernameToMonitor.value = '';
+	console.log(response);
+}
 
 function getLastCheck(lastCheck: number, seconds: boolean) {
 	let num = (new Date().getTime() - lastCheck) / 1000;
@@ -304,6 +351,8 @@ watch(visibility, () => {
 	if (visibility.value == 'visible') {
 		resumeStreamers();
 		resumeSniff();
+		refresh();
+		refreshSniffEntrys();
 	} else {
 		pauseStreamers();
 		pauseSniff();
