@@ -89,7 +89,7 @@
                         </div>
                         <div class="d-flex justify-content-between py-2">
                             <button class="col-6 btn btn-outline-success">Herunterladen</button>
-                            <button class="col-4 btn btn-outline-danger">
+                            <button @click="deleteVideo(video.id)" class="col-4 btn btn-outline-danger">
                                 Löschen
                             </button>
                         </div>
@@ -140,6 +140,16 @@ function getLastCheck(lastCheck: number, seconds: boolean) {
     if (!seconds)
         num = num / 60;
     return parseFloat(num.toString()).toFixed(1);
+}
+
+async function deleteVideo(id: string) {
+
+    const response = await $fetch(`http://138.201.131.52:8081/api/v1/videos/${id}`, {
+        method: 'DELETE',
+    });
+    console.log(response);
+
+
 }
 
 // const videos = ref<RecordedVideo[]>([
