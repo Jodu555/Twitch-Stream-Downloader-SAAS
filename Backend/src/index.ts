@@ -357,7 +357,7 @@ async function main() {
                     console.log('Process already exists for', sniffEntry.twitchStreamerName);
                     continue;
                 }
-                const entry = new RecordEntry(sniffEntry.userUUID, sniffEntry.twitchStreamerName);
+                const entry = new RecordEntry(sniffEntry.userUUID, sniffEntry.twitchStreamerName, false);
                 await entry.record();
                 processes.push(entry);
                 entry.onRecordingFinished(() => {

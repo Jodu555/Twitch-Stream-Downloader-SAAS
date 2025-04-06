@@ -38,7 +38,7 @@
                                 <td :class="{ 'text-danger': invoice.state == 'Unpaid' }">{{ invoice.amount }}€</td>
                                 <td v-if="invoice.state == 'Paid'">{{ new Date(invoice.paidAt).toLocaleString('de') }}
                                 </td>
-                                <td id="paypal-button-container" v-else>
+                                <td :id="`paypal-button-container-${invoice.ID}`" v-else>
 
                                 </td>
                             </tr>
@@ -128,7 +128,7 @@ const tabs = [
     { name: 'Linked Accounts', disabled: true },
 ] as { name: TabKeys, disabled: boolean; }[];
 
-const selectedTab = ref<TabKeys>('Subscription Status');
+const selectedTab = ref<TabKeys>('Invoices');
 
 interface BaseInvoice {
     ID: string;
@@ -161,6 +161,12 @@ const invoices = ref<Invoice[]>([
         state: 'Unpaid',
         amount: 100,
     },
+    {
+        ID: '3',
+        createdAt: Date.now() - 1000 * 60 * 60,
+        state: 'Unpaid',
+        amount: 55,
+    },
 ]);
 
 
@@ -173,69 +179,74 @@ onMounted(async () => {
             console.error("failed to load the PayPal JS SDK script");
             return;
         }
-        await paypal.Buttons?.({
-            fundingSource: 'paypal',
-            // onInit
-            style: {
-                color: 'gold',
-                shape: 'rect',
-                disableMaxWidth: true,
-            },
-            async onApprove(data) {
-                // Capture the funds from the transaction.
-                // const response = await fetch("/my-server/capture-paypal-order", {
-                // 	method: "POST",
-                // 	body: JSON.stringify({
-                // 		orderID: data.orderID
-                // 	})
-                // });
 
-                // const details = await response.json();
-
-                // Show success message to buyer
-                alert(`Transaction completed by ${JSON.stringify(data, null, 2)}`);
-            },
-            onCancel(data) {
-                console.log(data);
-
-                // Show a cancel page, or return to cart
-                window.location.assign("/your-cancel-page");
-            },
-            onError(err) {
-                console.log(err);
-                alert(err);
-                // For example, redirect to a specific error page
-                window.location.assign("/your-error-page-here");
-            },
-            async createOrder() {
-                try {
-                    // const response = await fetch("/my-server/create-paypal-order", {
+        for (const invoice of invoices.value.filter(x => x.state == 'Unpaid')) {
+            const selector = '#paypal-button-container-' + invoice.ID;
+            document.querySelector(selector)!.innerHTML = '';
+            await paypal.Buttons?.({
+                fundingSource: 'paypal',
+                style: {
+                    color: 'gold',
+                    shape: 'rect',
+                    disableMaxWidth: true,
+                },
+                async onApprove(data) {
+                    // Capture the funds from the transaction.
+                    // const response = await fetch("/my-server/capture-paypal-order", {
                     // 	method: "POST",
-                    // 	headers: { "Content-Type": "application/json" },
                     // 	body: JSON.stringify({
-                    // 		cart: [{ id: "YOUR_PRODUCT_ID", quantity: "YOUR_PRODUCT_QUANTITY" }],
-                    // 	}),
+                    // 		orderID: data.orderID
+                    // 	})
                     // });
 
-                    // const orderData = await response.json();
+                    // const details = await response.json();
 
-                    // if (!orderData.id) {
-                    // 	const errorDetail = orderData.details[0];
-                    // 	const errorMessage = errorDetail
-                    // 		? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
-                    // 		: "Unexpected error occurred, please try again.";
+                    // Show success message to buyer
+                    alert(`Transaction completed by ${JSON.stringify(data, null, 2)}`);
+                },
+                onCancel(data) {
+                    console.log(data);
 
-                    // 	throw new Error(errorMessage);
-                    // }
+                    // Show a cancel page, or return to cart
+                    window.location.assign("/your-cancel-page");
+                },
+                onError(err) {
+                    console.log(err);
+                    alert(err);
+                    // For example, redirect to a specific error page
+                    // window.location.assign("/your-error-page-here");
+                },
+                async createOrder() {
+                    try {
+                        const { data: response, error } = await tryCatch($fetch<{
+                            orderID: string;
+                        }>("http://localhost:7877/paypal/createOrder", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: {
+                                invoiceID: invoice.ID,
+                            },
+                        }));
 
-                    return '';
+                        if (error) {
+                            console.error(error);
+                            alert(error);
+                            return '';
+                        }
 
-                } catch (error) {
-                    console.error(error);
-                    throw error;
+                        const orderData = response;
+
+                        return orderData.orderID ?? '';
+
+                    } catch (error) {
+                        console.error(error);
+                        throw error;
+                    }
                 }
-            }
-        }).render("#paypal-button-container");
+            }).render(selector);
+
+        }
+
     } catch (error) {
         console.error("failed to load the PayPal JS SDK script", error);
     }
