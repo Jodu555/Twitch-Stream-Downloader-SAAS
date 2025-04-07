@@ -5,6 +5,8 @@ import fs from 'fs';
 import morgan from 'morgan';
 import path from 'path';
 import dotenv from 'dotenv';
+import http from 'http';
+import { Server, Socket } from 'socket.io';
 dotenv.config();
 
 import { Database } from '@jodu555/mysqlapi';
@@ -29,6 +31,82 @@ app.use(cors());
 
 app.use(paypalRouter);
 app.use(sniffEntriesRouter);
+
+const server = http.createServer(app);
+
+interface ServerToClientEvents {
+    noArg: () => void;
+    basicEmit: (a: number, b: string, c: Buffer) => void;
+    withAck: (d: string, callback: (e: number) => void) => void;
+}
+
+interface ClientToServerEvents {
+    hello: () => void;
+}
+
+interface InterServerEvents {
+    ping: () => void;
+}
+
+interface SocketData {
+    name: string;
+    age: number;
+}
+
+const io = new Server<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    InterServerEvents,
+    SocketData
+>(server, {
+    cors: {
+        methods: ['GET', 'POST'],
+    },
+});
+
+io.use(async (socket, next) => {
+    const type = socket.handshake.auth.type;
+    console.log('Handshake', socket.handshake);
+    if (type === 'client') {
+        const authToken = socket.handshake.auth.token;
+
+        // if (authToken && (await authHelper.getUser(authToken))) {
+        //     console.log(`Socket with`);
+        //     console.log(`   ID: ${socket.id} - ${type.toUpperCase()}`);
+        //     console.log(`   - proposed with: ${authToken} - ${(await authHelper.getUser(authToken)).username}`);
+        //     socket.auth = { token: authToken, user: await authHelper.getUser(authToken), type };
+        //     return next();
+        // } else {
+        //     next(new Error('Authentication error'));
+        // }
+        return next();
+    }
+    if (type === 'rmvc-emitter') {
+        // socket.auth = { type };
+        return next();
+    }
+});
+
+io.on('connection', async (socket) => {
+    const auth = socket.handshake;
+    console.log('auth', auth);
+
+
+    // if (auth.type == 'client') {
+    //     socketInitClient(socket);
+    //     socketInitSync(socket);
+    //     socketInitRMVCEmitter(socket);
+    // }
+    // if (auth.type == 'rmvc-emitter') socketInitRMVCEmitter(socket);
+    // if (auth.type == 'scraper') socketInitScraper(socket);
+    // if (auth.type == 'sub') socketInitSub(socket);
+
+    // await sendSocketAdminUpdate();
+
+    socket.on('disconnect', async () => {
+        // await sendSocketAdminUpdate();
+    });
+});
 
 app.get('/api/v1/invoices', async (req, res) => {
     res.json(await database.get<DatabaseInvoice>('invoices').get());
@@ -137,7 +215,7 @@ app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
 
 const PORT = process.env.PORT || 8081;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
 
