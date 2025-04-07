@@ -17,6 +17,15 @@
                 <h2 class="text-center mt-3">Infos</h2>
             </div>
             <div class="tab-pane fade" :class="{ active: selectedTab == 'Invoices', show: selectedTab == 'Invoices' }">
+                <pre>
+                    {{ { status, error } }}
+                </pre>
+                <div class="d-grid gap-2">
+                    <button type="button" @click="refresh()" class="btn btn-outline-primary">
+                        Refresh
+                    </button>
+                </div>
+
                 <h2 class="text-center mt-3">Invoices</h2>
                 <div class="table-responsive-lg">
                     <table class="table align-middle">
@@ -30,15 +39,16 @@
                             </tr>
                         </thead>
                         <tbody class="table-group-divider">
-                            <tr v-for="invoice in invoices.sort((a, b) => b.createdAt - a.createdAt)" :id="invoice.ID"
-                                :class="{ 'table-danger': invoice.state == 'Unpaid' }">
+                            <tr v-for="invoice in sortedInvoices" :id="invoice.ID"
+                                :class="{ 'table-danger': invoice.status == 'UNPAID' }">
                                 <th scope="row">{{ invoice.ID }}</th>
                                 <td>{{ new Date(invoice.createdAt).toLocaleString('de') }}</td>
-                                <td>{{ invoice.state }}</td>
-                                <td :class="{ 'text-danger': invoice.state == 'Unpaid' }">{{ invoice.amount }}€</td>
-                                <td v-if="invoice.state == 'Paid'">{{ new Date(invoice.paidAt).toLocaleString('de') }}
+                                <td style="text-transform: capitalize;">{{ invoice.status }}</td>
+                                <td :class="{ 'text-danger': invoice.status == 'UNPAID' }">{{ invoice.amount }}€</td>
+                                <td v-if="invoice.status == 'PAID'">{{ new Date(invoice.paidAt).toLocaleString('de') }}
                                 </td>
-                                <td :id="`paypal-button-container-${invoice.ID}`" v-else>
+                                <td class="paypal-button-container" :id="`paypal-button-container-${invoice.ID}`"
+                                    v-else>
 
                                 </td>
                             </tr>
@@ -130,57 +140,53 @@ const tabs = [
 
 const selectedTab = ref<TabKeys>('Invoices');
 
+type InvoiceStatus = 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED';
+
 interface BaseInvoice {
     ID: string;
+    userUUID: string;
     createdAt: number;
     amount: number;
+    status: InvoiceStatus;
+
 }
 
 interface InvoicePaid {
     paidAt: number;
-    state: 'Paid';
+    payPalOrderID: string;
+    status: 'PAID';
 }
 
 interface InvoiceUnPaid {
-    state: 'Unpaid';
+    status: 'UNPAID';
 }
 
 type Invoice = BaseInvoice & (InvoicePaid | InvoiceUnPaid);
 
-const invoices = ref<Invoice[]>([
-    {
-        ID: '1',
-        createdAt: Date.now() - 1000 * 60 * 60 * 24,
-        paidAt: Date.now() - 1000 * 60 * 60 * 12,
-        state: 'Paid',
-        amount: 100,
-    },
-    {
-        ID: '2',
-        createdAt: Date.now() - 1000 * 60 * 60,
-        state: 'Unpaid',
-        amount: 100,
-    },
-    {
-        ID: '3',
-        createdAt: Date.now() - 1000 * 60 * 60,
-        state: 'Unpaid',
-        amount: 55,
-    },
-]);
+const { data: invoices, error, refresh, status } = await useFetch<Invoice[]>('http://138.201.131.52:8081/api/v1/invoices');
 
 
 import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
 const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
 
-onMounted(async () => {
+const sortedInvoices = computed(() => {
+    return invoices.value?.toSorted((a, b) => b.createdAt - a.createdAt);
+});
+
+watch(invoices, async (curr, prev) => {
+    if (JSON.stringify(curr) == JSON.stringify(prev))
+        return;
+    await renderInvoicePaypalButtons();
+});
+
+async function renderInvoicePaypalButtons() {
+    document.querySelectorAll('.paypal-button-container').forEach(x => x.innerHTML = '');
     try {
         if (paypal == null || paypal == undefined) {
             console.error("failed to load the PayPal JS SDK script");
             return;
         }
-
-        for (const invoice of invoices.value.filter(x => x.state == 'Unpaid')) {
+        for (const invoice of invoices.value!.filter(x => x.status == 'UNPAID')) {
             const selector = '#paypal-button-container-' + invoice.ID;
             document.querySelector(selector)!.innerHTML = '';
             await paypal.Buttons?.({
@@ -192,17 +198,25 @@ onMounted(async () => {
                 },
                 async onApprove(data) {
                     // Capture the funds from the transaction.
-                    // const response = await fetch("/my-server/capture-paypal-order", {
-                    // 	method: "POST",
-                    // 	body: JSON.stringify({
-                    // 		orderID: data.orderID
-                    // 	})
-                    // });
+                    const { data: response, error } = await tryCatch($fetch<{
+                        status: InvoiceStatus;
+                    }>("http://138.201.131.52:8081/api/v1/paypal/captureOrder", {
+                        method: "POST",
+                        body: {
+                            invoiceID: invoice.ID,
+                            orderID: data.orderID,
+                        },
+                    }));
 
-                    // const details = await response.json();
+                    if (error) {
+                        console.error(error);
+                        alert(error);
+                        return;
+                    }
 
-                    // Show success message to buyer
-                    alert(`Transaction completed by ${JSON.stringify(data, null, 2)}`);
+                    if (response.status == 'PAID') {
+                        refresh();
+                    }
                 },
                 onCancel(data) {
                     console.log(data);
@@ -220,9 +234,8 @@ onMounted(async () => {
                     try {
                         const { data: response, error } = await tryCatch($fetch<{
                             orderID: string;
-                        }>("http://localhost:7877/paypal/createOrder", {
+                        }>("http://138.201.131.52:8081/api/v1/paypal/createOrder", {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
                             body: {
                                 invoiceID: invoice.ID,
                             },
@@ -246,11 +259,13 @@ onMounted(async () => {
             }).render(selector);
 
         }
-
     } catch (error) {
         console.error("failed to load the PayPal JS SDK script", error);
     }
+}
 
+onMounted(async () => {
+    await renderInvoicePaypalButtons();
 });
 
 
