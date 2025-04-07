@@ -15,6 +15,8 @@ import RecordEntry, { MetaRepresent, RecordEntryState, VideoMeta } from './Recor
 import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
 
+import { router } from './router/paypal';
+
 const app = express();
 
 app.use(express.json());
@@ -34,6 +36,47 @@ database.createTable('sniffEntries', {
     },
     lastCheck: {
         type: 'BIGINT',
+    },
+});
+
+export interface DatabaseInvoice {
+    ID: string;
+    userUUID: string;
+    paypalOrderID: string;
+    amount: number;
+    status: 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED';
+    createdAt: number;
+    paidAt: number;
+}
+
+database.createTable('invoices', {
+    ID: {
+        type: 'varchar(64)',
+        null: false,
+    },
+    userUUID: {
+        type: 'varchar(64)',
+        null: false,
+    },
+    paypalOrderID: {
+        type: 'varchar(64)',
+        null: true,
+    },
+    amount: {
+        type: 'BIGINT',
+        null: false,
+    },
+    status: {
+        type: 'varchar(32)',
+        null: false,
+    },
+    createdAt: {
+        type: 'BIGINT',
+        null: false,
+    },
+    paidAt: {
+        type: 'BIGINT',
+        null: true,
     },
 });
 
@@ -99,6 +142,12 @@ database.createTable('recordEntries', {
         type: 'varchar(255)',
         null: true,
     }
+});
+
+app.use(router);
+
+app.get('/api/v1/invoices', async (req, res) => {
+    res.json(await database.get<DatabaseInvoice>('invoices').get());
 });
 
 app.get('/api/v1/streamers', async (req, res) => {

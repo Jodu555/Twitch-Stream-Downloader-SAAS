@@ -388,11 +388,15 @@ class RecordEntry {
             console.log('Cleaned up for ', this.toFrontend());
 
             //Delete the video file
-            if (this.watchingLive) {
-                fs.rmSync(path.join(this.recordingFilePath, '..'), { recursive: true, force: true });
-            } else {
-                fs.rmSync(this.recordingFilePath, { force: true });
-                this.imageFilePath && fs.rmSync(this.imageFilePath, { force: true });
+            try {
+                if (this.watchingLive) {
+                    fs.rmSync(path.join(this.recordingFilePath, '..'), { recursive: true, force: true });
+                } else {
+                    fs.rmSync(this.recordingFilePath, { force: true });
+                    this.imageFilePath && fs.rmSync(this.imageFilePath, { force: true });
+                }
+            } catch (error) {
+                console.log('Error on deleting the tmp video files', error);
             }
             this.state = 'FINISHED';
             this.finishedCallbacks.forEach(x => x());
