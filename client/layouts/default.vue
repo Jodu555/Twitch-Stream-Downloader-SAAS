@@ -46,6 +46,14 @@
 	</footer>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+
+onMounted(() => {
+	const socket = useSocket();
+	socket.auth = { type: 'client' };
+	socket.connect();
+});
+
+</script>
 
 <style scoped></style>

@@ -35,6 +35,6 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@pinia/nuxt',
     '@formkit/auto-animate',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
   ]
 });

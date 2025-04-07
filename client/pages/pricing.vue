@@ -117,6 +117,11 @@ const pricingTable = usePricingTable();
 function getSub(value: string, key: string) {
     return pricingTable.value[value as PricingTableKey][key as keyof PricingTableObject];
 }
+onMounted(() => {
+    const nuxtApp = useNuxtApp();
+    console.log(nuxtApp);
+});
+
 
 </script>
 
