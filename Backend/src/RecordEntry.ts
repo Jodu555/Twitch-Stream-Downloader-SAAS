@@ -3,7 +3,7 @@ import path from 'path';
 import { spawn, exec, ChildProcessWithoutNullStreams } from 'child_process';
 import { getMetaData, isLive } from './streamLinkHelpers';
 import { Database } from '@jodu555/mysqlapi';
-import { DatabaseRecordEntry } from './index';
+import { DatabaseRecordEntry } from './utils/types';
 
 const database = Database.getDatabase();
 

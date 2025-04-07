@@ -10,12 +10,15 @@ dotenv.config();
 import { Database } from '@jodu555/mysqlapi';
 const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
 database.connect();
+import { setupTables } from './utils/database';
+setupTables();
 
 import RecordEntry, { MetaRepresent, RecordEntryState, VideoMeta } from './RecordEntry';
 import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
-
-import { router } from './router/paypal';
+import { router as paypalRouter } from './router/paypal';
+import { router as sniffEntriesRouter } from './router/sniffEntries';
+import { DatabaseInvoice, DatabaseRecordEntry, SniffEntry } from './utils/types';
 
 const app = express();
 
@@ -24,127 +27,8 @@ app.use(express.json());
 // app.use(morgan('dev'));
 app.use(cors());
 
-database.createTable('sniffEntries', {
-    userUUID: {
-        type: 'varchar(64)',
-    },
-    twitchStreamerName: {
-        type: 'varchar(64)',
-    },
-    everyxMinute: {
-        type: 'INT',
-    },
-    lastCheck: {
-        type: 'BIGINT',
-    },
-});
-
-export interface DatabaseInvoice {
-    ID: string;
-    userUUID: string;
-    paypalOrderID: string;
-    amount: number;
-    status: 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED';
-    createdAt: number;
-    paidAt: number;
-}
-
-database.createTable('invoices', {
-    ID: {
-        type: 'varchar(64)',
-        null: false,
-    },
-    userUUID: {
-        type: 'varchar(64)',
-        null: false,
-    },
-    paypalOrderID: {
-        type: 'varchar(64)',
-        null: true,
-    },
-    amount: {
-        type: 'BIGINT',
-        null: false,
-    },
-    status: {
-        type: 'varchar(32)',
-        null: false,
-    },
-    createdAt: {
-        type: 'BIGINT',
-        null: false,
-    },
-    paidAt: {
-        type: 'BIGINT',
-        null: true,
-    },
-});
-
-export interface DatabaseRecordEntry {
-    ID: string;
-    twitchStreamerName: string;
-    userUUID: string;
-    state: RecordEntryState;
-    metas: string;
-    videoMeta: string;
-    finishedAt: number;
-    recordingFilePath: string;
-    outputFilePath: string;
-    imageFilePath: string;
-    imageUrl: string;
-}
-
-database.createTable('recordEntries', {
-    options: {
-        PK: 'ID',
-    },
-    ID: {
-        type: 'varchar(64)',
-        null: false,
-    },
-    twitchStreamerName: {
-        type: 'varchar(64)',
-        null: false,
-    },
-    userUUID: {
-        type: 'varchar(64)',
-        null: false,
-    },
-    state: {
-        type: 'VARCHAR(32)',
-        null: false,
-    },
-    metas: {
-        type: 'TEXT',
-        null: false,
-    },
-    videoMeta: {
-        type: 'TEXT',
-        null: true,
-    },
-    finishedAt: {
-        type: 'BIGINT',
-        null: true,
-    },
-    recordingFilePath: {
-        type: 'varchar(255)',
-        null: false,
-    },
-    outputFilePath: {
-        type: 'varchar(255)',
-        null: false,
-    },
-    imageFilePath: {
-        type: 'varchar(255)',
-        null: true,
-    },
-    imageUrl: {
-        type: 'varchar(255)',
-        null: true,
-    }
-});
-
-app.use(router);
+app.use(paypalRouter);
+app.use(sniffEntriesRouter);
 
 app.get('/api/v1/invoices', async (req, res) => {
     res.json(await database.get<DatabaseInvoice>('invoices').get());
@@ -251,36 +135,6 @@ app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
 
 });
 
-app.get('/api/v1/sniffEntrys', async (req, res) => {
-    const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
-    res.json(sniffEntrys);
-});
-
-app.post('/api/v1/sniffEntrys', async (req, res) => {
-    const twitchStreamerName = req.body.twitchStreamerName;
-    if (twitchStreamerName == null || typeof twitchStreamerName != 'string' || twitchStreamerName.trim().length == 0) {
-        res.status(400).send('twitchStreamerName is required');
-        return;
-    }
-    await database.get<SniffEntry>('sniffEntries').create({
-        everyxMinute: 1,
-        lastCheck: Date.now() - 1000 * 60,
-        twitchStreamerName: twitchStreamerName,
-        userUUID: 'JODU',
-    });
-    res.send('Created');
-});
-
-app.delete('/api/v1/sniffEntrys/:name', async (req, res) => {
-    const twitchStreamerName = req.params.name;
-    if (twitchStreamerName == null || typeof twitchStreamerName != 'string' || twitchStreamerName.trim().length == 0) {
-        res.status(400).send('twitchStreamerName is required');
-        return;
-    }
-    await database.get<SniffEntry>('sniffEntries').delete({ twitchStreamerName: twitchStreamerName });
-    res.send('Deleted');
-});
-
 const PORT = process.env.PORT || 8081;
 
 app.listen(PORT, () => {
@@ -288,13 +142,6 @@ app.listen(PORT, () => {
 });
 
 const commandManager = CommandManager.createCommandManager(process.stdin, process.stdout);
-
-interface SniffEntry {
-    twitchStreamerName: string;
-    everyxMinute: number;
-    userUUID: string;
-    lastCheck: number;
-}
 
 const processes = [] as RecordEntry[];
 

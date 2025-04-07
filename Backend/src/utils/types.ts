@@ -1,0 +1,32 @@
+import { RecordEntryState } from 'src/RecordEntry';
+
+export interface SniffEntry {
+    twitchStreamerName: string;
+    everyxMinute: number;
+    userUUID: string;
+    lastCheck: number;
+}
+
+export interface DatabaseInvoice {
+    ID: string;
+    userUUID: string;
+    paypalOrderID: string;
+    amount: number;
+    status: 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED';
+    createdAt: number;
+    paidAt: number;
+}
+
+export interface DatabaseRecordEntry {
+    ID: string;
+    twitchStreamerName: string;
+    userUUID: string;
+    state: RecordEntryState;
+    metas: string;
+    videoMeta: string;
+    finishedAt: number;
+    recordingFilePath: string;
+    outputFilePath: string;
+    imageFilePath: string;
+    imageUrl: string;
+}

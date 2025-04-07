@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { Database } from '@jodu555/mysqlapi';
-import { ApiError, CheckoutPaymentIntent, Client, Environment, LogLevel, OrderApplicationContextUserAction, OrdersController, OrderStatus, PayeePaymentMethodPreference, PaypalExperienceUserAction } from '@paypal/paypal-server-sdk';
-import { DatabaseInvoice } from '../index';
+import { ApiError, CheckoutPaymentIntent, Client, Environment, LogLevel, OrdersController, OrderStatus, PayeePaymentMethodPreference, PaypalExperienceUserAction } from '@paypal/paypal-server-sdk';
+import { DatabaseInvoice } from 'src/utils/types';
 
 const database = Database.getDatabase();
 
