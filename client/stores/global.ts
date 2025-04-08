@@ -12,6 +12,7 @@ export interface Streamer {
     recordingFilePath: string;
     imageLocation: string;
     imageUrl: string;
+    createdAt: number;
 }
 
 export interface VideoMeta {
@@ -45,6 +46,7 @@ export interface SniffEntry {
 export interface RecordedVideo {
     id: string;
     finishedAt: number;
+    createdAt: number;
     twitchStreamerName: string;
     metas: MetaRepresent[];
     videoMeta: {

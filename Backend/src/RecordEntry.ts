@@ -47,7 +47,9 @@ class RecordEntry {
     public watchingLive: boolean;
     private state: RecordEntryState;
 
+    public createdAt: number;
     public finishedAt: number;
+    public deletedAt: number;
 
     public videoMeta: VideoMeta;
     public ffmpegMetadata: FfmpegMetadata;
@@ -82,6 +84,7 @@ class RecordEntry {
         this.watchingLive = watchingLive ?? false;
         this.notLiveAttempts = 0;
         this.outputFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
+        this.createdAt = Date.now();
     }
 
     static fromDatabase(entry: DatabaseRecordEntry) {
@@ -92,7 +95,9 @@ class RecordEntry {
         record.videoMeta = JSON.parse(entry.videoMeta);
         record.recordingFilePath = entry.recordingFilePath;
         record.outputFilePath = entry.outputFilePath;
+        record.createdAt = entry.createdAt;
         record.finishedAt = entry.finishedAt;
+        record.deletedAt = entry.deletedAt;
         record.imageFilePath = entry.imageFilePath;
         record.imageUrl = entry.imageUrl;
         return record;
@@ -105,6 +110,8 @@ class RecordEntry {
             metas: this.metas,
             state: this.getState(),
             watchingLive: this.watchingLive,
+            createdAt: this.createdAt,
+            deletedAt: this.deletedAt,
             finishedAt: this.finishedAt,
             pid: this.pid,
             videoMeta: this.videoMeta,
@@ -130,6 +137,8 @@ class RecordEntry {
             imageFilePath: this.imageFilePath,
             imageUrl: this.imageUrl,
             finishedAt: this.finishedAt,
+            createdAt: this.createdAt,
+            deletedAt: this.deletedAt,
         });
     }
 
@@ -144,6 +153,8 @@ class RecordEntry {
             imageFilePath: this.imageFilePath,
             imageUrl: this.imageUrl,
             finishedAt: this.finishedAt,
+            createdAt: this.createdAt,
+            deletedAt: this.deletedAt,
         });
     }
 
@@ -432,6 +443,7 @@ class RecordEntry {
 
     async delete() {
         this.state = 'DELETED';
+        this.deletedAt = Date.now();
         await this.updateRecordInDatabase();
     }
 }

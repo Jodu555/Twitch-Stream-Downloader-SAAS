@@ -76,6 +76,14 @@ export function setupTables() {
             type: 'TEXT',
             null: true,
         },
+        createdAt: {
+            type: 'BIGINT',
+            null: false
+        },
+        deletedAt: {
+            type: 'BIGINT',
+            null: true
+        },
         finishedAt: {
             type: 'BIGINT',
             null: true,

@@ -24,6 +24,8 @@ export interface DatabaseRecordEntry {
     state: RecordEntryState;
     metas: string;
     videoMeta: string;
+    createdAt: number;
+    deletedAt: number;
     finishedAt: number;
     recordingFilePath: string;
     outputFilePath: string;
