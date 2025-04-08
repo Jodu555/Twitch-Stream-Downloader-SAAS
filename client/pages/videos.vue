@@ -152,60 +152,7 @@ async function deleteVideo(id: string) {
 
 }
 
-// const videos = ref<RecordedVideo[]>([
-//     {
-//         id: '1',
-//         finishedAt: Date.now() - 1000 * 60 * 60 * 24,
-//         twitchStreamerName: 'Jodu',
-//         ffmpegMetadata: {
-//             time: '07:00:00',
-//             size: (15 * 1024 ** 3).toString(),
-//             bitrate: '0',
-//             speed: '0',
-//             frame: '0',
-//             fps: '0',
-//             from: Date.now() - 1000 * 60 * 60 * 24,
-//         },
-//         metas: [
-//             {
-//                 title: 'Test',
-//                 category: 'Test',
-//                 time: Date.now() - 1000,
-//             },
-//         ],
-//     }
-// ]);
-
-interface RecordedVideo {
-    id: string;
-    finishedAt: number;
-    twitchStreamerName: string;
-    metas: MetaRepresent[];
-    videoMeta: {
-        time: string;
-        size: string;
-    };
-    ffmpegMetadata?: FfmpegMetadata;
-}
-
-interface MetaRepresent {
-    title: string;
-    category: string;
-    time: number;
-}
-
-interface FfmpegMetadata {
-    frame: string;
-    fps: string;
-    size: string;
-    time: string;
-    bitrate: string;
-    speed: string;
-    from: number;
-}
-
 import { useTimeAgo } from '@vueuse/core';
-
 
 function until(ms: number) {
     const timeAgo = useTimeAgo(new Date(ms));

@@ -292,57 +292,19 @@ function getLastCheck(lastCheck: number, seconds: boolean) {
 	return parseFloat(num.toString()).toFixed(1);
 }
 
-interface Streamer {
-	id: string;
-	watchingLive: boolean;
-	twitchStreamerName: string;
-	metas: MetaRepresent[];
-	state: 'WAITING' | 'RECORDING' | 'TRANSCODING' | 'FINISHED';
-	pid: number;
-	videoMeta: VideoMeta;
-	ffmpegMetadata: FfmpegMetadata;
-	transcodingPid: number;
-	recordingFilePath: string;
-	imageLocation: string;
-	imageUrl: string;
-}
-
-interface VideoMeta {
-	time: string;
-	size: string;
-}
-
-interface MetaRepresent {
-	title: string;
-	category: string;
-	time: number;
-}
-
-interface FfmpegMetadata {
-	frame: string;
-	fps: string;
-	size: string;
-	time: string;
-	bitrate: string;
-	speed: string;
-	from: number;
-}
-
-interface SniffEntry {
-	twitchStreamerName: string;
-	everyxMinute: number;
-	users?: string[];
-	lastCheck: number;
-}
-
 function getLastImageTime(imageUrl: string) {
 	const url = new URL(imageUrl);
 	return parseInt(url.searchParams.get('time') ?? '0');
 }
 
-const { data: streamers, error, refresh, status } = await useFetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers');
+const globalStore = useGlobalStore();
 
-const { data: sniffEntrys, error: sniffError, refresh: refreshSniffEntrys, status: sniffStatus } = await useFetch<SniffEntry[]>('http://138.201.131.52:8081/api/v1/sniffEntrys');
+const streamers = computed(() => globalStore.streamers);
+const sniffEntrys = computed(() => globalStore.sniffEntrys);
+
+const { error, refresh, status } = useAsyncData('streamers', globalStore.fetchStreamers);
+const { error: sniffError, refresh: refreshSniffEntrys, status: sniffStatus } = useAsyncData('sniffEntrys', globalStore.fetchSniffEntrys);
+
 
 const visibility = useDocumentVisibility();
 
@@ -370,8 +332,8 @@ const { pause: pauseSniff, resume: resumeSniff } = useIntervalFn(() => {
 }, 1000 * 10);
 
 onMounted(async () => {
-	resumeStreamers();
-	resumeSniff();
+	// resumeStreamers();
+	// resumeSniff();
 });
 
 onUnmounted(() => {

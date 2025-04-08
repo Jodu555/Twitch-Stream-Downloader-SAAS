@@ -111,11 +111,20 @@
 
 <script lang="ts" setup>
 
+import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
+const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
+
+
 const userData = useUserData();
-const used = ref({
-    recordingSlots: userData.value.recordingSlots - 2,
-    videoSlots: userData.value.videoSlots - 2,
-    streamerSlots: userData.value.streamerSlots - 1,
+
+const globalStore = useGlobalStore();
+
+const used = computed(() => {
+    return {
+        recordingSlots: globalStore.streamers.length,
+        videoSlots: globalStore.videos.length,
+        streamerSlots: globalStore.sniffEntrys.length,
+    };
 });
 
 function getHasHad(key: string) {
@@ -140,34 +149,10 @@ const tabs = [
 
 const selectedTab = ref<TabKeys>('Invoices');
 
-type InvoiceStatus = 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED';
 
-interface BaseInvoice {
-    ID: string;
-    userUUID: string;
-    createdAt: number;
-    amount: number;
-    status: InvoiceStatus;
+const invoices = computed(() => globalStore.invoices);
+const { error, refresh, status } = useAsyncData('invoices', globalStore.fetchInvoices);
 
-}
-
-interface InvoicePaid {
-    paidAt: number;
-    payPalOrderID: string;
-    status: 'PAID';
-}
-
-interface InvoiceUnPaid {
-    status: 'UNPAID';
-}
-
-type Invoice = BaseInvoice & (InvoicePaid | InvoiceUnPaid);
-
-const { data: invoices, error, refresh, status } = await useFetch<Invoice[]>('http://138.201.131.52:8081/api/v1/invoices');
-
-
-import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
-const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
 
 const sortedInvoices = computed(() => {
     return invoices.value?.toSorted((a, b) => b.createdAt - a.createdAt);
@@ -180,7 +165,7 @@ watch(invoices, async (curr, prev) => {
 });
 
 async function renderInvoicePaypalButtons() {
-    document.querySelectorAll('.paypal-button-container').forEach(x => x.innerHTML = '');
+    document?.querySelectorAll('.paypal-button-container').forEach(x => x.innerHTML = '');
     try {
         if (paypal == null || paypal == undefined) {
             console.error("failed to load the PayPal JS SDK script");

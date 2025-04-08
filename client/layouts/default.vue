@@ -19,8 +19,8 @@
 							<NuxtLink to="/videos" class="nav-link position-relative" active-class="active">
 								Videos
 								<span
-									class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-									2
+									class="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger">
+									{{ globalStore.videos.length }}
 									<span class="visually-hidden">Open Videos</span>
 								</span>
 							</NuxtLink>
@@ -49,10 +49,23 @@
 <script lang="ts" setup>
 
 onMounted(() => {
-	const socket = useSocket();
-	socket.auth = { type: 'client' };
-	socket.connect();
+	// const socket = useSocket();
+	// socket.auth = { type: 'client' };
+	// socket.connect();
 });
+
+const globalStore = useGlobalStore();
+
+await Promise.all([
+	callOnce(globalStore.fetchStreamers),
+	callOnce(globalStore.fetchSniffEntrys),
+	callOnce(globalStore.fetchVideos),
+	callOnce(globalStore.fetchInvoices),
+]);
+
+// await callOnce(globalStore.fetchStreamers);
+// await callOnce(globalStore.fetchSniffEntrys);
+// await callOnce(globalStore.fetchVideos);
 
 </script>
 
