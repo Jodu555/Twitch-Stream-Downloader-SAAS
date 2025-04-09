@@ -26,6 +26,7 @@
                             <thead>
                                 <tr>
                                     <th scope="col">Time</th>
+                                    <th scope="col">Relative Time</th>
                                     <th scope="col">Title</th>
                                     <th scope="col">Category</th>
                                 </tr>
@@ -34,6 +35,10 @@
                                 <template v-if="videos?.find(x => x.id == titleViewID)?.metas != null">
                                     <tr v-for="meta in videos?.find(x => x.id == titleViewID)?.metas" class="">
                                         <td scope="row">{{ new Date(meta.time).toLocaleString('de') }}</td>
+                                        <td v-if="videos?.find(x => x.id == titleViewID)?.createdAt != null">{{
+                                            secondsToHumanReadable((meta.time - (videos?.find(x => x.id ==
+                                                titleViewID)?.createdAt || 0)) / 1000)
+                                        }}</td>
                                         <td>{{ meta.title }}</td>
                                         <td>{{ meta.category }}</td>
                                     </tr>
@@ -134,6 +139,14 @@ const userData = useUserData();
 
 const titleViewID = ref('');
 const showTitel = ref(false);
+
+function secondsToHumanReadable(seconds: number) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const reseconds = Math.floor(seconds % 60);
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${reseconds.toString().padStart(2, '0')}`;
+}
 
 function getLastCheck(lastCheck: number, seconds: boolean) {
     let num = (new Date().getTime() - lastCheck) / 1000;
