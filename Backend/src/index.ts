@@ -113,7 +113,7 @@ app.get('/api/v1/invoices', async (req, res) => {
 });
 
 app.get('/api/v1/streamers', async (req, res) => {
-    res.json(processes.filter(x => x.getState() != 'FINISHED').map(x => x.toFrontend()));
+    res.json(processes.filter(x => x.getState() == 'RECORDING' || x.getState() == 'TRANSCODING').map(x => x.toFrontend()));
 });
 
 app.get('/api/v1/videos', async (req, res) => {
@@ -243,17 +243,24 @@ async function main() {
 
     let counter = 0;
     commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', async (command, [...args], scope) => {
-        console.log(processes.map(x => x.metas));
-
         const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
+
+        const finished = processes.filter(x => x.getState() != 'RECORDING' && x.getState() != 'TRANSCODING');
+        const recording = processes.filter(x => x.getState() == 'RECORDING' || x.getState() == 'TRANSCODING');
 
         return [
             'Record List:',
             `  - Last Check: ${formatNumPrec((Date.now() - lastCheck) / 1000, 1)}s`,
             '',
+            'Sniff Entrys:',
             ...sniffEntrys.map(x => `  ${x.twitchStreamerName} => Waiting (every ${x.everyxMinute} minute${x.everyxMinute > 1 ? 's' : ''})`),
             '',
-            ...processes.map(x => `  ${x.twitchStreamerName} - ${x.getState()} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.bitrate} - ${bytesToHumanReadable(parseInt(x.ffmpegMetadata?.size))} from ${formatNumPrec((Date.now() - x.ffmpegMetadata?.from) / 1000, 2)}s`),
+            'Finished:',
+            ...finished.map(x => `  ${x.twitchStreamerName} - ${x.getState()} => ${x.videoMeta?.time} - ${bytesToHumanReadable(parseInt(x.videoMeta?.size))} from ${new Date(x.finishedAt).toLocaleString('de')} with ${x.metas.length} Title/s`),
+            '',
+            'Recording:',
+            ...recording.map(x => `  ${x.twitchStreamerName} - ${x.getState()} => ${x.ffmpegMetadata?.time} - ${x.ffmpegMetadata?.speed}x - ${x.ffmpegMetadata?.bitrate} - ${bytesToHumanReadable(parseInt(x.ffmpegMetadata?.size))} from ${formatNumPrec((Date.now() - x.ffmpegMetadata?.from) / 1000, 2)}s`),
+            '',
         ];
     }));
 
@@ -266,7 +273,6 @@ async function main() {
         processes.push(entry);
         entry.onRecordingFinished(() => {
             console.log('Recording Finished for', entry.toFrontend());
-            // processes.splice(processes.findIndex(e => e.id == entry.id), 1);
         });
         return '';
     }));
@@ -365,20 +371,20 @@ async function main() {
         //         processes.splice(processes.findIndex(e => e.id == entry.id), 1);
         //     });
         // }
-        {
-            const streamer = 'jinnytty';
-            if (!await isLive(streamer)) {
-                console.log('Stream', streamer, 'is not live!');
-                return;
-            }
-            const entry = new RecordEntry('JODU', streamer, true);
-            await entry.record();
-            processes.push(entry);
-            entry.onRecordingFinished(() => {
-                console.log('Recording Finished for', entry.toFrontend());
-                // processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-            });
-        }
+        // {
+        //     const streamer = 'jinnytty';
+        //     if (!await isLive(streamer)) {
+        //         console.log('Stream', streamer, 'is not live!');
+        //         return;
+        //     }
+        //     const entry = new RecordEntry('JODU', streamer, true);
+        //     await entry.record();
+        //     processes.push(entry);
+        //     entry.onRecordingFinished(() => {
+        //         console.log('Recording Finished for', entry.toFrontend());
+        //         // processes.splice(processes.findIndex(e => e.id == entry.id), 1);
+        //     });
+        // }
     }, 1000);
 
 }
