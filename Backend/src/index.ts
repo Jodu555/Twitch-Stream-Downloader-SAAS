@@ -68,9 +68,12 @@ const io = new Server<
 
 io.use(async (socket, next) => {
     const type = socket.handshake.auth.type;
-    console.log('Handshake', socket.handshake);
     if (type === 'client') {
         const authToken = socket.handshake.auth.token;
+        socket.data.name = 'TESTNAME';
+        console.log(`Socket with`);
+        console.log(`   ID: ${socket.id} - ${type.toUpperCase()}`);
+        console.log(`   - proposed with: ${authToken} - ${socket.data.name}`);
 
         // if (authToken && (await authHelper.getUser(authToken))) {
         //     console.log(`Socket with`);
@@ -90,9 +93,7 @@ io.use(async (socket, next) => {
 });
 
 io.on('connection', async (socket) => {
-    const auth = socket.handshake;
-    console.log('auth', auth);
-
+    const auth = socket.handshake.auth;
 
     // if (auth.type == 'client') {
     //     socketInitClient(socket);
@@ -106,6 +107,10 @@ io.on('connection', async (socket) => {
     // await sendSocketAdminUpdate();
 
     socket.on('disconnect', async () => {
+        console.log(`Socket with`);
+        console.log(`   ID: ${socket.id} - ${socket.data.name}`);
+        console.log(`   - disconnected`);
+
         // await sendSocketAdminUpdate();
     });
 });
@@ -303,6 +308,15 @@ async function main() {
             console.log('Deleted', record.toFrontend());
         }
         return '';
+    }));
+
+    commandManager.registerCommand(new Command(['socketsessions', 'ss'], 'ss', 'Lists all currently connected sockets', async (command, [...args], scope) => {
+
+
+        const sockets = await io.fetchSockets();
+        return sockets.map(x => {
+            return `${x.id} - ${x.handshake.auth.type} - ${x.handshake.auth.token} - ${x.data.name}`;
+        });;
     }));
 
 

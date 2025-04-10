@@ -49,9 +49,9 @@
 <script lang="ts" setup>
 
 onMounted(() => {
-	// const socket = useSocket();
-	// socket.auth = { type: 'client' };
-	// socket.connect();
+	const socket = useSocket();
+	socket.auth = { type: 'client', token: 'crazySecuretoken' };
+	socket.connect();
 });
 
 const globalStore = useGlobalStore();

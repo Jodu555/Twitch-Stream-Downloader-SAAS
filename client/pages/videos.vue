@@ -56,7 +56,7 @@
             <h1 class="text-center mt-2 mb-3">
                 Videos
             </h1>
-            <div class="row">
+            <div class="row" v-auto-animate>
                 <div v-for="(video, idx) in videos" :key="video.id" class="col-3 mb-3 card" :class="{
                     'border-danger': false,
                     'border-warning': false,
@@ -193,6 +193,7 @@ watch(visibility, () => {
 const { pause: pauseVideos, resume: resumeVideos } = useIntervalFn(() => {
     console.log(`refreshing the data again ${new Date().toISOString()}`);
     refresh();
+    pauseVideos();
 }, 1000);
 
 

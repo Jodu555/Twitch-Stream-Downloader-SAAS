@@ -6,7 +6,13 @@
 		<div class="col-3" id="paypal-button-container"></div>
 		<div class="py-3">
 			<!-- <div class="row row-cols-1 row-cols-sm-3 row-cols-md-4 row-cols-xxl-5 gap-2"> -->
+
+
+
+
 			<form @submit.prevent="startRecording" class="d-flex justify-content-center">
+
+
 				<div class="col-5">
 					<label for="twitchUsername" class="form-label">Twitch
 						Username</label>
@@ -15,13 +21,24 @@
 							<label class="form-check-label me-3" for="checkDefault">
 								Watch Live
 							</label>
-							<input class="form-check-input mt-0" v-model="twitchRecordWatchLive" type="checkbox"
+							<input :disabled="startRecordingLoading" class="form-check-input mt-0"
+								v-model="twitchRecordWatchLive" type="checkbox"
 								aria-label="Checkbox for following text input">
 						</div>
-						<input type="text" v-model="twitchUsernameToRecord" class="form-control" id="twitchUsername"
-							placeholder="Twitch Username" aria-label="Twitch Username">
-						<button class="btn btn-outline-primary" type="submit">Start
-							Recording</button>
+						<input :disabled="startRecordingLoading" type="text" v-model="twitchUsernameToRecord"
+							class="form-control" id="twitchUsername" placeholder="Twitch Username"
+							aria-label="Twitch Username">
+						<button :disabled="startRecordingLoading" class="btn btn-primary" type="submit">
+							<template v-if="!startRecordingLoading">
+								Start Recording
+							</template>
+							<template v-else>
+								<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+								Starting Recording...
+							</template>
+						</button>
+						<!-- <button :disabled="startRecordingLoading" class="btn btn-outline-primary" type="submit">Start
+							Recording</button> -->
 					</div>
 				</div>
 			</form>
@@ -219,6 +236,7 @@
 import { useIntervalFn } from '@vueuse/core';
 import { useUserData } from '~/utils/userData';
 
+const startRecordingLoading = ref(false);
 const twitchUsernameToRecord = ref('');
 const twitchRecordWatchLive = ref(false);
 
@@ -227,6 +245,10 @@ const twitchUsernameToMonitor = ref('');
 const userData = useUserData();
 
 async function startRecording() {
+	if (startRecordingLoading.value) {
+		return;
+	}
+	startRecordingLoading.value = true;
 	const { data: response, error } = await tryCatch($fetch<{
 		id: string;
 		twitchStreamerName: string;
@@ -237,10 +259,12 @@ async function startRecording() {
 
 	if (error) {
 		console.log(error);
+		startRecordingLoading.value = false;
 		return;
 	}
 	console.log('Result', response);
 	twitchUsernameToRecord.value = '';
+	startRecordingLoading.value = false;
 }
 
 async function stopRecording(id: string) {
