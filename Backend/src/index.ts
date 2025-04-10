@@ -11,7 +11,9 @@ dotenv.config();
 
 import { Database } from '@jodu555/mysqlapi';
 const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
-database.connect();
+database.connect({
+    charset: 'utf8mb4_unicode_ci',
+});
 import { setupTables } from './utils/database';
 setupTables();
 
