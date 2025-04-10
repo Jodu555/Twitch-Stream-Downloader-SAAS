@@ -98,6 +98,9 @@
                                 Löschen
                             </button>
                         </div>
+                        <div class="d-flex justify-content-end pt-1">
+                            <span class="text-muted">ID: {{ video.id }}</span>
+                        </div>
                     </div>
                 </div>
                 <template

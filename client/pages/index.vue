@@ -50,7 +50,8 @@
 					<template v-if="streamer.imageUrl">
 						<img :src="streamer.imageUrl" class="card-img-top py-2" alt="previewImage" />
 					</template>
-					<ClientOnly v-if="streamer.watchingLive" fallback="Loading video...">
+					<ClientOnly v-if="streamer.watchingLive && streamer.state == 'RECORDING'"
+						fallback="Loading video...">
 						<VideoPlayer class="card-img-top py-2"
 							:link="`http://138.201.131.52:8081/api/v1/live/${streamer.id}/hls/master.m3u8`" />
 					</ClientOnly>
