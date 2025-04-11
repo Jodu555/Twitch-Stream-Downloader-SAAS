@@ -26,7 +26,8 @@
                             <thead>
                                 <tr>
                                     <th scope="col">Time</th>
-                                    <th scope="col">Relative Time</th>
+                                    <th scope="col" v-if="videos?.find(x => x.id == titleViewID)?.createdAt != null">
+                                        Relative Time</th>
                                     <th scope="col">Title</th>
                                     <th scope="col">Category</th>
                                 </tr>
@@ -56,7 +57,7 @@
             <h1 class="text-center mt-2 mb-3">
                 Videos
             </h1>
-            <div class="row" v-auto-animate>
+            <div class="row">
                 <div v-for="(video, idx) in videos" :key="video.id" class="col-3 mb-3 card" :class="{
                     'border-danger': false,
                     'border-warning': false,
@@ -193,7 +194,7 @@ watch(visibility, () => {
 const { pause: pauseVideos, resume: resumeVideos } = useIntervalFn(() => {
     console.log(`refreshing the data again ${new Date().toISOString()}`);
     refresh();
-    pauseVideos();
+    // pauseVideos();
 }, 1000);
 
 
