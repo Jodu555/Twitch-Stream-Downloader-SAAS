@@ -105,6 +105,22 @@ export const useGlobalStore = defineStore('globalStore', {
         invoices: [] as Invoice[],
     }),
     actions: {
+        async onRecordingUpdate(ID: string, obj: Partial<Streamer>) {
+            const streamer = this.streamers.find((s) => s.id === ID);
+            if (streamer) {
+                Object.assign(streamer, obj);
+            } else {
+                await this.fetchStreamers();
+            }
+        },
+        async onMonitoringUpdate(streamer: string, obj: Partial<SniffEntry>) {
+            const sniffEntry = this.sniffEntrys.find((s) => s.twitchStreamerName.toLowerCase() === streamer.toLowerCase());
+            if (sniffEntry) {
+                Object.assign(sniffEntry, obj);
+            } else {
+                await this.fetchSniffEntrys();
+            }
+        },
         async fetchStreamers() {
             const response = await $fetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers');
             this.streamers = response;

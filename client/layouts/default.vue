@@ -48,13 +48,34 @@
 
 <script lang="ts" setup>
 
+const globalStore = useGlobalStore();
+
 onMounted(() => {
 	const socket = useSocket();
 	socket.auth = { type: 'client', token: 'crazySecuretoken' };
 	socket.connect();
+
+	socket.on('connect', () => {
+		console.log('Socket connected');
+	});
+
+	socket.on('disconnect', () => {
+		console.log('Socket disconnected');
+	});
+
+	socket.on('error', (err) => {
+		console.log('Socket error', err);
+	});
+
+	socket.on('recordingUpdate', ({ ID, data: obj }) =>
+		globalStore.onRecordingUpdate(ID, obj)
+	);
+
+	socket.on('monitoringUpdate', async ({ streamer, data: obj }) =>
+		await globalStore.onMonitoringUpdate(streamer, obj)
+	);
 });
 
-const globalStore = useGlobalStore();
 
 await Promise.all([
 	callOnce(globalStore.fetchStreamers),

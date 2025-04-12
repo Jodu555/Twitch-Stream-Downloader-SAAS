@@ -151,7 +151,7 @@
 				<div v-for="(sniffEntry, idx) in sniffEntrys" :key="sniffEntry.twitchStreamerName"
 					class="col-sm-4 col-md-5">
 					<div class="card">
-						<!-- <pre>{{ sniffEntry }}</pre> -->
+						<pre>{{ sniffEntry }}</pre>
 						<div class="card-body">
 							<span class="text-muted">Slot {{ idx + 1 }} / {{ userData.streamerSlots }}</span>
 							<h1 class="card-title text-center" style="text-transform: capitalize;">{{
@@ -161,11 +161,10 @@
 
 							<li v-if="sniffEntry.everyxMinute == 1" class="list-group-item"><b>Letzte Überprüfung
 									vor:</b> {{
-										getLastCheck(sniffEntry.lastCheck, true) }}s</li>
+										getLastCheck(timestamp, sniffEntry.lastCheck, true) }}s</li>
 							<li v-else="sniffEntry.everyxMinute == 1" class="list-group-item"><b>Letzte Überprüfung
 									vor:</b> {{
-										getLastCheck(sniffEntry.lastCheck || 0, false) }}m</li>
-
+										getLastCheck(timestamp, sniffEntry.lastCheck || 0, false) }}m</li>
 
 							<li class="list-group-item"><b>Überprüfung alle:</b> {{ sniffEntry.everyxMinute }}
 								Minuten
@@ -233,6 +232,7 @@
 </template>
 
 <script setup lang="ts">
+import { useTimestamp } from '@vueuse/core';
 import { useIntervalFn } from '@vueuse/core';
 import { useUserData } from '~/utils/userData';
 
@@ -243,6 +243,9 @@ const twitchRecordWatchLive = ref(false);
 const twitchUsernameToMonitor = ref('');
 
 const userData = useUserData();
+
+
+const { timestamp, pause: pauseTimeStamp, resume: resumeTimeStamp } = useTimestamp({ offset: 0, controls: true });
 
 async function startRecording() {
 	if (startRecordingLoading.value) {
@@ -310,8 +313,8 @@ async function addMonitoring() {
 	console.log(response);
 }
 
-function getLastCheck(lastCheck: number, seconds: boolean) {
-	let num = (new Date().getTime() - lastCheck) / 1000;
+function getLastCheck(timestamp: number, lastCheck: number, seconds: boolean) {
+	let num = (timestamp - lastCheck) / 1000;
 	if (!seconds)
 		num = num / 60;
 	return parseFloat(num.toString()).toFixed(1);
@@ -336,35 +339,37 @@ const visibility = useDocumentVisibility();
 watch(visibility, () => {
 	console.log(visibility.value);
 	if (visibility.value == 'visible') {
-		resumeStreamers();
-		resumeSniff();
-		refresh();
-		refreshSniffEntrys();
+		resumeTimeStamp();
+		// resumeStreamers();
+		// resumeSniff();
+		// refresh();
+		// refreshSniffEntrys();
 	} else {
-		pauseStreamers();
-		pauseSniff();
+		// pauseStreamers();
+		// pauseSniff();
+		pauseTimeStamp();
 	}
 });
 
-const { pause: pauseStreamers, resume: resumeStreamers } = useIntervalFn(() => {
-	// console.log(`refreshing the data again ${new Date().toISOString()}`);
-	refresh();
-}, 1000);
+// const { pause: pauseStreamers, resume: resumeStreamers } = useIntervalFn(() => {
+// 	// console.log(`refreshing the data again ${new Date().toISOString()}`);
+// 	refresh();
+// }, 1000);
 
-const { pause: pauseSniff, resume: resumeSniff } = useIntervalFn(() => {
-	// console.log(`refreshing the sniffdata again ${new Date().toISOString()}`);
-	refreshSniffEntrys();
-}, 1000 * 10);
+// const { pause: pauseSniff, resume: resumeSniff } = useIntervalFn(() => {
+// 	// console.log(`refreshing the sniffdata again ${new Date().toISOString()}`);
+// 	refreshSniffEntrys();
+// }, 1000 * 10);
 
 onMounted(async () => {
 	// resumeStreamers();
 	// resumeSniff();
 });
 
-onUnmounted(() => {
-	pauseStreamers();
-	pauseSniff();
-});
+// onUnmounted(() => {
+// 	pauseStreamers();
+// 	pauseSniff();
+// });
 
 function bytesToHumanReadable(size: number, breakSize = 1024) {
 	let u = 0;

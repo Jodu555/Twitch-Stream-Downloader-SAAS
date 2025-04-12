@@ -40,6 +40,8 @@ interface ServerToClientEvents {
     noArg: () => void;
     basicEmit: (a: number, b: string, c: Buffer) => void;
     withAck: (d: string, callback: (e: number) => void) => void;
+    recordingUpdate: (d: { ID: string, data: Partial<RecordEntry>; }) => void;
+    monitoringUpdate: (d: { streamer: string, data: SniffEntry; }) => void;
 }
 
 interface ClientToServerEvents {
@@ -55,7 +57,7 @@ interface SocketData {
     age: number;
 }
 
-const io = new Server<
+export const io = new Server<
     ClientToServerEvents,
     ServerToClientEvents,
     InterServerEvents,
@@ -341,9 +343,13 @@ async function main() {
             if (counter % sniffEntry.everyxMinute != 0)
                 continue;
 
+            sniffEntry.lastCheck = Date.now();
             await database.get<SniffEntry>('sniffEntries').update({ twitchStreamerName: sniffEntry.twitchStreamerName, userUUID: sniffEntry.userUUID }, {
-                lastCheck: Date.now()
+                lastCheck: sniffEntry.lastCheck
             });
+
+            (await io.fetchSockets()).forEach(x => x.emit('monitoringUpdate', { streamer: sniffEntry.twitchStreamerName, data: sniffEntry }));
+
             if (enbaleSniffEntries) {
                 if (!await isLive(sniffEntry.twitchStreamerName)) {
                     console.log('Stream', sniffEntry.twitchStreamerName, 'is not live!');

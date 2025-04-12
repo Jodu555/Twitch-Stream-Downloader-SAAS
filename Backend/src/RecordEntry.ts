@@ -4,6 +4,7 @@ import { spawn, exec, ChildProcessWithoutNullStreams } from 'child_process';
 import { getMetaData, isLive } from './streamLinkHelpers';
 import { Database } from '@jodu555/mysqlapi';
 import { DatabaseRecordEntry } from './utils/types';
+import { io } from '.';
 
 const database = Database.getDatabase();
 
@@ -142,7 +143,7 @@ class RecordEntry {
         });
     }
 
-    async updateRecordInDatabase() {
+    async updateRecordInDatabaseAndSockets() {
         await database.get<DatabaseRecordEntry>('recordEntries').update({ ID: this.id }, {
             twitchStreamerName: this.twitchStreamerName,
             userUUID: this.userUUID,
@@ -156,6 +157,7 @@ class RecordEntry {
             createdAt: this.createdAt,
             deletedAt: this.deletedAt,
         });
+        (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
     }
 
     onRecordingFinished(cb: () => void) {
@@ -204,7 +206,7 @@ class RecordEntry {
             }
         }
 
-        await this.updateRecordInDatabase();
+        await this.updateRecordInDatabaseAndSockets();
 
         // this.captureScreenshot();
 
@@ -229,7 +231,7 @@ class RecordEntry {
                 const output = await this.deepExecPromisify(genCommand(back), process.cwd());
                 if (fs.existsSync(this.imageFilePath)) {
                     this.imageUrl = `http://138.201.131.52:8081/api/v1/streamers/image/${this.id}?time=${new Date().getTime()}`;
-                    await this.updateRecordInDatabase();
+                    await this.updateRecordInDatabaseAndSockets();
                     return;
                 }
             }
@@ -258,9 +260,9 @@ class RecordEntry {
     }
 
     async callCleanup() {
-        await this.updateRecordInDatabase();
+        await this.updateRecordInDatabaseAndSockets();
         await this.cleanup();
-        await this.updateRecordInDatabase();
+        await this.updateRecordInDatabaseAndSockets();
     }
 
     async record() {
@@ -309,7 +311,7 @@ class RecordEntry {
                 cwd: this.tmpDir,
             });
         }
-        await this.updateRecordInDatabase();
+        await this.updateRecordInDatabaseAndSockets();
 
 
         this.pid = this.process.pid;
@@ -327,7 +329,7 @@ class RecordEntry {
                 size: this.ffmpegMetadata?.size,
             };
             console.log('Cleaned up for ', this.toFrontend());
-            await this.updateRecordInDatabase();
+            await this.updateRecordInDatabaseAndSockets();
             await this.startTranscoding();
         };
 
@@ -342,7 +344,7 @@ class RecordEntry {
             size: '0',
         };
 
-        this.process.stderr.on('data', (message) => {
+        this.process.stderr.on('data', async (message) => {
             message = message.toString();
             const re = /frame=(.*)fps=(.*)q=(.*)size=(.*)time=(.*)bitrate=(.*)speed=(.*)x/gi;
             const match = re.exec(message);
@@ -365,6 +367,7 @@ class RecordEntry {
                     }
                     this.ffmpegMetadata = { frame, fps, size: cache.size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
                 }
+                (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
             }
         });
 
@@ -379,7 +382,7 @@ class RecordEntry {
 
         this.state = 'TRANSCODING';
 
-        await this.updateRecordInDatabase();
+        await this.updateRecordInDatabaseAndSockets();
         this.transcodingProcess = spawn('ffmpeg', [
             '-i', this.recordingFilePath,
             '-c', 'copy',
@@ -412,9 +415,9 @@ class RecordEntry {
             this.state = 'FINISHED';
             this.finishedCallbacks.forEach(x => x());
             this.finishedAt = Date.now();
-            await this.updateRecordInDatabase();
+            await this.updateRecordInDatabaseAndSockets();
         };
-        await this.updateRecordInDatabase();
+        await this.updateRecordInDatabaseAndSockets();
 
         const cache = {
             time: Date.now(),
@@ -444,7 +447,7 @@ class RecordEntry {
     async delete() {
         this.state = 'DELETED';
         this.deletedAt = Date.now();
-        await this.updateRecordInDatabase();
+        await this.updateRecordInDatabaseAndSockets();
     }
 }
 
