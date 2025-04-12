@@ -92,10 +92,19 @@
 					</ul>
 					<div class="card-body">
 						<div class="row justify-content-around">
-							<span class="col-auto text-muted">Letzte Statistiken: {{ new
-								Date(streamer.ffmpegMetadata.from).toLocaleTimeString('de') }}</span>
-							<span v-if="streamer.imageUrl" class="col-auto text-muted">Letztes Bild: {{ new
-								Date(getLastImageTime(streamer.imageUrl)).toLocaleTimeString('de') }}</span>
+							<!-- <span class="col-auto text-muted">Letzte Statistiken: {{ new
+								Date(streamer.ffmpegMetadata.from).toLocaleTimeString('de') }}</span> -->
+							<span class="col-auto text-muted">Letzte Statistiken: {{
+								parseFloat(String(Math.abs(timestamp -
+									streamer.ffmpegMetadata.from) / 1000)).toFixed(1)
+							}}s</span>
+
+							<!-- <span v-if="streamer.imageUrl" class="col-auto text-muted">Letztes Bild: {{ new
+								Date(getLastImageTime(streamer.imageUrl)).toLocaleTimeString('de') }}</span> -->
+							<span v-if="streamer.imageUrl" class="col-auto text-muted">Letztes Bild: {{
+								parseFloat(String(Math.abs(timestamp -
+									getLastImageTime(streamer.imageUrl)) / 1000)).toFixed(1)
+							}}s</span>
 						</div>
 						<div class="row justify-content-around py-2">
 							<a :href="`https://twitch.tv/${streamer.twitchStreamerName}`" target="_blank"
@@ -151,7 +160,7 @@
 				<div v-for="(sniffEntry, idx) in sniffEntrys" :key="sniffEntry.twitchStreamerName"
 					class="col-sm-4 col-md-5">
 					<div class="card">
-						<pre>{{ sniffEntry }}</pre>
+						<!-- <pre>{{ sniffEntry }}</pre> -->
 						<div class="card-body">
 							<span class="text-muted">Slot {{ idx + 1 }} / {{ userData.streamerSlots }}</span>
 							<h1 class="card-title text-center" style="text-transform: capitalize;">{{
@@ -159,6 +168,12 @@
 						</div>
 						<ul class="list-group list-group-flush border-secondary">
 
+							<!-- <li v-if="sniffEntry.everyxMinute == 1" class="list-group-item"><b>Letzte Überprüfung
+									vor:</b> {{
+										getLastCheck(undefined, sniffEntry.lastCheck, true) }}s</li>
+							<li v-else="sniffEntry.everyxMinute == 1" class="list-group-item"><b>Letzte Überprüfung
+									vor:</b> {{
+										getLastCheck(undefined, sniffEntry.lastCheck || 0, false) }}m</li> -->
 							<li v-if="sniffEntry.everyxMinute == 1" class="list-group-item"><b>Letzte Überprüfung
 									vor:</b> {{
 										getLastCheck(timestamp, sniffEntry.lastCheck, true) }}s</li>
@@ -313,7 +328,8 @@ async function addMonitoring() {
 	console.log(response);
 }
 
-function getLastCheck(timestamp: number, lastCheck: number, seconds: boolean) {
+function getLastCheck(timestamp: number | undefined, lastCheck: number, seconds: boolean) {
+	timestamp ??= Date.now();
 	let num = (timestamp - lastCheck) / 1000;
 	if (!seconds)
 		num = num / 60;
