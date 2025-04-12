@@ -42,6 +42,7 @@ interface ServerToClientEvents {
     withAck: (d: string, callback: (e: number) => void) => void;
     recordingUpdate: (d: { ID: string, data: Partial<RecordEntry>; }) => void;
     monitoringUpdate: (d: { streamer: string, data: SniffEntry; }) => void;
+    videoUpdate: (d: { ID: string, data: Partial<RecordEntry>; }) => void;
 }
 
 interface ClientToServerEvents {

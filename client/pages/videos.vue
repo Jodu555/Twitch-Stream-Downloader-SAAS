@@ -139,6 +139,7 @@
 import { useIntervalFn } from '@vueuse/core';
 import { useUserData } from '~/utils/userData';
 
+const globalStore = useGlobalStore();
 const userData = useUserData();
 
 const titleViewID = ref('');
@@ -176,35 +177,36 @@ function until(ms: number) {
     return timeAgo.value;
 }
 
-// const { data: aiTitles, error: aiTitlesError, refresh: refreshAITitles, status: aiTitlesStatus, execute } = await useFetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos');
+const videos = computed(() => globalStore.videos);
+const { error, refresh, status } = useAsyncData('videos', globalStore.fetchStreamers);
 
-const { data: videos, error, refresh, status } = await useFetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos');
+// const { data: videos, error, refresh, status } = await useFetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos');
 
-const visibility = useDocumentVisibility();
+// const visibility = useDocumentVisibility();
 
-watch(visibility, () => {
-    console.log(visibility.value);
-    if (visibility.value == 'visible') {
-        resumeVideos();
-    } else {
-        pauseVideos();
-    }
-});
+// watch(visibility, () => {
+//     console.log(visibility.value);
+//     if (visibility.value == 'visible') {
+//         resumeVideos();
+//     } else {
+//         pauseVideos();
+//     }
+// });
 
-const { pause: pauseVideos, resume: resumeVideos } = useIntervalFn(() => {
-    console.log(`refreshing the data again ${new Date().toISOString()}`);
-    refresh();
-    // pauseVideos();
-}, 1000);
+// const { pause: pauseVideos, resume: resumeVideos } = useIntervalFn(() => {
+//     console.log(`refreshing the data again ${new Date().toISOString()}`);
+//     refresh();
+//     // pauseVideos();
+// }, 1000);
 
 
-onMounted(() => {
-    resumeVideos();
-});
+// onMounted(() => {
+//     resumeVideos();
+// });
 
-onUnmounted(() => {
-    pauseVideos();
-});
+// onUnmounted(() => {
+//     pauseVideos();
+// });
 
 function bytesToHumanReadable(size: number, breakSize = 1024) {
     let u = 0;

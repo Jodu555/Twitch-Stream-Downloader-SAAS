@@ -72,7 +72,11 @@ onMounted(() => {
 	);
 
 	socket.on('monitoringUpdate', async ({ streamer, data: obj }) =>
-		await globalStore.onMonitoringUpdate(streamer, obj)
+		globalStore.onMonitoringUpdate(streamer, obj)
+	);
+
+	socket.on('videoUpdate', ({ ID, data: obj }) =>
+		globalStore.onVideoUpdate(ID, obj)
 	);
 });
 

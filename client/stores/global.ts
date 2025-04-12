@@ -105,6 +105,14 @@ export const useGlobalStore = defineStore('globalStore', {
         invoices: [] as Invoice[],
     }),
     actions: {
+        async onVideoUpdate(ID: string, obj: Partial<RecordedVideo>) {
+            const video = this.videos.find((s) => s.id === ID);
+            if (video) {
+                Object.assign(video, obj);
+            } else {
+                await this.fetchVideos();
+            }
+        },
         async onRecordingUpdate(ID: string, obj: Partial<Streamer>) {
             const streamer = this.streamers.find((s) => s.id === ID);
             if (streamer) {

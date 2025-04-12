@@ -157,7 +157,11 @@ class RecordEntry {
             createdAt: this.createdAt,
             deletedAt: this.deletedAt,
         });
-        (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
+        if (this.state == 'WAITING' || this.state == 'RECORDING' || this.state == 'TRANSCODING') {
+            (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
+        } else {
+            (await io.fetchSockets()).forEach(x => x.emit('videoUpdate', { ID: this.id, data: this.toFrontend() }));
+        }
     }
 
     onRecordingFinished(cb: () => void) {
@@ -424,7 +428,7 @@ class RecordEntry {
             size: '0',
         };
 
-        this.transcodingProcess.stderr.on('data', (message) => {
+        this.transcodingProcess.stderr.on('data', async (message) => {
             message = message.toString();
             const re = /frame=(.*)fps=(.*)q=(.*)size=(.*)time=(.*)bitrate=(.*)speed=(.*)x/gi;
             const match = re.exec(message);
@@ -436,6 +440,7 @@ class RecordEntry {
                     cache.time = Date.now();
                 }
                 this.ffmpegMetadata = { frame, fps, size: cache.size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
+                (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
             }
         });
 
