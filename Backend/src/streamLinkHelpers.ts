@@ -3,7 +3,15 @@ import { exec } from 'child_process';
 const STREAM_URL = `https://twitch.tv/`;
 
 // const ADBLOCK_PROXYS = `--twitch-proxy-playlist=http://185.223.29.142:9595`;
-const ADBLOCK_PROXYS = `--twitch-proxy-playlist=https://eu.luminous.dev,https://lb-eu.cdn-perfprod.com,https://eu2.luminous.dev,https://lb-eu3.cdn-perfprod.com`;
+
+const proxys = [
+    'https://eu.luminous.dev',
+    'https://lb-eu.cdn-perfprod.com',
+    'https://eu2.luminous.dev',
+    'https://lb-eu3.cdn-perfprod.com',
+];
+
+const ADBLOCK_PROXYS = `--twitch-proxy-playlist=${proxys.join(',')}`;
 
 interface TwitchMeta {
     type: 'success';

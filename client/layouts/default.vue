@@ -18,11 +18,13 @@
 						<li class="nav-item">
 							<NuxtLink to="/videos" class="nav-link position-relative" active-class="active">
 								Videos
-								<span
-									class="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger">
-									{{ globalStore.videos.length }}
-									<span class="visually-hidden">Open Videos</span>
-								</span>
+								<ClientOnly>
+									<span
+										class="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger">
+										{{ globalStore.videos.length }}
+										<span class="visually-hidden">Open Videos</span>
+									</span>
+								</ClientOnly>
 							</NuxtLink>
 						</li>
 						<li class="nav-item ms-3">

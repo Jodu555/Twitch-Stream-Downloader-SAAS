@@ -161,13 +161,11 @@ function getLastCheck(lastCheck: number, seconds: boolean) {
 }
 
 async function deleteVideo(id: string) {
-
     const response = await $fetch(`http://138.201.131.52:8081/api/v1/videos/${id}`, {
         method: 'DELETE',
     });
     console.log(response);
-
-
+    await refresh();
 }
 
 import { useTimeAgo } from '@vueuse/core';
@@ -178,7 +176,7 @@ function until(ms: number) {
 }
 
 const videos = computed(() => globalStore.videos);
-const { error, refresh, status } = useAsyncData('videos', globalStore.fetchStreamers);
+const { error, refresh, status } = useAsyncData('videos', globalStore.fetchVideos);
 
 // const { data: videos, error, refresh, status } = await useFetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos');
 

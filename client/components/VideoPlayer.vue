@@ -45,6 +45,8 @@ onUnmounted(() => {
     hls.value?.destroy();
 });
 
+const times = ref(0);
+
 function prepareVideoPlayer() {
     hls.value = new Hls();
     const stream = props.link;
@@ -59,6 +61,12 @@ function prepareVideoPlayer() {
         });
         hls.value.on(Hls.Events.ERROR, (event, data) => {
             console.log('error', event, data);
+            hls.value!.destroy();
+            times.value++;
+            if (times.value > 10) {
+                return;
+            }
+            setTimeout(prepareVideoPlayer, 1000);
         });
     }
 }
