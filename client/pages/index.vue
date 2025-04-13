@@ -46,9 +46,12 @@
 			<h1 class="text-center mt-2 mb-3">
 				Recordings
 			</h1>
-			<div class="row">
+			<!-- <div class="row">
 				<div v-for="(streamer, idx) in streamers?.filter(x => x.state != 'FINISHED')" :key="streamer.id"
-					class="col-4 card mb-3 p-2" :class="{
+					class="col-4 card mb-3 p-2" :class="{ -->
+			<div class="row row-cols-1 row-cols-lg-12 row-cols-md-12 gap-3">
+				<div v-for="(streamer, idx) in streamers?.filter(x => x.state != 'FINISHED')" :key="streamer.id"
+					class="col-12 col-md-6 col-lg-4 card mb-3 p-2" :class="{
 						'border-danger': streamer.state == 'RECORDING',
 						'border-warning': streamer.state == 'TRANSCODING',
 						'border-success': streamer.state == 'FINISHED',
@@ -78,13 +81,15 @@
 							streamer.twitchStreamerName }}</h1>
 					</div>
 					<ul v-if="streamer.ffmpegMetadata != null" class="list-group list-group-flush border-secondary">
-						<li class="list-group-item"><b>Dauer:</b> {{ streamer.ffmpegMetadata.time }} / {{ streamer.state
-							== 'RECORDING' ?
-							userData.maxRecordingTime + 'hrs' : streamer.videoMeta.time }}</li>
+						<li class="list-group-item"><b>Dauer:</b> {{ streamer.ffmpegMetadata.time }} / {{
+							streamer.state
+								== 'RECORDING' ?
+								userData.maxRecordingTime + 'hrs' : streamer.videoMeta.time }}</li>
 						<li class="list-group-item"><b>Größe:</b> {{
 							bytesToHumanReadable(parseInt(streamer.ffmpegMetadata.size)) }}
 						</li>
-						<li class="list-group-item"><b>Geschwindigkeit:</b> {{ streamer.ffmpegMetadata.bitrate !== '0' ?
+						<li class="list-group-item"><b>Geschwindigkeit:</b> {{ streamer.ffmpegMetadata.bitrate !==
+							'0' ?
 							streamer.ffmpegMetadata.bitrate :
 							streamer.ffmpegMetadata.speed }}{{ streamer.ffmpegMetadata.bitrate !== '0' ? '' : 'x' }}
 						</li>
@@ -93,14 +98,14 @@
 					<div class="card-body">
 						<div class="row justify-content-around">
 							<!-- <span class="col-auto text-muted">Letzte Statistiken: {{ new
-								Date(streamer.ffmpegMetadata.from).toLocaleTimeString('de') }}</span> -->
+									Date(streamer.ffmpegMetadata.from).toLocaleTimeString('de') }}</span> -->
 							<span class="col-auto text-muted">Letzte Statistiken: {{
 								parseFloat(String(Math.abs(timestamp -
 									streamer.ffmpegMetadata.from) / 1000)).toFixed(1)
 							}}s</span>
 
 							<!-- <span v-if="streamer.imageUrl" class="col-auto text-muted">Letztes Bild: {{ new
-								Date(getLastImageTime(streamer.imageUrl)).toLocaleTimeString('de') }}</span> -->
+									Date(getLastImageTime(streamer.imageUrl)).toLocaleTimeString('de') }}</span> -->
 							<span v-if="streamer.imageUrl" class="col-auto text-muted">Letztes Bild: {{
 								parseFloat(String(Math.abs(timestamp -
 									getLastImageTime(streamer.imageUrl)) / 1000)).toFixed(1)
@@ -118,7 +123,7 @@
 				</div>
 				<template v-if="(streamers?.length || 0) < userData.recordingSlots">
 					<div v-for="idx in userData.recordingSlots - (streamers?.length || 0)" :key="idx"
-						class="col-3 card mb-3 me-2">
+						class="col-4 col-md-3 card mb-3 me-2">
 						<div class="card-body">
 							<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
 								(streamers?.length || 0) }} /
@@ -128,7 +133,7 @@
 					</div>
 				</template>
 
-				<div class="col-3 mb-3 card">
+				<div class="col-4 col-md-3 mb-3 card">
 					<!-- <pre>{{ sniffEntry }}</pre> -->
 					<div class="card-body">
 						<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{

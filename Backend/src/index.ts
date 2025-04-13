@@ -28,7 +28,7 @@ const app = express();
 
 app.use(express.json());
 
-// app.use(morgan('dev'));
+app.use(morgan('dev'));
 app.use(cors());
 
 app.use(paypalRouter);
@@ -134,7 +134,6 @@ app.get('/api/v1/streamers/record/:name/:watchLive?', async (req, res) => {
     const twitchUsername = req.params.name;
     const watchLive = req.params.watchLive == 'true';
     const entry = new RecordEntry('JODU', twitchUsername, watchLive);
-    await entry.record();
     processes.push(entry);
     entry.onRecordingFinished(() => {
         console.log('Recording Finished for', entry.toFrontend());
@@ -144,6 +143,7 @@ app.get('/api/v1/streamers/record/:name/:watchLive?', async (req, res) => {
         twitchStreamerName: entry.twitchStreamerName,
         watchLive,
     });
+    entry.record();
 });
 
 app.delete('/api/v1/videos/:id', async (req, res) => {

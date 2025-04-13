@@ -57,6 +57,7 @@ onMounted(() => {
 
 	socket.on('connect', () => {
 		console.log('Socket connected');
+		fetchAll();
 	});
 
 	socket.on('disconnect', () => {
@@ -80,13 +81,25 @@ onMounted(() => {
 	);
 });
 
+async function fetchAll(once: boolean = false) {
+	if (once) {
+		await Promise.all([
+			callOnce(globalStore.fetchStreamers),
+			callOnce(globalStore.fetchSniffEntrys),
+			callOnce(globalStore.fetchVideos),
+			callOnce(globalStore.fetchInvoices),
+		]);
+	} else {
+		await Promise.all([
+			globalStore.fetchStreamers,
+			globalStore.fetchSniffEntrys,
+			globalStore.fetchVideos,
+			globalStore.fetchInvoices,
+		]);
+	}
+}
 
-await Promise.all([
-	callOnce(globalStore.fetchStreamers),
-	callOnce(globalStore.fetchSniffEntrys),
-	callOnce(globalStore.fetchVideos),
-	callOnce(globalStore.fetchInvoices),
-]);
+fetchAll(true);
 
 // await callOnce(globalStore.fetchStreamers);
 // await callOnce(globalStore.fetchSniffEntrys);
