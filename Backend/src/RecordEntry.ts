@@ -164,6 +164,9 @@ class RecordEntry {
                 (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
             }
             (await io.fetchSockets()).forEach(x => x.emit('videoUpdate', { ID: this.id, data: this.toFrontend() }));
+            if (this.state == 'DELETED') {
+                (await io.fetchSockets()).forEach(x => x.emit('videoDeletion', { ID: this.id }));
+            }
         }
     }
 

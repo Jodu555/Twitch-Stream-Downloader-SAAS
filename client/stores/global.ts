@@ -130,6 +130,14 @@ export const useGlobalStore = defineStore('globalStore', {
                 await this.fetchSniffEntrys();
             }
         },
+        async onVideoDeletion(ID: string) {
+            const video = this.videos.find((s) => s.id === ID);
+            if (video) {
+                this.videos.splice(this.videos.findIndex(x => x.id === ID), 1);
+            } else {
+                await this.fetchVideos();
+            }
+        },
         async fetchStreamers() {
             const response = await $fetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers');
             this.streamers = response;

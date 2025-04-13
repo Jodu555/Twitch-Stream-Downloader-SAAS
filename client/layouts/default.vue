@@ -81,6 +81,10 @@ onMounted(() => {
 	socket.on('videoUpdate', ({ ID, data: obj }) =>
 		globalStore.onVideoUpdate(ID, obj)
 	);
+
+	socket.on('videoDeletion', ({ ID }) =>
+		globalStore.onVideoDeletion(ID)
+	);
 });
 
 async function fetchAll(once: boolean = false) {

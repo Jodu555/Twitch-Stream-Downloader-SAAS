@@ -43,6 +43,7 @@ interface ServerToClientEvents {
     recordingUpdate: (d: { ID: string, data: Partial<RecordEntry>; }) => void;
     monitoringUpdate: (d: { streamer: string, data: SniffEntry; }) => void;
     videoUpdate: (d: { ID: string, data: Partial<RecordEntry>; }) => void;
+    videoDeletion: (d: { ID: string; }) => void;
 }
 
 interface ClientToServerEvents {
