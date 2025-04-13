@@ -115,6 +115,7 @@ export const useGlobalStore = defineStore('globalStore', {
         },
         async onRecordingUpdate(ID: string, obj: Partial<Streamer>) {
             const streamer = this.streamers.find((s) => s.id === ID);
+            console.log('Attempting to update streamer', ID, streamer);
             if (streamer) {
                 Object.assign(streamer, obj);
             } else {
