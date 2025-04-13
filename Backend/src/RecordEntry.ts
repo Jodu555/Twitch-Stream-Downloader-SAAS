@@ -160,6 +160,9 @@ class RecordEntry {
         if (this.state == 'WAITING' || this.state == 'RECORDING' || this.state == 'TRANSCODING') {
             (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
         } else {
+            if (this.state == 'FINISHED') {
+                (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
+            }
             (await io.fetchSockets()).forEach(x => x.emit('videoUpdate', { ID: this.id, data: this.toFrontend() }));
         }
     }

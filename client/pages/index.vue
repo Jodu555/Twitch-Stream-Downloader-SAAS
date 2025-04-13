@@ -49,7 +49,7 @@
 			<!-- <div class="row">
 				<div v-for="(streamer, idx) in streamers?.filter(x => x.state != 'FINISHED')" :key="streamer.id"
 					class="col-4 card mb-3 p-2" :class="{ -->
-			<div class="row row-cols-1 row-cols-lg-12 row-cols-md-12 gap-3">
+			<div class="row row-cols-1 row-cols-lg-12 row-cols-md-12">
 				<div v-for="(streamer, idx) in streamers?.filter(x => x.state != 'FINISHED')" :key="streamer.id"
 					class="col-12 col-md-6 col-lg-4 card mb-3 p-2" :class="{
 						'border-danger': streamer.state == 'RECORDING',
@@ -123,7 +123,7 @@
 				</div>
 				<template v-if="(streamers?.length || 0) < userData.recordingSlots">
 					<div v-for="idx in userData.recordingSlots - (streamers?.length || 0)" :key="idx"
-						class="col-4 col-md-3 card mb-3 me-2">
+						class="col-4 col-md-3 col-lg-3 card mb-3">
 						<div class="card-body">
 							<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
 								(streamers?.length || 0) }} /
