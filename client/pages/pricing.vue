@@ -47,7 +47,7 @@
         <main>
             <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
                 <div v-for="key in Object.keys(cardTable)" :key="key" class="col">
-                    <div class="card mb-4 rounded-3 shadow-sm">
+                    <div class="card mb-4 rounded-3 shadow-lg">
                         <div class="card-header py-3">
                             <h4 class="my-0 fw-normal" :class="{
                                 [getRoleColor(key as PricingTableKey)]: true,
@@ -66,44 +66,84 @@
                 </div>
             </div>
 
-            <h2 class="display-6 text-center mb-4">Compare plans</h2>
+            <div class="shadow p-3 mb-5 rounded">
+                <h2 class="display-6 text-center mb-4">Compare plans</h2>
 
-            <div class="table-responsive">
-                <table class="table text-center">
-                    <thead>
-                        <tr>
-                            <th style="width: 34%;"></th>
+                <div class="table-responsive">
+                    <table class="table text-center">
+                        <thead>
+                            <tr>
+                                <th style="width: 34%;"></th>
 
-                            <th style="width: 22%;" v-for="key in Object.keys(pricingTable)" :key="key" :class="{
-                                [getRoleColor(key as PricingTableKey)]: true,
-                            }">{{
-                                keyToNiceName(key as PricingTableKey) }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
-                            <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof PricingTableObject)
-                            }}
-                            </th>
-                            <td v-for="value in Object.keys(pricingTable)" :key="value">
-                                <template v-if="getSub(value, key) === true">
-                                    <svg class="bi" width="24" height="24">
-                                        <use xlink:href="#check" />
-                                    </svg>
-                                </template>
-                                <template v-else-if="getSub(value, key) === false">
-                                </template>
-                                <template v-else-if="value != 'free'">
-                                    <b>{{ getSub(value, key) }}</b>
-                                </template>
-                                <template v-else>
-                                    {{ getSub(value, key) }}
-                                </template>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                <th style="width: 22%;" v-for="key in Object.keys(pricingTable)" :key="key" :class="{
+                                    [getRoleColor(key as PricingTableKey)]: true,
+                                }">{{
+                                    keyToNiceName(key as PricingTableKey) }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
+                                <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof
+                                    PricingTableObject)
+                                    }}
+                                </th>
+                                <td v-for="value in Object.keys(pricingTable)" :key="value">
+                                    <template v-if="getSub(value, key) === true">
+                                        <svg class="bi" width="24" height="24">
+                                            <use xlink:href="#check" />
+                                        </svg>
+                                    </template>
+                                    <template v-else-if="getSub(value, key) === false">
+                                    </template>
+                                    <template v-else-if="value != 'free'">
+                                        <b>{{ getSub(value, key) }}</b>
+                                    </template>
+                                    <template v-else>
+                                        {{ getSub(value, key) }}
+                                    </template>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            <div class="shadow p-3 mb-5 rounded">
+
+                <h2 class="text-center">Detailed Explanation</h2>
+
+                <div class="accordion" id="accordionExample">
+                    <div v-for="explanation in detailedExplanation" :key="explanation.id" class="accordion-item">
+                        <h2 class="accordion-header" :id="'heading' + explanation.id">
+                            <button class="accordion-button" :aria-expanded="expanded == explanation.id"
+                                :class="{ 'collapsed': expanded != explanation.id }" @click="expanded = explanation.id"
+                                type="button" data-bs-toggle="collapse" :data-bs-target="'#' + explanation.id"
+                                :aria-controls="explanation.id">
+                                Explanation for {{ explanation.title }}
+                            </button>
+                        </h2>
+                        <div :id="explanation.id" class="accordion-collapse collapse"
+                            :aria-labelledby="'heading' + explanation.id" data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <span>
+                                    {{ explanation.description }}
+                                </span>
+                                <template v-if="explanation.small">
+                                    <br>
+                                    <br>
+                                    <span class="text-muted mt-2">
+                                        {{ explanation.small }}
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+
         </main>
     </div>
 </template>
@@ -122,6 +162,61 @@ onMounted(() => {
     console.log(nuxtApp);
 });
 
+const expanded = ref('');
+
+const detailedExplanation = ref([
+    {
+        id: 'ad-free',
+        title: 'Ad-Free',
+        description: `No Ads*, no tracking, no data collection. Just record and download. We cannot and will not promise that the stream is always ad-free.
+         We are not responsible for the stream itself. We are only responsible for the recording and download.`,
+        small: `*Twitch changes its ad delivery method very often it can happen that an ad is visible for a short time. We cannot and will not promise that the stream is always ad-free.`,
+    },
+    {
+        id: 'watch-live',
+        title: 'Watch Live',
+        description: `You can watch the stream live while it is being recorded. You have the opportunity to pause or rewind the stream. A feature that is not available on Twitch.`,
+    },
+    {
+        id: 'resumable',
+        title: 'Resumable Stream',
+        description: `If the streamer loses its connection, the stream will be set on hold and if the streamer returns within 10 minutes the stream will be resumed. 
+        And no seperate video slot will be occupied. The stream will be treated as one consecutive stream! Note: This only works if you have the option Watching Live enabled. 
+        Otherwise the stream will be stopped and a new one will be started`,
+    },
+    {
+        id: 'recording-slots',
+        title: 'Recording Slots',
+        description: `You have a finite number of streams you can record at the same time! If a monitoring Slot tries to record a stream when your slots are full! It will just fail! There are no priorities.`,
+    },
+    {
+        id: 'video-slots',
+        title: 'Video Slots',
+        description: `You have a finite number of videos you can keep in your account at a time! You can manually delete video or wait for the video retention to delete them!`,
+        small: 'If a video is deleted you cannot restore it! It is gone forever! So be careful! And double check if you actually already downloaded the video!',
+    },
+    {
+        id: 'streamer-slots',
+        title: 'Streamer Slots',
+        description: `You have a finite number of Streamers you can monitor! If a streamer starts its stream the record will then automatically start. If you have enough Record and Video Slots available`,
+    },
+    {
+        id: 'max-recording-time',
+        title: 'Max Recording Time',
+        description: `The Stream has a predefined maximum recording time. If the time is reached the recording will stop!`,
+    },
+    {
+        id: 'streamer-check',
+        title: 'Streamer Check Every x Minutes',
+        description: `The Monitoring Slots will be checked every x minutes. If a streamer is live during that check and the user has 1 Recording and 1 Video Slot available the stream will be automatically recorded!`,
+    },
+    {
+        id: 'video-retention',
+        title: 'Video Retention',
+        description: `Videos will be deleted after x days. If a video got deleted by the video Retention then there is a change that it still exists`,
+        small: 'If a video got removed that you might not have downloaded then reach out to us and we might be able to help yout!',
+    }
+]);
 
 </script>
 
