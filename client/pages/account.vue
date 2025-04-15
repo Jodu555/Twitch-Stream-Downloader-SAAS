@@ -15,6 +15,22 @@
         <div class="tab-content">
             <div class="tab-pane fade" :class="{ active: selectedTab == 'Infos', show: selectedTab == 'Infos' }">
                 <h2 class="text-center mt-3">Infos</h2>
+                <div class="row">
+                    <div class="col-6 shadow-sm p-4 mb-5 rounded">
+                        <h3 class="text-left">Account Settings</h3>
+                    </div>
+                    <div class="col-6 shadow-sm p-4 mb-5 rounded">
+                        <h3 class="text-left">Notification Settings</h3>
+                        <div v-for="notification in notificationSettings" :key="notification.id"
+                            class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" :id="notification.id"
+                                v-model="notification.enabled">
+                            <label class="form-check-label" :for="notification.id">{{ notification.description
+                            }}</label>
+                        </div>
+
+                    </div>
+                </div>
             </div>
             <div class="tab-pane fade" :class="{ active: selectedTab == 'Invoices', show: selectedTab == 'Invoices' }">
                 <pre>
@@ -114,6 +130,15 @@
 import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
 const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
 
+const notificationSettings = ref([
+    { id: 'DiscountCode', enabled: true, description: 'Send a notification when there is a new Discount code' },
+    { id: 'VideoDeletion', enabled: true, description: 'Send a notification if a Video is about to be deleted' },
+    { id: 'RecordingStart', enabled: true, description: 'Send a notification when a recording is automatically started' },
+    { id: 'RecordingFinished', enabled: true, description: 'Send a notification when a recording is finished' },
+    { id: 'OpenInvoice', enabled: true, description: 'Send a notification when an Invoice is opened' },
+    { id: 'InvoiceDue', enabled: true, description: 'Send a notification when an Invoice is due' },
+]);
+
 
 const userData = useUserData();
 
@@ -147,7 +172,7 @@ const tabs = [
     { name: 'Linked Accounts', disabled: true },
 ] as { name: TabKeys, disabled: boolean; }[];
 
-const selectedTab = ref<TabKeys>('Invoices');
+const selectedTab = ref<TabKeys>('Infos');
 
 
 const invoices = computed(() => globalStore.invoices);
