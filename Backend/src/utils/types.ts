@@ -32,3 +32,12 @@ export interface DatabaseRecordEntry {
     imageFilePath: string;
     imageUrl: string;
 }
+
+interface Email {
+    ID: string;
+    userUUID: string;
+    email_type: 'VERIFICATION' | 'INVOICE_OPENED' | 'INVOICE_DUE' | 'DISCOUNT' | 'VIDEO_ABT_DELETED' | 'RECORDING_AUTO_STARTED' | 'RECORDING_AUTO_ENDED';
+    status: string;
+    sent_at: number | null;
+    created_at: number;
+}

@@ -105,4 +105,40 @@ export function setupTables() {
             null: true,
         }
     });
+
+    database.createTable('emails', {
+        options: {
+            PK: 'ID',
+            K: ['userUUID', 'status'],
+        },
+        ID: {
+            type: 'varchar(64)',
+            null: false,
+        },
+        userUUID: {
+            type: 'varchar(64)',
+            null: false,
+        },
+        email_type: {
+            //The email type to create the email for like 'VERIFICATION' or 'INVOICE'
+            type: 'varchar(64)',
+            null: false,
+        },
+        status: {
+            //The status of the email like 'PENDING' or 'SENT'
+            type: 'varchar(64)',
+            null: false,
+        },
+        sent_at: {
+            //The time the email was sent
+            type: 'BIGINT',
+            null: true,
+        },
+        created_at: {
+            //The time the email record was created
+            type: 'BIGINT',
+            null: false,
+        }
+    });
+
 }

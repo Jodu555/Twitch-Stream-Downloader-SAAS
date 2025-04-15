@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { Database } from '@jodu555/mysqlapi';
 import { SniffEntry } from 'src/utils/types';
+import { io } from '..';
 
 const database = Database.getDatabase();
 
@@ -17,12 +18,15 @@ router.post('/api/v1/sniffEntrys', async (req, res) => {
         res.status(400).send('twitchStreamerName is required');
         return;
     }
-    await database.get<SniffEntry>('sniffEntries').create({
+    const entry = {
         everyxMinute: 1,
         lastCheck: Date.now() - 1000 * 60,
         twitchStreamerName: twitchStreamerName,
         userUUID: 'JODU',
-    });
+    } satisfies SniffEntry;
+    await database.get<SniffEntry>('sniffEntries').create(entry);
+    (await io.fetchSockets()).forEach(x => x.emit('monitoringUpdate', { streamer: twitchStreamerName, data: entry }));
+
     res.send('Created');
 });
 
@@ -33,5 +37,6 @@ router.delete('/api/v1/sniffEntrys/:name', async (req, res) => {
         return;
     }
     await database.get<SniffEntry>('sniffEntries').delete({ twitchStreamerName: twitchStreamerName });
+    (await io.fetchSockets()).forEach(s => s.emit('monitoringDeletion', { streamer: twitchStreamerName }));
     res.send('Deleted');
 });

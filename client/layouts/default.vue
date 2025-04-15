@@ -78,6 +78,10 @@ onMounted(() => {
 		globalStore.onMonitoringUpdate(streamer, obj)
 	);
 
+	socket.on('monitoringDeletion', ({ streamer }) =>
+		globalStore.onMonitoringDeletion(streamer)
+	);
+
 	socket.on('videoUpdate', ({ ID, data: obj }) =>
 		globalStore.onVideoUpdate(ID, obj)
 	);

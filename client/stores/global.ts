@@ -113,6 +113,14 @@ export const useGlobalStore = defineStore('globalStore', {
                 await this.fetchVideos();
             }
         },
+        async onVideoDeletion(ID: string) {
+            const video = this.videos.find((s) => s.id === ID);
+            if (video) {
+                this.videos.splice(this.videos.findIndex(x => x.id === ID), 1);
+            } else {
+                await this.fetchVideos();
+            }
+        },
         async onRecordingUpdate(ID: string, obj: Partial<Streamer>) {
             const streamer = this.streamers.find((s) => s.id === ID);
             console.log('Attempting to update streamer', ID, streamer);
@@ -130,12 +138,12 @@ export const useGlobalStore = defineStore('globalStore', {
                 await this.fetchSniffEntrys();
             }
         },
-        async onVideoDeletion(ID: string) {
-            const video = this.videos.find((s) => s.id === ID);
-            if (video) {
-                this.videos.splice(this.videos.findIndex(x => x.id === ID), 1);
+        async onMonitoringDeletion(streamer: string) {
+            const sniffEntry = this.sniffEntrys.find((s) => s.twitchStreamerName.toLowerCase() === streamer.toLowerCase());
+            if (sniffEntry) {
+                this.sniffEntrys.splice(this.sniffEntrys.findIndex(x => x.twitchStreamerName === streamer), 1);
             } else {
-                await this.fetchVideos();
+                await this.fetchSniffEntrys();
             }
         },
         async fetchStreamers() {
