@@ -33,7 +33,7 @@ export interface DatabaseRecordEntry {
     imageUrl: string;
 }
 
-interface Email {
+export interface Email {
     ID: string;
     userUUID: string;
     email_type: 'VERIFICATION' | 'INVOICE_OPENED' | 'INVOICE_DUE' | 'DISCOUNT' | 'VIDEO_ABT_DELETED' | 'RECORDING_AUTO_STARTED' | 'RECORDING_AUTO_ENDED';

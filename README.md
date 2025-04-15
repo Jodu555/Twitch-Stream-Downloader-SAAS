@@ -44,3 +44,20 @@ Of course you then have to be responsible for the server and the bandwidth.
 - The Recorded Stream will be deleted after 7 days
 - You can preview the entire stream after it is finished
 - You get the best possible Stream quality
+
+
+## Cronjob once a day
+- Set old videos to be deleted and next day delete them
+- Check every user for their subscription status:
+  - If only 7 days left create new invoice and email them and mark them as 
+  - At the day it is due send them an email that their invoice is due and in 7 days their account will be reset
+  - If it is expired send them an email that in 7 days their account will be reset
+
+
+### Account Reset Meaning
+All Videos that overflow with the free tier slots will be marked as deleted
+All Monitors that overflow with the free tier slots will be deleted
+
+Here goes the rule of first come first server:
+This means the first sniffentry you deleted will persist
+Aswell as the first videos recorded that are not deleted
