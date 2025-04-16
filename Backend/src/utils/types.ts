@@ -33,11 +33,14 @@ export interface DatabaseRecordEntry {
     imageUrl: string;
 }
 
+export type EmailTypes = 'VERIFICATION' | 'INVOICE_OPENED' | 'INVOICE_DUE' | 'DISCOUNT' | 'VIDEO_ABT_DELETED' | 'RECORDING_AUTO_STARTED' | 'RECORDING_AUTO_ENDED';
+export type EmailStatus = 'PENDING' | 'SENT';
 export interface Email {
     ID: string;
     userUUID: string;
-    email_type: 'VERIFICATION' | 'INVOICE_OPENED' | 'INVOICE_DUE' | 'DISCOUNT' | 'VIDEO_ABT_DELETED' | 'RECORDING_AUTO_STARTED' | 'RECORDING_AUTO_ENDED';
-    status: string;
+    email_type: EmailTypes;
+    status: EmailStatus;
+    data: string;
     sent_at: number | null;
     created_at: number;
 }

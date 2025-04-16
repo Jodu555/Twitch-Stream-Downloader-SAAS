@@ -129,6 +129,11 @@ export function setupTables() {
             type: 'varchar(64)',
             null: false,
         },
+        data: {
+            //The data to send with the email
+            type: 'TEXT',
+            null: true,
+        },
         sent_at: {
             //The time the email was sent
             type: 'BIGINT',
