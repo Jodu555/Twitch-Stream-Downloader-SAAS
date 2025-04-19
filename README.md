@@ -64,7 +64,7 @@ Aswell as the first videos recorded that are not deleted
 
 
 ### Signup Flow
-1.  Enter Username email and password
+1.  Enter Email and password
 1.5 Account created and marked as pending 
 2.  Get send a email code to verify
 3.  Enter the code in the input field
