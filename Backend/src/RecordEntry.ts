@@ -271,7 +271,7 @@ class RecordEntry {
 
     async callCleanup() {
         await this.updateRecordInDatabaseAndSockets();
-        await this.cleanup();
+        if (this.cleanup != null) await this.cleanup();
         await this.updateRecordInDatabaseAndSockets();
     }
 

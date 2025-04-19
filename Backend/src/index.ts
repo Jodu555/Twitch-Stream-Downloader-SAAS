@@ -310,7 +310,7 @@ async function main() {
             fs.rmSync(record.outputFilePath, { force: true });
             await database.get<DatabaseRecordEntry>('recordEntries').delete({ ID: record.id });
             processes.splice(processes.findIndex(x => x.id == record.id), 1);
-            console.log('Deleted', record.toFrontend());
+            console.log(`Deleted ${record.id} from ${record.twitchStreamerName} with ${record.metas.length} Title/s and ${record.videoMeta?.time} - ${bytesToHumanReadable(parseInt(record.videoMeta?.size))} timestamp ${new Date(record.finishedAt).toLocaleString('de')}`);
         }
         return '';
     }));
@@ -383,34 +383,6 @@ async function main() {
     setInterval(async () => {
         await Promise.all(processes.filter(x => x.getState() == 'RECORDING').map(process => process.captureScreenshot()));
     }, 1000 * 30);
-
-    // Timeout for Hardcoded Recordings for testing
-    setTimeout(async () => {
-        console.log('Starting Hardcoded Recording');
-        // {
-        //     const entry = new RecordEntry('JODU', 'xchocobars', true);
-        //     await entry.record();
-        //     processes.push(entry);
-        //     entry.onRecordingFinished(() => {
-        //         console.log('Recording Finished for', entry.toFrontend());
-        //         processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-        //     });
-        // }
-        // {
-        //     const streamer = 'jinnytty';
-        //     if (!await isLive(streamer)) {
-        //         console.log('Stream', streamer, 'is not live!');
-        //         return;
-        //     }
-        //     const entry = new RecordEntry('JODU', streamer, true);
-        //     await entry.record();
-        //     processes.push(entry);
-        //     entry.onRecordingFinished(() => {
-        //         console.log('Recording Finished for', entry.toFrontend());
-        //         // processes.splice(processes.findIndex(e => e.id == entry.id), 1);
-        //     });
-        // }
-    }, 1000);
 
 }
 
