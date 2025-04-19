@@ -22,6 +22,7 @@ import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
 import { router as sniffEntriesRouter } from './router/sniffEntries';
+import { router as authRouter } from './router/auth';
 import { DatabaseInvoice, DatabaseRecordEntry, SniffEntry } from './utils/types';
 import EmailManager from './EmailManager';
 
@@ -34,6 +35,7 @@ app.use(cors());
 
 app.use(paypalRouter);
 app.use(sniffEntriesRouter);
+app.use(authRouter);
 
 const server = http.createServer(app);
 

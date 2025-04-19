@@ -1,8 +1,8 @@
 import crypto from 'crypto';
-import { Router, Request, NextFunction } from 'express';
+import e, { Router, Request, NextFunction } from 'express';
 import { Database } from '@jodu555/mysqlapi';
-import { SniffEntry } from 'src/utils/types';
-import { io } from '..';
+import { AuthToken, SniffEntry } from 'src/utils/types';
+import { emailManager, io } from '..';
 import { z } from 'zod';
 import bcrypt from "bcryptjs";
 
@@ -16,8 +16,17 @@ const registerLoginSchema = z.object({
 });
 
 interface Account {
+    uuid: string;
     email: string;
     password: string;
+    status: 'EMAIL_VERIFY_PENDING' | 'EMAIL_VERIFIED' | 'BANNED';
+    emailVerifyCode: string;
+    created_at: number;
+    updated_at: number;
+    subscription_type: 'FREE' | 'PREMIUM' | 'ADVANCED';
+    last_renewed?: number;
+    first_subscribed?: number;
+    overrides?: string;
 }
 
 export interface AuthenticatedRequest extends Request {
@@ -27,7 +36,7 @@ export interface AuthenticatedRequest extends Request {
     };
 }
 
-router.post('/register', async (req, res, next) => {
+router.post('/api/v1/auth/register', async (req, res, next) => {
     try {
         const user = registerLoginSchema.parse(req.body);
 
@@ -39,7 +48,23 @@ router.post('/register', async (req, res, next) => {
 
         if (result.length == 0) {
             user.password = await bcrypt.hash(user.password, 8);
-            await database.get('accounts').create(user);
+            const dbUser = {
+                uuid: crypto.randomUUID(),
+                email: user.email,
+                password: user.password,
+                status: 'EMAIL_VERIFY_PENDING',
+                emailVerifyCode: Math.round(Math.random() * 99999999999).toString().split('').slice(5).join(''),
+                created_at: Date.now(),
+                updated_at: Date.now(),
+                subscription_type: 'FREE',
+            } as Account;
+            await database.get<Account>('accounts').create(dbUser);
+
+            emailManager.sendEmail(dbUser.uuid, 'VERIFICATION', {
+                username: dbUser.email,
+                verificationToken: dbUser.emailVerifyCode,
+            });
+
             delete user.password;
             res.json(user);
         } else {
@@ -50,7 +75,7 @@ router.post('/register', async (req, res, next) => {
     }
 });
 
-router.post('/login', async (req, res, next) => {
+router.post('/api/v1/auth/login', async (req, res, next) => {
     try {
         const user = registerLoginSchema.parse(req.body);
         const result = await database.get<Account>('accounts').get({ email: user.email, unique: true });
@@ -58,7 +83,10 @@ router.post('/login', async (req, res, next) => {
             if (await bcrypt.compare(user.password, result[0].password)) {
                 const token = crypto.randomUUID();
                 delete result[0].password;
-                //TODO: save token in database
+                await database.get<AuthToken>('authtokens').create({
+                    TOKEN: token,
+                    UUID: result[0].uuid,
+                });
                 res.json({ token });
             } else {
                 next(new Error('Invalid password!'));
@@ -71,13 +99,13 @@ router.post('/login', async (req, res, next) => {
     }
 });
 
-router.get('/logout', async (req: AuthenticatedRequest, res, next) => {
+router.get('/api/v1/auth/logout', async (req: AuthenticatedRequest, res, next) => {
     const token = req.credentials?.token as string;
-    //TODO: remove token from database
+    await database.get<AuthToken>('authtokens').delete({ TOKEN: token });
     res.json({ message: 'Successfully logged out!' });
 });
 
-router.get('/info', async (req: AuthenticatedRequest, res, next) => {
+router.get('/api/v1/auth/info', async (req: AuthenticatedRequest, res, next) => {
     try {
         res.json(req.credentials?.user);
     } catch (error) {
@@ -85,9 +113,16 @@ router.get('/info', async (req: AuthenticatedRequest, res, next) => {
     }
 });
 
-function searchToken(token: string) {
-    //TODO: search token in database
-    return true;
+async function getUser(token: string) {
+    const search = await database.get<AuthToken>('authtokens').getOne({ TOKEN: token });
+    if (search) {
+        const user = await database.get<Account>('accounts').getOne({ UUID: search.UUID });
+        if (user) {
+            delete user.password;
+            return user;
+        }
+    }
+    return undefined;
 }
 
 function authentication() {
@@ -98,8 +133,8 @@ function authenticationFull(cb: (user: Account) => boolean) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         const token = (req.headers['auth-token'] as string) || (req.query['auth-token'] as string);
         if (token) {
-            if (await this.getUser(token)) {
-                const user = await this.getUser(token);
+            const user = await getUser(token);
+            if (user) {
                 if (!cb || cb(user)) {
                     req.credentials = {
                         token,
