@@ -161,4 +161,18 @@ export function setupTables() {
         }
     });
 
+    this.database.createTable('authtokens', {
+        options: {
+            PK: 'TOKEN',
+        },
+        TOKEN: {
+            type: 'varchar(64)',
+            null: false,
+        },
+        UUID: {
+            type: 'varchar(64)',
+            null: false,
+        },
+    });
+
 }

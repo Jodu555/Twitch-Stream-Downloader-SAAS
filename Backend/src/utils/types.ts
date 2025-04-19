@@ -47,3 +47,8 @@ export interface Email {
     sent_at: number | null;
     created_at: number;
 }
+
+export interface AuthToken {
+    TOKEN: string;
+    UUID: string;
+}

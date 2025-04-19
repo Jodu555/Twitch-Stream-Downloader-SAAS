@@ -1,49 +1,45 @@
-import { Router } from 'express';
+import crypto from 'crypto';
+import { Router, Request, NextFunction } from 'express';
 import { Database } from '@jodu555/mysqlapi';
 import { SniffEntry } from 'src/utils/types';
 import { io } from '..';
 import { z } from 'zod';
+import bcrypt from "bcryptjs";
 
 const database = Database.getDatabase();
 
 export const router = Router();
 
-const registerSchema = z.object({
-    username: z.string().min(3).max(32).trim().regex(/^[a-zA-Z0-9_-]+$/).,
+const registerLoginSchema = z.object({
     email: z.string().email().trim(),
     password: z.string().min(8).max(128).trim(),
 });
 
+interface Account {
+    email: string;
+    password: string;
+}
+
+export interface AuthenticatedRequest extends Request {
+    credentials?: {
+        token: string;
+        user: Omit<Account, 'password'>;
+    };
+}
+
 router.post('/register', async (req, res, next) => {
     try {
-        const data = registerSchema.safeParse(req.body);
+        const user = registerLoginSchema.parse(req.body);
 
-        if (!data.success) {
-            next(data.error);
-            return;
-        }
+        const search = JSON.parse(JSON.stringify(user));
 
-        data.;
-
-        let restrictedResult = false;
-
-        if (typeof authHelper.options.restrictedRegister == 'function') {
-            restrictedResult = authHelper.options.restrictedRegister(validation);
-            if (!restrictedResult) {
-                next(new Error('Restricted Registration!'));
-                return;
-            }
-        }
-
-        const search = { ...user }; //Spreading to disable the reference
         delete search.password;
         search.unique = false;
-        const result = await database.get('accounts').get(search);
+        const result = await database.get<Account>('accounts').get({ email: user.email, unique: false });
+
         if (result.length == 0) {
             user.password = await bcrypt.hash(user.password, 8);
             await database.get('accounts').create(user);
-            await authHelper.onRegister?.(user);
-
             delete user.password;
             res.json(user);
         } else {
@@ -56,38 +52,70 @@ router.post('/register', async (req, res, next) => {
 
 router.post('/login', async (req, res, next) => {
     try {
-        const validation = database.getSchema('loginSchema').validate(req.body, true);
-        const user = validation.object;
-        const result = await database.get('accounts').get({ username: user.username, unique: true });
+        const user = registerLoginSchema.parse(req.body);
+        const result = await database.get<Account>('accounts').get({ email: user.email, unique: true });
         if (result.length > 0) {
             if (await bcrypt.compare(user.password, result[0].password)) {
-                const token = generateUUID();
+                const token = crypto.randomUUID();
                 delete result[0].password;
-                authHelper.addToken(token, result[0]);
-                await authHelper.onLogin?.(token, result[0]);
+                //TODO: save token in database
                 res.json({ token });
             } else {
                 next(new Error('Invalid password!'));
             }
         } else {
-            const value = user.username ? 'username' : 'email';
-            next(new Error('Invalid ' + value + '!'));
+            next(new Error('Invalid email!'));
         }
     } catch (error) {
         next(error);
     }
 });
 
-router.get('/logout', async (req, res, next) => {
+router.get('/logout', async (req: AuthenticatedRequest, res, next) => {
     const token = req.credentials?.token as string;
-    authHelper.removeToken(token);
+    //TODO: remove token from database
     res.json({ message: 'Successfully logged out!' });
 });
 
-router.get('/info', async (req, res, next) => {
+router.get('/info', async (req: AuthenticatedRequest, res, next) => {
     try {
         res.json(req.credentials?.user);
     } catch (error) {
         next(error);
     }
 });
+
+function searchToken(token: string) {
+    //TODO: search token in database
+    return true;
+}
+
+function authentication() {
+    return authenticationFull(() => true);
+}
+
+function authenticationFull(cb: (user: Account) => boolean) {
+    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+        const token = (req.headers['auth-token'] as string) || (req.query['auth-token'] as string);
+        if (token) {
+            if (await this.getUser(token)) {
+                const user = await this.getUser(token);
+                if (!cb || cb(user)) {
+                    req.credentials = {
+                        token,
+                        user,
+                    };
+                    next();
+                    return;
+                } else {
+                    next(new Error('Insufficent Permission'));
+                }
+            } else {
+                next(new Error('Invalid auth-token'));
+            }
+        } else {
+            next(new Error('Missing auth-token in headers'));
+        }
+    };
+}
+
