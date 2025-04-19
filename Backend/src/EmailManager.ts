@@ -5,28 +5,35 @@ import { Email, EmailTypes } from './utils/types';
 
 const database = Database.getDatabase();
 
-class EmailManager {
+export default class EmailManager {
     transporter: nodemailer.Transporter;
     ready: boolean = false;
     constructor() {
-        this.transporter = nodemailer.createTransport({
-            host: process.env.MAIL_APP_HOST,
-            port: parseInt(process.env.MAIL_APP_PORT),
-            secure: true,
-            auth: {
-                user: process.env.MAIL_APP_MAIL,
-                pass: process.env.MAIL_APP_PASSWORD
-            }
-        });
+        // const config = {
+        //     service: 'gmail',
+        //     host: process.env.MAIL_APP_HOST,
+        //     port: parseInt(process.env.MAIL_APP_PORT),
+        //     secure: true,
+        //     auth: {
+        //         user: process.env.MAIL_APP_MAIL,
+        //         pass: process.env.MAIL_APP_PASSWORD,
+        //     },
+        // };
+        // console.log(config);
 
-        this.transporter.verify(function (error, success) {
-            if (error) {
-                console.log('Error verifying email transporter:', error);
-            }
-            if (success) {
-                this.ready = true;
-            }
-        });
+        // this.transporter = nodemailer.createTransport(config);
+
+        // this.transporter.verify(function (error, success) {
+        //     console.log({ error, success });
+
+        //     if (error) {
+        //         console.log('Error verifying email transporter:', error);
+        //     }
+        //     if (success) {
+        //         console.log('Email transporter is ready');
+        //         this.ready = true;
+        //     }
+        // });
     }
 
     async processEmails() {
@@ -39,6 +46,11 @@ class EmailManager {
     }
 
     async sendEmail(userUUID: string, email_type: EmailTypes, data: any) {
+
+        let obj: { subject: string; html: string; text: string; };
+        if (email_type == 'VERIFICATION') {
+            obj = this.generateEmailVerification(userUUID, data);
+        }
         const email: Email = {
             ID: crypto.randomUUID(),
             userUUID,
@@ -47,11 +59,12 @@ class EmailManager {
             data: JSON.stringify(data),
             sent_at: null,
             created_at: Date.now(),
+            ...obj,
         } satisfies Email;
 
         database.get<Email>('emails').create(email);
 
-        await this.deepSendEmail(email);
+        // await this.deepSendEmail(email);
     }
 
     private async deepSendEmail(email: Email) {
@@ -60,29 +73,28 @@ class EmailManager {
             return;
         }
         const data = JSON.parse(email.data);
-        let obj: { subject: string, html: string, text: string; };
 
-        if (email.email_type == 'VERIFICATION') {
-            obj = this.generateEmailVerification(email.userUUID, data);
-        }
-
-        this.transporter.sendMail({
-            from: process.env.MAIL_APP_MAIL,
-            to: 'Jodu505@gmail.com',
-            ...obj
-        }, function (error, info) {
-            if (error) {
-                console.log(error);
-                return;
-            } else {
-                email.sent_at = Date.now();
-                email.status = 'SENT';
-                database.get<Email>('emails').update({ ID: email.ID }, email);
-            }
-        });
+        // this.transporter.sendMail(
+        //     {
+        //         from: process.env.MAIL_APP_MAIL,
+        //         to: 'Jodu505@gmail.com',
+        //         ...obj,
+        //     },
+        //     function (error, info) {
+        //         if (error) {
+        //             console.log(error);
+        //             return;
+        //         } else {
+        //             console.log('Email sent: ' + info);
+        //             email.sent_at = Date.now();
+        //             email.status = 'SENT';
+        //             database.get<Email>('emails').update({ ID: email.ID }, email);
+        //         }
+        //     }
+        // );
     }
 
-    generateEmailVerification(userUUID: string, data: { username: string, verificationToken: string; }) {
+    generateEmailVerification(userUUID: string, data: { username: string; verificationToken: string; }) {
         const { username, verificationToken } = data;
         const verificationLink = `http://138.201.131.52:3001/verify?token=${verificationToken}`;
 

@@ -129,6 +129,21 @@ export function setupTables() {
             type: 'varchar(64)',
             null: false,
         },
+        subject: {
+            //The subject of the email
+            type: 'varchar(255)',
+            null: false,
+        },
+        html: {
+            //The html of the email
+            type: 'TEXT',
+            null: false,
+        },
+        text: {
+            //The text of the email
+            type: 'TEXT',
+            null: false,
+        },
         data: {
             //The data to send with the email
             type: 'TEXT',

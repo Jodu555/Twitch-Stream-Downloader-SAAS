@@ -23,6 +23,7 @@ import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
 import { router as sniffEntriesRouter } from './router/sniffEntries';
 import { DatabaseInvoice, DatabaseRecordEntry, SniffEntry } from './utils/types';
+import EmailManager from './EmailManager';
 
 const app = express();
 
@@ -70,6 +71,8 @@ export const io = new Server<
         methods: ['GET', 'POST'],
     },
 });
+
+export const emailManager = new EmailManager();
 
 io.use(async (socket, next) => {
     const type = socket.handshake.auth.type;
@@ -333,6 +336,7 @@ async function main() {
     console.log('Free Disk Space: ', gbFree, 'GB');
 
 
+    emailManager.sendEmail('JODU', 'VERIFICATION', { username: 'JODU', verificationToken: '1234567890' });
 
 
     // Interval for process heartbeat + sniffEntry Check

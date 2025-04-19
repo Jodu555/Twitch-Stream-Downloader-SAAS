@@ -40,6 +40,9 @@ export interface Email {
     userUUID: string;
     email_type: EmailTypes;
     status: EmailStatus;
+    subject: string;
+    html: string;
+    text: string;
     data: string;
     sent_at: number | null;
     created_at: number;
