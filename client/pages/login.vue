@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <h1 class="text-center mb-3">Login - CineFinn</h1>
+        <h1 class="text-center mb-3">Login - TwitchRecorder</h1>
         <!-- <div v-if="error != '' && !(form.usernameValid && form.passwordValid)"
             class="alert alert-danger alert-dismissible">
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -20,9 +20,9 @@
                     </button>
                 </div>
                 <div v-if="loggingin" class="card mt-2">
-                    <div class="card-header">Login - CineFinn</div>
+                    <div class="card-header">Login / Register - TwitchRecorder</div>
                     <div class="card-body">
-                        <h4 class="card-title">Login to the Cinema</h4>
+                        <h4 class="card-title">Login to the TwitchRecorder</h4>
                         <hr />
                         <div v-if="loading" class="d-flex justify-content-center">
                             <div class="spinner-border" role="status">
@@ -48,9 +48,9 @@
                     </div>
                 </div>
                 <div v-if="!loggingin" class="card mt-2">
-                    <div class="card-header">Register - CineFinn</div>
+                    <div class="card-header">Register - TwitchRecorder</div>
                     <div class="card-body">
-                        <h4 class="card-title">Register to the Cinema</h4>
+                        <h4 class="card-title">Register to the TwitchRecorder</h4>
                         <hr />
                         <div v-if="loading" class="d-flex justify-content-center">
                             <div class="spinner-border" role="status">
@@ -98,10 +98,10 @@
             <div class="col-1"></div>
             <div class="col-4">
                 <h2 class="text-muted text-center">
-                    If you got here by accident I would recommend you to go home! <br />
-                    This page is for known users only!
+                    A State of the art Twitch Recorder! <br />
+                    Fully Open Source and forever Free to use!
                     <br />
-                    Which is why there is only a registration with a proprietary token!
+                    No Adds no Restrictions! No Tracking!
                 </h2>
             </div>
         </div>
