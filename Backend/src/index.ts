@@ -1,6 +1,6 @@
 import { Command, CommandManager } from '@jodu555/commandmanager';
 import cors from 'cors';
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import morgan from 'morgan';
 import path from 'path';
@@ -228,6 +228,43 @@ app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
 
     res.sendFile(result);
 
+});
+
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    const error = {
+        message: err.stack?.split('\n')[0],
+        stack: err.stack,
+    };
+    let status = 500;
+    // if (err instanceof AuthenticationError) status = 401;
+
+    try {
+        const { Database } = require('@jodu555/mysqlapi');
+        const database = Database.getDatabase();
+        if (err instanceof database.ParsingError) status = 422;
+    } catch (error) { }
+
+    if (process.env.NODE_ENV !== 'production') {
+        if (error.message?.includes('notFound')) {
+            res.status(404).send({
+                success: false,
+                path: req.path,
+                message: 'Route not Found!',
+            });
+        } else {
+            res.status(status).send({
+                success: false,
+                method: req.method,
+                path: req.path,
+                error,
+            });
+        }
+    } else {
+        res.status(status).send({
+            success: false,
+            message: error.message,
+        });
+    }
 });
 
 const PORT = process.env.PORT || 8081;

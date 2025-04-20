@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import e, { Router, Request, NextFunction } from 'express';
 import { Database } from '@jodu555/mysqlapi';
-import { AuthToken, SniffEntry } from 'src/utils/types';
+import { Account, AuthToken, SniffEntry } from 'src/utils/types';
 import { emailManager, io } from '..';
 import { z } from 'zod';
 import bcrypt from "bcryptjs";
@@ -19,22 +19,6 @@ const verifyRegisterSchema = z.object({
     email: z.string().email().trim(),
     verificationID: z.string().min(4).max(7).trim(),
 });
-
-export interface Account {
-    UUID: string;
-    email: string;
-    password: string;
-    status: 'EMAIL_VERIFY_PENDING' | 'EMAIL_VERIFIED' | 'BANNED';
-    emailVerifyCode: string;
-    created_at: number;
-    updated_at: number;
-    subscription_type: 'FREE' | 'PREMIUM' | 'ADVANCED';
-    last_renewed?: number;
-    first_subscribed?: number;
-    last_handshake?: number;
-    last_login?: number;
-    overrides?: string;
-}
 
 export interface AuthenticatedRequest extends Request {
     credentials?: {

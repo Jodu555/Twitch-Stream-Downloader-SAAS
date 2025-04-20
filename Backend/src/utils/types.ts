@@ -48,6 +48,22 @@ export interface Email {
     created_at: number;
 }
 
+export interface Account {
+    UUID: string;
+    email: string;
+    password: string;
+    status: 'EMAIL_VERIFY_PENDING' | 'EMAIL_VERIFIED' | 'BANNED';
+    emailVerifyCode: string;
+    created_at: number;
+    updated_at: number;
+    subscription_type: 'FREE' | 'PREMIUM' | 'ADVANCED';
+    last_renewed?: number;
+    first_subscribed?: number;
+    last_handshake?: number;
+    last_login?: number;
+    overrides?: string;
+}
+
 export interface AuthToken {
     TOKEN: string;
     UUID: string;

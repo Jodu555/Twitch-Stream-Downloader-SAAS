@@ -1,11 +1,10 @@
 <template>
     <div class="container">
         <h1 class="text-center mb-3">Login - TwitchRecorder</h1>
-        <!-- <div v-if="error != '' && !(form.usernameValid && form.passwordValid)"
-            class="alert alert-danger alert-dismissible">
+        <div v-if="error != ''" class="alert alert-danger alert-dismissible">
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             <strong>Error: <span>{{ error }}</span></strong>
-        </div> -->
+        </div>
         <div class="row">
             <div class="col-1"></div>
             <div class="col-5">
@@ -66,30 +65,37 @@
                                     <InputValidator :disabled="form.codeSent" v-model="form.email"
                                         v-model:valid="form.emailValid" type="email" id="email" name="Email"
                                         autocomplete="email" placeholder="Enter Email" :rules="rules.emailRules" />
-
-                                    <div class="d-grid gap-2 mt-3">
-                                        <button @click="form.codeSent = true" type="button"
-                                            :disabled="!form.emailValid || form.codeSent" class="btn btn-primary">
-                                            Send Code
-                                        </button>
-                                    </div>
-
                                 </div>
                                 <div class="form-group">
-                                    <InputValidator v-model="form.password" v-model:valid="form.passwordValid"
-                                        type="password" id="password" name="Password" autocomplete="current-password"
-                                        placeholder="Enter Password" :rules="rules.passwordRules" />
+                                    <InputValidator v-model="form.password" :disabled="form.codeSent"
+                                        v-model:valid="form.passwordValid" type="password" id="password" name="Password"
+                                        autocomplete="current-password" placeholder="Enter Password"
+                                        :rules="rules.passwordRules" />
                                 </div>
-                                <div v-if="form.codeSent" class="form-group">
-                                    <InputValidator v-model="form.code" v-model:valid="form.codeValid" type="verifyCode"
-                                        id="code" name="Email Verify Code" autocomplete="email-verify-code"
-                                        placeholder="Eneter your email verify code" :rules="rules.codeRules" />
+                                <div class="d-grid gap-2 mt-3">
+                                    <button @click="sendVerificationCode()" type="button"
+                                        :disabled="!form.emailValid || !form.passwordValid || form.codeSent"
+                                        class="btn btn-primary" :class="{ 'btn-secondary': form.codeSent }">
+                                        Send Code
+                                    </button>
                                 </div>
-                                <button type="submit"
-                                    :disabled="!(form.emailValid && form.passwordValid && form.codeValid)"
-                                    class="mt-4 btn btn-primary">
-                                    Register
-                                </button>
+                                <template v-if="form.codeSent">
+                                    <div class="form-group">
+                                        <InputValidator v-model="form.code" v-model:valid="form.codeValid"
+                                            type="verifyCode" id="code" name="Email Verify Code"
+                                            autocomplete="email-verify-code" placeholder="Eneter your email verify code"
+                                            :rules="rules.codeRules" />
+                                    </div>
+                                    <InputValidator v-model="form.passwordRepeat"
+                                        v-model:valid="form.passwordRepeatValid" type="password" id="passwordrepeat"
+                                        name="Password Repeat" autocomplete="again-password"
+                                        placeholder="Repeat you password" :rules="rules.passwordRepeatRules" />
+                                    <button type="submit"
+                                        :disabled="!(form.emailValid && form.passwordValid && form.codeValid && form.passwordRepeatValid)"
+                                        class="mt-4 btn btn-primary">
+                                        Register
+                                    </button>
+                                </template>
                             </fieldset>
                         </form>
                     </div>
@@ -112,18 +118,65 @@
 import InputValidator from '~/components/InputValidator.vue';
 
 
+const loading = ref(false);
+const sendVerificationCodeLoading = ref(false);
+const registerLoading = ref(false);
+const error = ref('');
+
+async function sendVerificationCode() {
+    error.value = '';
+    sendVerificationCodeLoading.value = true;
+
+    const { data, error: respError } = await tryCatch($fetch<{
+        id: string;
+        twitchStreamerName: string;
+        watchLive: boolean;
+    }>(`http://138.201.131.52:8081/api/v1/auth/register/`, {
+        method: 'POST',
+        body: {
+            email: form.email,
+            password: form.password,
+        },
+    }));
+
+    if (respError) {
+        error.value = (data as any).error.messae || respError?.message || 'Unknown error';
+        sendVerificationCodeLoading.value = false;
+        form.codeSent = false;
+        return;
+    }
+    form.codeSent = true;
+
+}
+
 function onLogin() {
     console.log('Login');
 
 }
 
+async function onRegister() {
+    error.value = '';
+    registerLoading.value = true;
 
-function onRegister() {
-    console.log('Register');
+    const { data, error: respError } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/auth/verify/`, {
+        method: 'POST',
+        body: {
+            email: form.email,
+            verificationID: form.code,
+        },
+    }));
+
+    if (respError) {
+        error.value = (data as any).error.messae || respError?.message || 'Unknown error';
+        registerLoading.value = false;
+        return;
+    }
+
+    console.log('REGISTER DATA', data);
+
 }
 
 const loggingin = ref(false);
-const loading = ref(false);
 
 const form = reactive({
     codeSent: false,
@@ -131,6 +184,8 @@ const form = reactive({
     emailValid: false,
     password: '',
     passwordValid: false,
+    passwordRepeat: '',
+    passwordRepeatValid: false,
     code: '',
     codeValid: false,
 });
@@ -159,6 +214,11 @@ const rules = reactive({
     passwordRules: [
         (value: string) => !!value || 'Cannot be empty.',
         (value: string) => value.length >= 3 || 'Must be at least 3 Characters and can only be 100',
+    ],
+    passwordRepeatRules: [
+        (value: string) => !!value || 'Cannot be empty.',
+        (value: string) => value.length >= 3 || 'Must be at least 3 Characters and can only be 100',
+        (value: string) => value == form.password || 'Passwords do not match!',
     ],
 })
 

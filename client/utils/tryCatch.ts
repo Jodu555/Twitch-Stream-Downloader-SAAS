@@ -3,21 +3,22 @@ type Success<T> = {
     error: null;
 };
 
-type Failure<E> = {
-    data: null;
+type Failure<T, E> = {
+    data?: T;
     error: E;
 };
 
-type Result<T, E = Error> = Success<T> | Failure<E>;
+type Result<T, E = Error> = Success<T> | Failure<T, E>;
 
 // Main wrapper function
 export async function tryCatch<T, E = Error>(
     promise: Promise<T>,
 ): Promise<Result<T, E>> {
+    let data: T = null as any;
     try {
-        const data = await promise;
+        data = await promise;
         return { data, error: null };
     } catch (error) {
-        return { data: null, error: error as E };
+        return { data: data as T, error: error as E };
     }
 }

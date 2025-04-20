@@ -161,7 +161,66 @@ export function setupTables() {
         }
     });
 
-    this.database.createTable('authtokens', {
+    database.createTable('accounts', {
+        options: {
+            PK: 'UUID',
+            K: ['email', 'status', 'subscription_type'],
+        },
+        UUID: {
+            type: 'varchar(64)',
+            null: false,
+        },
+        email: {
+            type: 'varchar(255)',
+            null: false,
+        },
+        password: {
+            type: 'varchar(255)',
+            null: false,
+        },
+        status: {
+            type: 'varchar(32)',
+            null: false,
+        },
+        emailVerifyCode: {
+            type: 'varchar(32)',
+            null: false,
+        },
+        created_at: {
+            type: 'BIGINT',
+            null: false,
+        },
+        updated_at: {
+            type: 'BIGINT',
+            null: false,
+        },
+        subscription_type: {
+            type: 'VARCHAR(32)',
+            null: false,
+        },
+        last_renewed: {
+            type: 'BIGINT',
+            null: true,
+        },
+        first_subscribed: {
+            type: 'BIGINT',
+            null: true,
+        },
+        last_handshake: {
+            type: 'BIGINT',
+            null: true,
+        },
+        last_login: {
+            type: 'BIGINT',
+            null: true,
+        },
+        overrides: {
+            type: 'TEXT',
+            null: true,
+        },
+    });
+
+    database.createTable('authtokens', {
         options: {
             PK: 'TOKEN',
         },
