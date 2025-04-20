@@ -72,8 +72,14 @@ router.post('/api/v1/auth/verify', async (req, res, next) => {
         const user = await database.get<Account>('accounts').getOne({ email: verifyData.email, unique: true });
         if (user) {
             if (user.emailVerifyCode == verifyData.verificationID) {
-                await database.get<Account>('accounts').update({ UUID: user.UUID }, { status: 'EMAIL_VERIFIED' });
-                res.json({ message: 'Successfully verified' });
+                const token = crypto.randomUUID();
+                await database.get<Account>('accounts').update({ UUID: user.UUID }, { last_login: Date.now(), status: 'EMAIL_VERIFIED' });
+
+                await database.get<AuthToken>('authtokens').create({
+                    TOKEN: token,
+                    UUID: user.UUID,
+                });
+                res.json({ message: 'Successfully verified', token });
             } else {
                 next(new Error('Invalid Verify Code!'));
             }

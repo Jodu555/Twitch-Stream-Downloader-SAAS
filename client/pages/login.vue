@@ -1,9 +1,9 @@
 <template>
     <div class="container">
         <h1 class="text-center mb-3">Login - TwitchRecorder</h1>
-        <pre>
+        <!-- <pre>
             {{ { error, loading, loggingin, sendVerificationCodeLoading, registerLoading } }}
-        </pre>
+        </pre> -->
         <div v-if="error != ''" class="alert alert-danger alert-dismissible">
             <!-- <button type="button" class="btn-close" data-bs-dismiss="alert" @click="error = ''"></button> -->
             <strong><span>{{ error }}</span></strong>
@@ -11,18 +11,22 @@
         <div class="row">
             <div class="col-1"></div>
             <div class="col-5">
-                <div class="d-flex justify-content-evenly">
-                    <button type="button" :disabled="loggingin" class="btn btn-lg"
-                        :class="{ 'btn-secondary': loggingin, 'btn-primary': !loggingin }" @click="loggingin = true">
-                        Login
-                    </button>
-                    <button type="button" :disabled="!loggingin" class="btn btn-lg"
-                        :class="{ 'btn-secondary': !loggingin, 'btn-primary': loggingin }" @click="loggingin = false">
-                        Register
-                    </button>
+                <div>
+                    <ul class="d-flex justify-content-around nav nav-tabs">
+                        <li style="cursor:pointer" class="nav-item">
+                            <a class="nav-link" :class="{
+                                active: loggingin,
+                            }" @click="loggingin = true">Login</a>
+                        </li>
+                        <li style="cursor:pointer" class="nav-item">
+                            <a class="nav-link" :class="{
+                                active: !loggingin,
+                            }" @click="loggingin = false">Register</a>
+                        </li>
+                    </ul>
                 </div>
                 <div v-if="loggingin" class="card mt-2">
-                    <div class="card-header">Login / Register - TwitchRecorder</div>
+                    <div class="card-header">Login - TwitchRecorder</div>
                     <div class="card-body">
                         <h4 class="card-title">Login to the TwitchRecorder</h4>
                         <hr />
@@ -59,11 +63,11 @@
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
-                        <pre>
+                        <!-- <pre>
                             {{ form }}
-                        </pre>
+                        </pre> -->
                         <form @submit.prevent="onRegister()" class="card-text" id="registerForm">
-                            <fieldset>
+                            <fieldset v-auto-animate>
                                 <div class="form-group">
                                     <InputValidator :disabled="form.codeSent" v-model="form.email"
                                         v-model:valid="form.emailValid" type="email" id="email" name="Email"
@@ -161,7 +165,7 @@ async function onRegister() {
     error.value = '';
     registerLoading.value = true;
 
-    const { data, error: respError } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/auth/verify/`, {
+    const { data, error: respError } = await tryCatch($fetch<any>(`http://138.201.131.52:8081/api/v1/auth/verify/`, {
         method: 'POST',
         body: {
             email: form.email,
@@ -169,13 +173,19 @@ async function onRegister() {
         },
     }));
 
-    if (respError) {
-        error.value = (data as any).error.messae || respError?.message || 'Unknown error';
+    if (respError || data.success == false) {
+        error.value = data.error.message || respError?.message || 'Unknown error';
         registerLoading.value = false;
         return;
     }
 
     console.log('REGISTER DATA', data);
+
+    const authToken = useCookie('auth-token', { expires: new Date(Date.now() + 60 * 60 * 24 * 1000) });
+
+    authToken.value = data.token;
+
+    navigateTo('/');
 
 }
 
