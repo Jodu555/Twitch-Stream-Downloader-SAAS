@@ -1,9 +1,12 @@
 <template>
     <div class="container">
         <h1 class="text-center mb-3">Login - TwitchRecorder</h1>
+        <pre>
+            {{ { error, loading, loggingin, sendVerificationCodeLoading, registerLoading } }}
+        </pre>
         <div v-if="error != ''" class="alert alert-danger alert-dismissible">
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            <strong>Error: <span>{{ error }}</span></strong>
+            <!-- <button type="button" class="btn-close" data-bs-dismiss="alert" @click="error = ''"></button> -->
+            <strong><span>{{ error }}</span></strong>
         </div>
         <div class="row">
             <div class="col-1"></div>
@@ -127,11 +130,8 @@ async function sendVerificationCode() {
     error.value = '';
     sendVerificationCodeLoading.value = true;
 
-    const { data, error: respError } = await tryCatch($fetch<{
-        id: string;
-        twitchStreamerName: string;
-        watchLive: boolean;
-    }>(`http://138.201.131.52:8081/api/v1/auth/register/`, {
+    const { data, error: respError } = await tryCatch($fetch<any>(`http://138.201.131.52:8081/api/v1/auth/register/`, {
+        ignoreResponseError: true,
         method: 'POST',
         body: {
             email: form.email,
@@ -139,8 +139,11 @@ async function sendVerificationCode() {
         },
     }));
 
-    if (respError) {
-        error.value = (data as any).error.messae || respError?.message || 'Unknown error';
+    console.log(data);
+
+
+    if (respError || data.success == false) {
+        error.value = data.error.message || respError?.message || 'Unknown error';
         sendVerificationCodeLoading.value = false;
         form.codeSent = false;
         return;
@@ -204,7 +207,6 @@ const rules = reactive({
         (value: string) => !!value || 'Cannot be empty.',
         (value: string) => value.length >= 4 || 'Must be at least 4 Characters',
         (value: string) => value.length <= 10 || 'Must be below 10 Characters',
-        (value: string) => value.length <= 10 || 'Must be below 10 Characters',
         (value: string) => isNumeric(value) || 'Must be a number Code',
     ],
     emailRules: [
@@ -213,11 +215,11 @@ const rules = reactive({
     ],
     passwordRules: [
         (value: string) => !!value || 'Cannot be empty.',
-        (value: string) => value.length >= 3 || 'Must be at least 3 Characters and can only be 100',
+        (value: string) => value.length >= 8 || 'Must be at least 8 Characters and can only be 100',
     ],
     passwordRepeatRules: [
         (value: string) => !!value || 'Cannot be empty.',
-        (value: string) => value.length >= 3 || 'Must be at least 3 Characters and can only be 100',
+        (value: string) => value.length >= 8 || 'Must be at least 8 Characters and can only be 100',
         (value: string) => value == form.password || 'Passwords do not match!',
     ],
 })

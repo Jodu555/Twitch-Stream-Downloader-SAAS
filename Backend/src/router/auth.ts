@@ -59,7 +59,7 @@ router.post('/api/v1/auth/register', async (req, res, next) => {
             delete registerData.password;
             res.json(registerData);
         } else {
-            next(new Error('The email or the username is already taken!'));
+            next(new Error('There is already an account with this email! Please login! Or try with another email!'));
         }
     } catch (error) {
         next(error);

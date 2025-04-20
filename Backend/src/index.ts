@@ -253,6 +253,12 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     let status = 500;
     // if (err instanceof AuthenticationError) status = 401;
 
+    if (err instanceof z.ZodError) {
+        status = 400;
+        error.message = err.errors.map(x => x.message).join(', ');
+        error.stack = err.errors.map(x => x.path.join('.')).join(', ');
+    }
+
     try {
         const { Database } = require('@jodu555/mysqlapi');
         const database = Database.getDatabase();

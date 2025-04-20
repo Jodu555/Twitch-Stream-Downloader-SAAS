@@ -19,6 +19,8 @@ export async function tryCatch<T, E = Error>(
         data = await promise;
         return { data, error: null };
     } catch (error) {
+        console.log('ININININININ Error:', data);
+
         return { data: data as T, error: error as E };
     }
 }
