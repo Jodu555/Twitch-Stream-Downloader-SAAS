@@ -49,10 +49,8 @@ export default class EmailManager {
 
 
     async sendEmail<T extends EmailTypes>(userUUID: string, email_type: T, data: DataType<T>) {
-        let obj: { subject: string; html: string; text: string; };
-        if (email_type == 'VERIFICATION') {
-            obj = this.generateEmailVerification(userUUID, data);
-        }
+        const obj = this.getEmailData(email_type, data);
+
         const email: Email = {
             ID: crypto.randomUUID(),
             userUUID,
@@ -67,6 +65,12 @@ export default class EmailManager {
         database.get<Email>('emails').create(email);
 
         // await this.deepSendEmail(email);
+    }
+
+    getEmailData(email_type: EmailTypes, data: DataType<EmailTypes>) {
+        if (email_type == 'VERIFICATION') {
+            return this.generateEmailVerification(data);
+        }
     }
 
     private async deepSendEmail(email: Email) {
@@ -96,7 +100,7 @@ export default class EmailManager {
         // );
     }
 
-    generateEmailVerification(userUUID: string, data: DataType<'VERIFICATION'>) {
+    generateEmailVerification(data: DataType<'VERIFICATION'>) {
         const { email, verificationToken } = data;
 
         const html = `<!DOCTYPE html>
@@ -176,15 +180,15 @@ export default class EmailManager {
                   <h3 class="code">${verificationToken}</h3>
                 </div>
                 
-                <p>This verification code will expire in 48 hours.</p>
+                <p>This verification code will expire in 48 hours. You then have to reregister!</p>
                 
                 <p>If you didn't create an account, you can safely ignore this email.</p>
                 
-                <p>Best regards,<br>The Your App Team</p>
+                <p>Best regards,<br>The TwitchRecorder App</p>
               </div>
               <div class="email-footer">
-                <p>© ${new Date().getFullYear()} Your App Name. All rights reserved.</p>
-                <p>If you need any assistance, please contact our support team at support@yourapp.com</p>
+                <p>© ${new Date().getFullYear()} TwitchStreamRecorder. All rights reserved.</p>
+                <p>If you need any assistance, please just reply to this email!</p>
               </div>
             </div>
           </body>
@@ -197,12 +201,12 @@ export default class EmailManager {
           
           ${verificationToken}
           
-          This verification token will expire in 48 hours.
+          This verification token will expire in 48 hours. You then have to reregister!
           
           If you didn't create an account, you can safely ignore this email.
           
           Best regards,
-          The Your App Team
+          The TwitchStreamRecorder App
         `;
 
         return { subject: 'Email Verification', html, text };

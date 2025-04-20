@@ -25,6 +25,7 @@ import { router as sniffEntriesRouter } from './router/sniffEntries';
 import { router as authRouter } from './router/auth';
 import { DatabaseInvoice, DatabaseRecordEntry, SniffEntry } from './utils/types';
 import EmailManager from './EmailManager';
+import { z } from 'zod';
 
 const app = express();
 
@@ -230,6 +231,20 @@ app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
 
 });
 
+app.get('/api/v1/debug/mail/:type', (req, res) => {
+    // v'VERIFICATION' | 'INVOICE_OPENED' | 'INVOICE_DUE' | 'DISCOUNT' | 'VIDEO_ABT_DELETED' | 'RECORDING_AUTO_STARTED' | 'RECORDING_AUTO_ENDED'
+    const type = req.params.type;
+    const parse = z.object({
+        type: z.enum(['VERIFICATION', 'INVOICE_OPENED', 'INVOICE_DUE', 'DISCOUNT', 'VIDEO_ABT_DELETED', 'RECORDING_AUTO_STARTED', 'RECORDING_AUTO_ENDED']),
+    });
+    const reqData = parse.parse(req.params);
+
+    const data = emailManager.getEmailData(reqData.type, req.query as any);
+
+    console.log(data.subject);
+    res.send(data.html);
+});
+
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     const error = {
         message: err.stack?.split('\n')[0],
@@ -373,9 +388,6 @@ async function main() {
     const stats = fs.statfsSync(tmpDir);
     const gbFree = (stats.bsize * stats.bavail) / 1024 / 1024 / 1024;
     console.log('Free Disk Space: ', gbFree, 'GB');
-
-
-    emailManager.sendEmail('JODU', 'VERIFICATION', { username: 'JODU', verificationToken: '1234567890' });
 
 
     // Interval for process heartbeat + sniffEntry Check
