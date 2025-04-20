@@ -48,6 +48,8 @@ Of course you then have to be responsible for the server and the bandwidth.
 
 ## Cronjob once a day
 - Set old videos to be deleted and next day delete them
+- If a user is status verification pending, and the account was created 2 days ago
+  - Delete the account
 - Check every user for their subscription status:
   - If only 7 days left create new invoice and email them and mark them as 
   - At the day it is due send them an email that their invoice is due and in 7 days their account will be reset

@@ -5,6 +5,8 @@ import { Email, EmailTypes } from './utils/types';
 
 const database = Database.getDatabase();
 
+type DataType<T> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } : never;
+
 export default class EmailManager {
     transporter: nodemailer.Transporter;
     ready: boolean = false;
@@ -45,8 +47,8 @@ export default class EmailManager {
         }
     }
 
-    async sendEmail(userUUID: string, email_type: EmailTypes, data: any) {
 
+    async sendEmail<T extends EmailTypes>(userUUID: string, email_type: T, data: DataType<T>) {
         let obj: { subject: string; html: string; text: string; };
         if (email_type == 'VERIFICATION') {
             obj = this.generateEmailVerification(userUUID, data);
@@ -94,9 +96,8 @@ export default class EmailManager {
         // );
     }
 
-    generateEmailVerification(userUUID: string, data: { username: string; verificationToken: string; }) {
-        const { username, verificationToken } = data;
-        const verificationLink = `http://138.201.131.52:3001/verify?token=${verificationToken}`;
+    generateEmailVerification(userUUID: string, data: DataType<'VERIFICATION'>) {
+        const { email, verificationToken } = data;
 
         const html = `<!DOCTYPE html>
           <html lang="en">
@@ -158,6 +159,7 @@ export default class EmailManager {
                 font-size: 18px;
                 letter-spacing: 2px;
                 margin: 20px 0;
+                color: #4f46e5;
               }
             </style>
           </head>
@@ -167,17 +169,14 @@ export default class EmailManager {
                 <h1>Email Verification</h1>
               </div>
               <div class="email-body">
-                <p>Hello ${username},</p>
-                <p>Thank you for signing up! To complete your registration and verify your email address, please click the button below:</p>
+                <p>Hello ${email},</p>
+                <p>Thank you for signing up! To complete your registration and verify your email address, please input the following code on the registration page:</p>
                 
                 <div style="text-align: center;">
-                  <a href="${verificationLink}" class="button" style="color: white;">Verify Email Address</a>
+                  <h3 class="code">${verificationToken}</h3>
                 </div>
                 
-                <p>If the button doesn't work, you can also copy and paste the following link into your browser:</p>
-                <p style="word-break: break-all;"><a href="${verificationLink}">${verificationLink}</a></p>
-                
-                <p>This verification link will expire in 24 hours.</p>
+                <p>This verification code will expire in 48 hours.</p>
                 
                 <p>If you didn't create an account, you can safely ignore this email.</p>
                 
@@ -192,13 +191,13 @@ export default class EmailManager {
           </html>`;
 
         const text = `
-          Hello ${username},
+          Hello ${email},
           
-          Thank you for signing up! To complete your registration, please verify your email address by clicking the link below:
+          Thank you for signing up! To complete your registration, please input the following code on the registration page:
           
-          ${verificationLink}
+          ${verificationToken}
           
-          This verification link will expire in 24 hours.
+          This verification token will expire in 48 hours.
           
           If you didn't create an account, you can safely ignore this email.
           

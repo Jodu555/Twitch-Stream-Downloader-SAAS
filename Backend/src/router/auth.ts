@@ -52,7 +52,7 @@ router.post('/api/v1/auth/register', async (req, res, next) => {
             await database.get<Account>('accounts').create(user);
 
             emailManager.sendEmail(user.UUID, 'VERIFICATION', {
-                username: user.email,
+                email: user.email,
                 verificationToken: user.emailVerifyCode,
             });
 
