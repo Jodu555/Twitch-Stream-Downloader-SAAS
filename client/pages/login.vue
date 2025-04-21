@@ -10,7 +10,7 @@
         </div>
         <div class="row">
             <div class="col-1"></div>
-            <div class="col-5">
+            <div class="col-5" v-auto-animate>
                 <div>
                     <ul class="d-flex justify-content-around nav nav-tabs">
                         <li style="cursor:pointer" class="nav-item">

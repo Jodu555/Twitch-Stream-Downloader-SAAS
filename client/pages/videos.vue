@@ -74,19 +74,20 @@
                         <li class="list-group-item"><b>Größe:</b> {{
                             bytesToHumanReadable(parseInt(video.videoMeta.size)) }}
                         </li>
-                        <li class="list-group-item text-danger fw-bold"><b>Deletion:</b> {{ until(video.finishedAt
-                            +
-                            userData.videoRetentionDays * 24 * 60 *
-                            60 * 1000) }}</li>
+                        <!-- <li class="list-group-item text-danger fw-bold"><b>Deletion:</b> {{
+                            until(calcVideoDeletion(video)) }}
+                        </li> -->
+                        <li class="list-group-item text-danger fw-bold"><b>Deletion:</b> {{
+                            countdown((calcVideoDeletion(video) - timestamp) / 1000)
+                        }}</li>
                     </ul>
                     <div class="card-body">
                         <div class="row justify-content-around">
                             <span class="col-auto text-muted">Aufgenommen am: {{ new
                                 Date(video.finishedAt).toLocaleString('de') }}</span>
                             <span class="col-auto text-warning fw-bold">Video löschung: {{ new
-                                Date(video.finishedAt + userData.videoRetentionDays * 24 * 60 * 60 *
-                                    1000).toLocaleString('de')
-                            }}</span>
+                                Date(calcVideoDeletion(video)).toLocaleString('de')
+                                }}</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
                             <button class="col-7 btn btn-outline-secondary"
@@ -145,6 +146,46 @@ const userData = useUserData();
 const titleViewID = ref('');
 const showTitel = ref(false);
 
+const { timestamp, pause: pauseTimeStamp, resume: resumeTimeStamp } = useTimestamp({ offset: 0, controls: true, interval: 1000 });
+
+function calcVideoDeletion(video: RecordedVideo) {
+    return video.finishedAt + userData.value.videoRetentionDays * 24 * 60 * 60 * 1000;
+    // return video.finishedAt + userData.videoRetentionDays * 24 * 60 * 60 * 1000;
+}
+
+function countdown(s: number) {
+    // s = (s - Date.now()) / 1000;
+    if (s < 0) {
+        return 'Expired';
+    }
+    return 'in ' + secondsToDeletionString(s);
+}
+
+
+function intervalToLevels(interval: number, levels: { scale: number[], units: string[]; }) {
+    const cbFun = (d: any, c: any) => {
+        let bb = d[1] % c[0],
+            aa = (d[1] - bb) / c[0];
+        aa = aa > 0 ? aa + c[1] : '';
+
+        return [d[0] + aa, bb];
+    };
+
+    let rslt = levels.scale.map((_, i, a) => a.slice(i).reduce((d, c) => d * c))
+        .map((d, i) => ([d, levels.units[i]]))
+        .reduce(cbFun, ['', interval]);
+    return rslt[0];
+};
+
+const TimeLevels = {
+    scale: [7, 24, 60, 60, 1],
+    units: ['w ', 'd ', 'h ', 'm ', 's ']
+};
+
+function secondsToDeletionString(interval: number) {
+    return intervalToLevels(interval, TimeLevels);
+}
+
 function secondsToHumanReadable(seconds: number) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -178,33 +219,16 @@ function until(ms: number) {
 const videos = computed(() => globalStore.videos);
 const { error, refresh, status } = useAsyncData('videos', globalStore.fetchVideos);
 
-// const { data: videos, error, refresh, status } = await useFetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos');
+const visibility = useDocumentVisibility();
 
-// const visibility = useDocumentVisibility();
-
-// watch(visibility, () => {
-//     console.log(visibility.value);
-//     if (visibility.value == 'visible') {
-//         resumeVideos();
-//     } else {
-//         pauseVideos();
-//     }
-// });
-
-// const { pause: pauseVideos, resume: resumeVideos } = useIntervalFn(() => {
-//     console.log(`refreshing the data again ${new Date().toISOString()}`);
-//     refresh();
-//     // pauseVideos();
-// }, 1000);
-
-
-// onMounted(() => {
-//     resumeVideos();
-// });
-
-// onUnmounted(() => {
-//     pauseVideos();
-// });
+watch(visibility, () => {
+    console.log(visibility.value);
+    if (visibility.value == 'visible') {
+        resumeTimeStamp();
+    } else {
+        pauseTimeStamp();
+    }
+});
 
 function bytesToHumanReadable(size: number, breakSize = 1024) {
     let u = 0;
