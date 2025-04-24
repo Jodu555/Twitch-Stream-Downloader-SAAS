@@ -19,7 +19,7 @@
 							<NuxtLink to="/videos" class="nav-link position-relative" active-class="active">
 								Videos
 								<ClientOnly>
-									<span
+									<span v-if="globalStore.videos.length > 0"
 										class="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger">
 										{{ globalStore.videos.length }}
 										<span class="visually-hidden">Open Videos</span>
@@ -27,7 +27,9 @@
 								</ClientOnly>
 							</NuxtLink>
 						</li>
-						<li class="nav-item ms-3">
+						<li class="nav-item" :class="{
+							'ms-3': globalStore.videos.length > 0,
+						}">
 							<NuxtLink to="/pricing" class="nav-link" active-class="active">Pricing</NuxtLink>
 						</li>
 					</ul>

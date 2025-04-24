@@ -367,26 +367,11 @@ watch(visibility, () => {
 	console.log(visibility.value);
 	if (visibility.value == 'visible') {
 		resumeTimeStamp();
-		// resumeStreamers();
-		// resumeSniff();
-		// refresh();
-		// refreshSniffEntrys();
 	} else {
-		// pauseStreamers();
-		// pauseSniff();
 		pauseTimeStamp();
 	}
 });
 
-// const { pause: pauseStreamers, resume: resumeStreamers } = useIntervalFn(() => {
-// 	// console.log(`refreshing the data again ${new Date().toISOString()}`);
-// 	refresh();
-// }, 1000);
-
-// const { pause: pauseSniff, resume: resumeSniff } = useIntervalFn(() => {
-// 	// console.log(`refreshing the sniffdata again ${new Date().toISOString()}`);
-// 	refreshSniffEntrys();
-// }, 1000 * 10);
 
 onMounted(async () => {
 	// resumeStreamers();
