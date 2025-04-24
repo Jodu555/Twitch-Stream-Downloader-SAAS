@@ -156,9 +156,32 @@ async function sendVerificationCode() {
 
 }
 
-function onLogin() {
-    console.log('Login');
+async function onLogin() {
+    error.value = '';
+    loading.value = true;
+    const { data, error: respError } = await tryCatch($fetch<any>(`http://138.201.131.52:8081/api/v1/auth/login/`, {
+        ignoreResponseError: true,
+        method: 'POST',
+        body: {
+            email: form.email,
+            password: form.password,
+        },
+    }));
 
+    console.log(data);
+
+
+    loading.value = false;
+    if (respError || data.success == false) {
+        error.value = data.error.message || respError?.message || 'Unknown error';
+        return;
+    }
+
+    const authToken = useCookie('auth-token', { expires: new Date(Date.now() + 60 * 60 * 24 * 1000) });
+    const token = data.token;
+    console.log('DATA', data);
+    authToken.value = token;
+    navigateTo('/');
 }
 
 async function onRegister() {
@@ -189,7 +212,7 @@ async function onRegister() {
 
 }
 
-const loggingin = ref(false);
+const loggingin = ref(true);
 
 const form = reactive({
     codeSent: false,
