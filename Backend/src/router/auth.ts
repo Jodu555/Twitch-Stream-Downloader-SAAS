@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import e, { Router, Request, NextFunction } from 'express';
+import e, { Router, Request, Response, NextFunction } from 'express';
 import { Database } from '@jodu555/mysqlapi';
 import { Account, AuthToken, SniffEntry } from 'src/utils/types';
 import { emailManager, io } from '..';
@@ -21,7 +21,7 @@ const verifyRegisterSchema = z.object({
 });
 
 export interface AuthenticatedRequest extends Request {
-    credentials?: {
+    credentials: {
         token: string;
         user: Omit<Account, 'password'>;
     };

@@ -2,27 +2,35 @@ import { Router } from 'express';
 import { Database } from '@jodu555/mysqlapi';
 import { SniffEntry } from 'src/utils/types';
 import { io } from '..';
+import { AuthenticatedRequest, authentication } from './auth';
+import { z } from 'zod';
 
 const database = Database.getDatabase();
 
 export const router = Router();
 
-router.get('/api/v1/sniffEntrys', async (req, res) => {
-    const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
+router.get('/api/v1/sniffEntrys', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get({ userUUID });
     res.json(sniffEntrys);
 });
 
-router.post('/api/v1/sniffEntrys', async (req, res) => {
-    const twitchStreamerName = req.body.twitchStreamerName;
-    if (twitchStreamerName == null || typeof twitchStreamerName != 'string' || twitchStreamerName.trim().length == 0) {
-        res.status(400).send('twitchStreamerName is required');
-        return;
-    }
+router.post('/api/v1/sniffEntrys', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+
+    //TODO: Check if user is allowed to add entry
+
+    const parse = z.object({
+        twitchStreamerName: z.string(),
+    });
+    const reqData = parse.parse(req.params);
+
+    const twitchStreamerName = reqData.twitchStreamerName;
     const entry = {
         everyxMinute: 1,
         lastCheck: Date.now() - 1000 * 60,
         twitchStreamerName: twitchStreamerName,
-        userUUID: 'JODU',
+        userUUID: userUUID,
     } satisfies SniffEntry;
     await database.get<SniffEntry>('sniffEntries').create(entry);
     (await io.fetchSockets()).forEach(x => x.emit('monitoringUpdate', { streamer: twitchStreamerName, data: entry }));
@@ -30,13 +38,14 @@ router.post('/api/v1/sniffEntrys', async (req, res) => {
     res.send('Created');
 });
 
-router.delete('/api/v1/sniffEntrys/:name', async (req, res) => {
-    const twitchStreamerName = req.params.name;
-    if (twitchStreamerName == null || typeof twitchStreamerName != 'string' || twitchStreamerName.trim().length == 0) {
-        res.status(400).send('twitchStreamerName is required');
-        return;
-    }
-    await database.get<SniffEntry>('sniffEntries').delete({ twitchStreamerName: twitchStreamerName });
+router.delete('/api/v1/sniffEntrys/:name', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    const parse = z.object({
+        name: z.string(),
+    });
+    const reqData = parse.parse(req.params);
+    const twitchStreamerName = reqData.name;
+    await database.get<SniffEntry>('sniffEntries').delete({ userUUID, twitchStreamerName: twitchStreamerName });
     (await io.fetchSockets()).forEach(s => s.emit('monitoringDeletion', { streamer: twitchStreamerName }));
     res.send('Deleted');
 });

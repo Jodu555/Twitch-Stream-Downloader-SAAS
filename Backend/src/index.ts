@@ -22,7 +22,7 @@ import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
 import { router as sniffEntriesRouter } from './router/sniffEntries';
-import { router as authRouter } from './router/auth';
+import { AuthenticatedRequest, authentication, router as authRouter } from './router/auth';
 import { DatabaseInvoice, DatabaseRecordEntry, SniffEntry } from './utils/types';
 import EmailManager from './EmailManager';
 import { z } from 'zod';
@@ -77,6 +77,9 @@ export const io = new Server<
 
 export const emailManager = new EmailManager();
 
+// const mainRouter = express.Router();
+// app.use('/api/v1', mainRouter);
+
 io.use(async (socket, next) => {
     const type = socket.handshake.auth.type;
     if (type === 'client') {
@@ -126,22 +129,32 @@ io.on('connection', async (socket) => {
     });
 });
 
-app.get('/api/v1/invoices', async (req, res) => {
-    res.json(await database.get<DatabaseInvoice>('invoices').get());
+app.get('/api/v1/invoices', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    res.json(await database.get<DatabaseInvoice>('invoices').get({ userUUID }));
 });
 
-app.get('/api/v1/streamers', async (req, res) => {
-    res.json(processes.filter(x => x.getState() == 'RECORDING' || x.getState() == 'TRANSCODING').map(x => x.toFrontend()));
+app.get('/api/v1/streamers', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    res.json(processes.filter(x => x.userUUID == userUUID).filter(x => x.getState() == 'RECORDING' || x.getState() == 'TRANSCODING').map(x => x.toFrontend()));
 });
 
-app.get('/api/v1/videos', async (req, res) => {
-    res.json(processes.filter(x => x.getState() == 'FINISHED').map(x => x.toFrontend()));
+app.get('/api/v1/videos', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    res.json(processes.filter(x => x.userUUID == userUUID).filter(x => x.getState() == 'FINISHED').map(x => x.toFrontend()));
 });
 
-app.get('/api/v1/streamers/record/:name/:watchLive?', async (req, res) => {
-    const twitchUsername = req.params.name;
-    const watchLive = req.params.watchLive == 'true';
-    const entry = new RecordEntry('JODU', twitchUsername, watchLive);
+app.get('/api/v1/streamers/record/:name/:watchLive?', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    //TODO: Check if user is allowed to record
+    const parse = z.object({
+        name: z.string(),
+        watchLive: z.boolean(),
+    });
+    const reqData = parse.parse(req.params);
+    const twitchUsername = reqData.name;
+    const watchLive = reqData.watchLive;
+    const entry = new RecordEntry(userUUID, twitchUsername, watchLive);
     processes.push(entry);
     entry.onRecordingFinished(() => {
         console.log('Recording Finished for', entry.toFrontend());
@@ -154,8 +167,13 @@ app.get('/api/v1/streamers/record/:name/:watchLive?', async (req, res) => {
     entry.record();
 });
 
-app.delete('/api/v1/videos/:id', async (req, res) => {
-    const process = processes.find(x => x.id == req.params.id);
+app.delete('/api/v1/videos/:id', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    const parse = z.object({
+        id: z.string(),
+    });
+    const reqData = parse.parse(req.params);
+    const process = processes.filter(x => x.userUUID == userUUID).find(x => x.id == reqData.id);
     if (process == null) {
         res.status(404).send('Process Not Found');
         return;
@@ -167,8 +185,13 @@ app.delete('/api/v1/videos/:id', async (req, res) => {
     res.send('Deleted');
 });
 
-app.get('/api/v1/videos/:id/transcode', async (req, res) => {
-    const process = processes.find(x => x.id == req.params.id);
+app.get('/api/v1/videos/:id/transcode', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    const parse = z.object({
+        id: z.string(),
+    });
+    const reqData = parse.parse(req.params);
+    const process = processes.filter(x => x.userUUID == userUUID).find(x => x.id == reqData.id);
     if (process == null) {
         res.status(404).send('Process Not Found');
         return;
@@ -181,8 +204,14 @@ app.get('/api/v1/videos/:id/transcode', async (req, res) => {
     res.send('Transcoded');
 });
 
-app.get('/api/v1/streamers/image/:id', async (req, res) => {
-    const process = processes.find(x => x.id == req.params.id);
+app.get('/api/v1/streamers/image/:id', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    const parse = z.object({
+        id: z.string(),
+    });
+    const reqData = parse.parse(req.params);
+    const process = processes.filter(x => x.userUUID == userUUID).find(x => x.id == reqData.id);
+
     if (process == null) {
         res.status(404).send('Process Not Found');
         return;
@@ -197,8 +226,14 @@ app.get('/api/v1/streamers/image/:id', async (req, res) => {
     res.sendFile(imageFilePath);
 });
 
-app.get('/api/v1/live/:id/hls/:filename', async (req, res) => {
-    const process = processes.find(x => x.id == req.params.id);
+app.get('/api/v1/live/:id/hls/:filename', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    const parse = z.object({
+        id: z.string(),
+        filename: z.string(),
+    });
+    const reqData = parse.parse(req.params);
+    const process = processes.filter(x => x.userUUID == userUUID).find(x => x.id == reqData.id);
     if (process == null) {
         res.status(404).send('Process Not Found');
         return;

@@ -51,10 +51,23 @@
 <script lang="ts" setup>
 
 const globalStore = useGlobalStore();
+const authToken = useCookie('auth-token');
 
-onMounted(() => {
+watch(
+	authToken, (newValue) => {
+		if (newValue) {
+			connectSocket();
+		} else {
+			console.log('No auth token found');
+		}
+	}, { immediate: true });
+
+function connectSocket() {
 	const socket = useSocket();
-	socket.auth = { type: 'client', token: 'crazySecuretoken' };
+
+	if (socket.connected) return;
+
+	socket.auth = { type: 'client', token: authToken.value };
 	socket.connect();
 
 	socket.on('connect', () => {
@@ -89,6 +102,14 @@ onMounted(() => {
 	socket.on('videoDeletion', ({ ID }) =>
 		globalStore.onVideoDeletion(ID)
 	);
+}
+
+onMounted(() => {
+	if (!authToken.value) {
+		console.log('No auth token found');
+		return;
+	}
+	connectSocket();
 });
 
 async function fetchAll(once: boolean = false) {

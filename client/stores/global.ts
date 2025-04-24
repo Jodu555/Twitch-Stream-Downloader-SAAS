@@ -147,22 +147,60 @@ export const useGlobalStore = defineStore('globalStore', {
             }
         },
         async fetchStreamers() {
-            const response = await $fetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers');
+            const authToken = useCookie('auth-token');
+            if (!authToken.value) {
+                return [];
+            }
+            const token = authToken.value as string;
+            const response = await $fetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers', {
+                headers: {
+                    'auth-token': token,
+                },
+            });
             this.streamers = response;
             return response;
         },
         async fetchSniffEntrys() {
-            const response = await $fetch<SniffEntry[]>('http://138.201.131.52:8081/api/v1/sniffEntrys');
+            const authToken = useCookie('auth-token');
+            if (!authToken.value) {
+                return [];
+            }
+            const token = authToken.value as string;
+            const response = await $fetch<SniffEntry[]>('http://138.201.131.52:8081/api/v1/sniffEntrys', {
+                headers: {
+                    'auth-token': token,
+                },
+            });
             this.sniffEntrys = response;
             return response;
         },
         async fetchVideos() {
-            const response = await $fetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos');
+            const authToken = useCookie('auth-token');
+            if (!authToken.value) {
+                return [];
+            }
+            const token = authToken.value as string;
+            const response = await $fetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos', {
+                headers: {
+                    'auth-token': token,
+                },
+            });
             this.videos = response;
             return response;
         },
         async fetchInvoices() {
-            const response = await $fetch<Invoice[]>('http://138.201.131.52:8081/api/v1/invoices');
+            const authToken = useCookie('auth-token');
+
+            if (!authToken.value) {
+                return [];
+            }
+            const token = authToken.value as string;
+
+            const response = await $fetch<Invoice[]>('http://138.201.131.52:8081/api/v1/invoices', {
+                headers: {
+                    'auth-token': token,
+                },
+            });
             this.invoices = response;
             return response;
         }
