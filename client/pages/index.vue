@@ -158,6 +158,11 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+	middleware: 'auth'
+});
+
+
 import { useTimestamp } from '@vueuse/core';
 import { useUserData } from '~/utils/userData';
 

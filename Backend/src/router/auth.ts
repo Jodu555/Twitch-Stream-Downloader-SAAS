@@ -117,16 +117,16 @@ router.post('/api/v1/auth/login', async (req, res, next) => {
     }
 });
 
-router.get('/api/v1/auth/logout', async (req: AuthenticatedRequest, res, next) => {
-    const token = req.credentials?.token as string;
+router.get('/api/v1/auth/logout', authentication(), async (req: AuthenticatedRequest, res, next) => {
+    const token = req.credentials.token as string;
     await database.get<AuthToken>('authtokens').delete({ TOKEN: token });
     res.json({ message: 'Successfully logged out!' });
 });
 
-router.get('/api/v1/auth/info', async (req: AuthenticatedRequest, res, next) => {
+router.get('/api/v1/auth/info', authentication(), async (req: AuthenticatedRequest, res, next) => {
     try {
         await database.get<Account>('accounts').update({ UUID: req.credentials?.user.UUID }, { last_handshake: Date.now() });
-        res.json(req.credentials?.user);
+        res.json(req.credentials.user);
     } catch (error) {
         next(error);
     }

@@ -127,6 +127,11 @@
 
 <script lang="ts" setup>
 
+definePageMeta({
+    middleware: 'auth'
+});
+
+
 import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
 const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
 

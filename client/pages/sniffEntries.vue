@@ -107,6 +107,11 @@
 
 <script lang="ts" setup>
 
+definePageMeta({
+    middleware: 'auth'
+});
+
+
 const globalStore = useGlobalStore();
 const twitchUsernameToMonitor = ref('');
 

@@ -1,4 +1,3 @@
-
 export interface Streamer {
     id: string;
     watchingLive: boolean;
@@ -96,6 +95,20 @@ export interface InvoiceUnPaid {
 
 export type Invoice = BaseInvoice & (InvoicePaid | InvoiceUnPaid);
 
+export interface Account {
+    UUID: string;
+    email: string;
+    status: 'EMAIL_VERIFY_PENDING' | 'EMAIL_VERIFIED' | 'BANNED';
+    emailVerifyCode: string;
+    created_at: number;
+    updated_at: number;
+    subscription_type: 'FREE' | 'PREMIUM' | 'ADVANCED';
+    last_renewed?: number;
+    first_subscribed?: number;
+    last_handshake?: number;
+    last_login?: number;
+    overrides?: string;
+}
 
 export const useGlobalStore = defineStore('globalStore', {
     state: () => ({
@@ -103,6 +116,11 @@ export const useGlobalStore = defineStore('globalStore', {
         sniffEntrys: [] as SniffEntry[],
         videos: [] as RecordedVideo[],
         invoices: [] as Invoice[],
+        auth: {
+            isAuthenticated: false,
+            token: useCookie('auth-token'),
+            user: null as Account | null,
+        }
     }),
     actions: {
         async onVideoUpdate(ID: string, obj: Partial<RecordedVideo>) {
@@ -202,6 +220,23 @@ export const useGlobalStore = defineStore('globalStore', {
                 },
             });
             this.invoices = response;
+            return response;
+        },
+        async authenticate() {
+            console.log('Authenticating user TRYING');
+            this.auth.token = useCookie('auth-token').value;
+            if (!this.auth.token)
+                return;
+            const token = this.auth.token;
+
+            const response = await $fetch<Account>('http://138.201.131.52:8081/api/v1/auth/info', {
+                headers: {
+                    'auth-token': token,
+                },
+            });
+            console.log('Authenticating user', response);
+            this.auth.isAuthenticated = true;
+            this.auth.user = response;
             return response;
         }
     }
