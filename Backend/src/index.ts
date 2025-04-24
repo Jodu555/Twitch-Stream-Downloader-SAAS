@@ -22,8 +22,8 @@ import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
 import { router as sniffEntriesRouter } from './router/sniffEntries';
-import { AuthenticatedRequest, authentication, router as authRouter } from './router/auth';
-import { DatabaseInvoice, DatabaseRecordEntry, SniffEntry } from './utils/types';
+import { AuthenticatedRequest, authentication, router as authRouter, getUser } from './router/auth';
+import { Account, DatabaseInvoice, DatabaseRecordEntry, SniffEntry } from './utils/types';
 import EmailManager from './EmailManager';
 import { z } from 'zod';
 
@@ -59,10 +59,14 @@ interface InterServerEvents {
     ping: () => void;
 }
 
-interface SocketData {
-    name: string;
-    age: number;
+interface SocketClientData {
+    type: 'client';
+    token: string;
+    user: Account;
 }
+
+type SocketData = SocketClientData;
+
 
 export const io = new Server<
     ClientToServerEvents,
@@ -84,26 +88,22 @@ io.use(async (socket, next) => {
     const type = socket.handshake.auth.type;
     if (type === 'client') {
         const authToken = socket.handshake.auth.token;
-        socket.data.name = 'TESTNAME';
-        console.log(`Socket with`);
-        console.log(`   ID: ${socket.id} - ${type.toUpperCase()}`);
-        console.log(`   - proposed with: ${authToken} - ${socket.data.name}`);
-
-        // if (authToken && (await authHelper.getUser(authToken))) {
-        //     console.log(`Socket with`);
-        //     console.log(`   ID: ${socket.id} - ${type.toUpperCase()}`);
-        //     console.log(`   - proposed with: ${authToken} - ${(await authHelper.getUser(authToken)).username}`);
-        //     socket.auth = { token: authToken, user: await authHelper.getUser(authToken), type };
-        //     return next();
-        // } else {
-        //     next(new Error('Authentication error'));
-        // }
-        return next();
+        const user = await getUser(authToken);
+        if (authToken && user) {
+            console.log(`Socket with`);
+            console.log(`   ID: ${socket.id} - ${type.toUpperCase()}`);
+            console.log(`   - proposed with: ${authToken} - ${user.email}`);
+            socket.data = { token: authToken, user: user, type };
+            return next();
+        } else {
+            next(new Error('Authentication error'));
+        }
+        // return next();
     }
-    if (type === 'rmvc-emitter') {
-        // socket.auth = { type };
-        return next();
-    }
+    // if (type === 'rmvc-emitter') {
+    //     // socket.auth = { type };
+    //     return next();
+    // }
 });
 
 io.on('connection', async (socket) => {
@@ -122,7 +122,7 @@ io.on('connection', async (socket) => {
 
     socket.on('disconnect', async () => {
         console.log(`Socket with`);
-        console.log(`   ID: ${socket.id} - ${socket.data.name}`);
+        console.log(`   ID: ${socket.id} - ${socket.data.user.email}`);
         console.log(`   - disconnected`);
 
         // await sendSocketAdminUpdate();
@@ -418,7 +418,7 @@ async function main() {
 
         const sockets = await io.fetchSockets();
         return sockets.map(x => {
-            return `${x.id} - ${x.handshake.auth.type} - ${x.handshake.auth.token} - ${x.data.name}`;
+            return `${x.id} - ${x.handshake.auth.type} - ${x.handshake.auth.token} - ${x.data.user.email}`;
         });;
     }));
 

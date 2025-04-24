@@ -132,7 +132,7 @@ router.get('/api/v1/auth/info', async (req: AuthenticatedRequest, res, next) => 
     }
 });
 
-async function getUser(token: string) {
+export async function getUser(token: string) {
     const search = await database.get<AuthToken>('authtokens').getOne({ TOKEN: token });
     if (search) {
         const user = await database.get<Account>('accounts').getOne({ UUID: search.UUID });

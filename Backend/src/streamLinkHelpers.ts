@@ -7,6 +7,7 @@ const STREAM_URL = `https://twitch.tv/`;
 const proxys = [
     'https://eu.luminous.dev',
     'https://lb-eu.cdn-perfprod.com',
+    'https://lb-eu2.cdn-perfprod.com',
     'https://eu2.luminous.dev',
     'https://lb-eu3.cdn-perfprod.com',
 ];
