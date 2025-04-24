@@ -447,7 +447,7 @@ async function main() {
                 lastCheck: sniffEntry.lastCheck
             });
 
-            (await io.fetchSockets()).forEach(x => x.emit('monitoringUpdate', { streamer: sniffEntry.twitchStreamerName, data: sniffEntry }));
+            (await io.fetchSockets()).filter(x => x.data.user.UUID == sniffEntry.userUUID).forEach(x => x.emit('monitoringUpdate', { streamer: sniffEntry.twitchStreamerName, data: sniffEntry }));
 
             if (enbaleSniffEntries) {
                 if (!await isLive(sniffEntry.twitchStreamerName)) {

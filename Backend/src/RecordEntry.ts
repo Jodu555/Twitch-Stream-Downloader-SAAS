@@ -158,14 +158,14 @@ class RecordEntry {
             deletedAt: this.deletedAt,
         });
         if (this.state == 'WAITING' || this.state == 'RECORDING' || this.state == 'TRANSCODING') {
-            (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
+            (await io.fetchSockets()).filter(x => x.data.user.UUID == this.userUUID).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
         } else {
             if (this.state == 'FINISHED') {
-                (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
+                (await io.fetchSockets()).filter(x => x.data.user.UUID == this.userUUID).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
             }
-            (await io.fetchSockets()).forEach(x => x.emit('videoUpdate', { ID: this.id, data: this.toFrontend() }));
+            (await io.fetchSockets()).filter(x => x.data.user.UUID == this.userUUID).forEach(x => x.emit('videoUpdate', { ID: this.id, data: this.toFrontend() }));
             if (this.state == 'DELETED') {
-                (await io.fetchSockets()).forEach(x => x.emit('videoDeletion', { ID: this.id }));
+                (await io.fetchSockets()).filter(x => x.data.user.UUID == this.userUUID).forEach(x => x.emit('videoDeletion', { ID: this.id }));
             }
         }
     }
@@ -377,7 +377,7 @@ class RecordEntry {
                     }
                     this.ffmpegMetadata = { frame, fps, size: cache.size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
                 }
-                (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
+                (await io.fetchSockets()).filter(x => x.data.user.UUID == this.userUUID).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
             }
         });
 
@@ -446,7 +446,7 @@ class RecordEntry {
                     cache.time = Date.now();
                 }
                 this.ffmpegMetadata = { frame, fps, size: cache.size, time, bitrate, speed, from: Date.now() } satisfies FfmpegMetadata;
-                (await io.fetchSockets()).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
+                (await io.fetchSockets()).filter(x => x.data.user.UUID == this.userUUID).forEach(x => x.emit('recordingUpdate', { ID: this.id, data: this.toFrontend() }));
             }
         });
 
