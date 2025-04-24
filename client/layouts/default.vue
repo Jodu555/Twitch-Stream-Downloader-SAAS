@@ -13,7 +13,7 @@
 							<NuxtLink to="/" class="nav-link" active-class="active">Home</NuxtLink>
 						</li>
 						<li class="nav-item">
-							<NuxtLink to="/" class="nav-link" active-class="active">View</NuxtLink>
+							<NuxtLink to="/sniffEntries" class="nav-link" active-class="active">SniffEntrys</NuxtLink>
 						</li>
 						<li class="nav-item">
 							<NuxtLink to="/videos" class="nav-link position-relative" active-class="active">
