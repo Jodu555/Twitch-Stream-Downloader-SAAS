@@ -96,7 +96,7 @@ router.post('/api/v1/auth/login', async (req, res, next) => {
         const loginData = registerLoginSchema.parse(req.body);
         const user = await database.get<Account>('accounts').getOne({ email: loginData.email, unique: true });
         if (user) {
-            if (await bcrypt.compare(user.password, user.password)) {
+            if (await bcrypt.compare(loginData.password, user.password)) {
                 const token = crypto.randomUUID();
                 delete user.password;
                 await database.get<Account>('accounts').update({ UUID: user.UUID }, { last_login: Date.now() });

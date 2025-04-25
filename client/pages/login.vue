@@ -124,6 +124,7 @@
 <script lang="ts" setup>
 import InputValidator from '~/components/InputValidator.vue';
 
+const globalStore = useGlobalStore();
 
 const loading = ref(false);
 const sendVerificationCodeLoading = ref(false);
@@ -181,6 +182,10 @@ async function onLogin() {
     const token = data.token;
     console.log('DATA', data);
     authToken.value = token;
+
+    globalStore.auth.token = token;
+    await globalStore.authenticate();
+
     navigateTo('/');
 }
 
