@@ -17,7 +17,18 @@
                 <h2 class="text-center mt-3">Infos</h2>
                 <div class="row">
                     <div class="col-6 shadow-sm p-4 mb-5 rounded">
-                        <h3 class="text-left">Account Settings</h3>
+                        <h3 class="text-left">Account Info</h3>
+                        <div class="mb-3 mt-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input disabled type="email" class="form-control" id="email" aria-describedby="emailHelpId"
+                                :value="globalStore.auth.user?.email" />
+                        </div>
+                        <div class="mb-3 mt-3">
+                            <label for="subType" class="form-label">Subscription Type</label>
+                            <input disabled type="text" class="form-control" id="subType"
+                                :value="globalStore.auth.user?.subscription_type" />
+                        </div>
+
                     </div>
                     <div class="col-6 shadow-sm p-4 mb-5 rounded">
                         <h3 class="text-left">Notification Settings</h3>
