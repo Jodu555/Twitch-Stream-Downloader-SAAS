@@ -111,11 +111,15 @@
                         <div class="card-body">
                             <h5 class="card-title">Current Subscription</h5>
                             <div class="card-header fw-normal py-3">
-                                <h4 class="my-0" :class="{ [getRoleColor('premium' as PricingTableKey)]: true, }">{{
-                                    keyToNiceName('premium' as PricingTableKey) }}</h4>
+                                <h4 class="my-0"
+                                    :class="{ [getRoleColor(globalStore.auth.user?.subscription_type.toLowerCase() as PricingTableKey)]: true, }">
+                                    {{
+                                        keyToNiceName(globalStore.auth.user?.subscription_type.toLowerCase() as
+                                            PricingTableKey) }}</h4>
                             </div>
                             <ul class="mt-3 mb-4">
-                                <li v-for="feature in cardTable['premium' as PricingTableKey].features" :key="feature">
+                                <li v-for="feature in cardTable[globalStore.auth.user?.subscription_type.toLowerCase() as PricingTableKey].features"
+                                    :key="feature">
                                     {{
                                         feature }}</li>
                             </ul>
@@ -129,8 +133,54 @@
 
                 </div>
             </div>
-            <div class="tab-pane fade">
-                <h2 class="text-center">Linked Accounts</h2>
+            <div class="tab-pane fade"
+                :class="{ active: selectedTab == 'Linked Accounts', show: selectedTab == 'Linked Accounts' }">
+                <h2 class="text-center mt-3">Linked Accounts</h2>
+                <div class="d-flex justify-content-center">
+                    <div class="col-6">
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-warning">
+                                Link A YouTube Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="list-group mt-4">
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">@xyz</h5>
+                            <small class="text-muted">Added 1970</small>
+                        </div>
+                        <p class="mb-1">Used in <strong>3 Automations</strong></p>
+
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">Playlist: <a href="#">*Klick*</a></small>
+                            <button type="button" class="btn btn-outline-danger">
+                                Unlink
+                            </button>
+                        </div>
+
+                    </div>
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">@xyz</h5>
+                            <small class="text-muted">Added 1970</small>
+                        </div>
+                        <p class="mb-1">Used in <strong>3 Automations</strong></p>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-outline-danger">
+                                Unlink
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+
             </div>
         </div>
     </div>
@@ -185,10 +235,10 @@ const tabs = [
     { name: 'Infos', disabled: false, },
     { name: 'Invoices', disabled: false },
     { name: 'Subscription Status', disabled: false },
-    { name: 'Linked Accounts', disabled: true },
+    { name: 'Linked Accounts', disabled: false },
 ] as { name: TabKeys, disabled: boolean; }[];
 
-const selectedTab = ref<TabKeys>('Infos');
+const selectedTab = ref<TabKeys>('Linked Accounts');
 
 
 const invoices = computed(() => globalStore.invoices);

@@ -17,6 +17,42 @@ export function setupTables() {
         },
     });
 
+    // interface Automation {
+    //     ID: string;
+    //     userUUID: string;
+    //     twitchStreamerName: string;
+    //     everyxMinute: number;
+    //     lastCheck?: number;
+    //     linkedAccountUUID?: string;
+    // }
+
+    database.createTable('automations', {
+        ID: {
+            type: 'varchar(64)',
+            null: false,
+        },
+        userUUID: {
+            type: 'varchar(64)',
+            null: false,
+        },
+        twitchStreamerName: {
+            type: 'varchar(64)',
+            null: false,
+        },
+        everyxMinute: {
+            type: 'INT',
+            null: false,
+        },
+        lastCheck: {
+            type: 'BIGINT',
+            null: true,
+        },
+        linkedAccountUUID: {
+            type: 'varchar(64)',
+            null: true,
+        }
+    });
+
     database.createTable('invoices', {
         ID: {
             type: 'varchar(64)',
