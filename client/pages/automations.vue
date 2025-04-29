@@ -124,6 +124,9 @@ const { error: automationError, refresh: refreshAutomations, status: automationS
 async function addAutomation() {
     const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/automations/`, {
         method: 'POST',
+        headers: {
+            'auth-token': globalStore.auth.token
+        },
         body: {
             twitchStreamerName: twitchUsernameToMonitor.value,
         },

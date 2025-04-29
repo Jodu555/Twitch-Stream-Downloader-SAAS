@@ -120,7 +120,7 @@ export const useGlobalStore = defineStore('globalStore', {
         invoices: [] as Invoice[],
         auth: {
             isAuthenticated: false,
-            token: useCookie('auth-token'),
+            token: '',
             user: null as Account | null,
         }
     }),
@@ -167,58 +167,49 @@ export const useGlobalStore = defineStore('globalStore', {
             }
         },
         async fetchStreamers() {
-            const authToken = useCookie('auth-token');
-            if (!authToken.value) {
+            if (!this.auth.isAuthenticated) {
                 return [];
             }
-            const token = authToken.value as string;
             const response = await $fetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers', {
                 headers: {
-                    'auth-token': token,
+                    'auth-token': this.auth.token,
                 },
             });
             this.streamers = response;
             return response;
         },
         async fetchAutomations() {
-            const authToken = useCookie('auth-token');
-            if (!authToken.value) {
+            if (!this.auth.isAuthenticated) {
                 return [];
             }
-            const token = authToken.value as string;
             const response = await $fetch<Automation[]>('http://138.201.131.52:8081/api/v1/automations', {
                 headers: {
-                    'auth-token': token,
+                    'auth-token': this.auth.token,
                 },
             });
             this.automations = response;
             return response;
         },
         async fetchVideos() {
-            const authToken = useCookie('auth-token');
-            if (!authToken.value) {
+            if (!this.auth.isAuthenticated) {
                 return [];
             }
-            const token = authToken.value as string;
             const response = await $fetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos', {
                 headers: {
-                    'auth-token': token,
+                    'auth-token': this.auth.token,
                 },
             });
             this.videos = response;
             return response;
         },
         async fetchInvoices() {
-            const authToken = useCookie('auth-token');
-
-            if (!authToken.value) {
+            if (!this.auth.isAuthenticated) {
                 return [];
             }
-            const token = authToken.value as string;
 
             const response = await $fetch<Invoice[]>('http://138.201.131.52:8081/api/v1/invoices', {
                 headers: {
-                    'auth-token': token,
+                    'auth-token': this.auth.token,
                 },
             });
             this.invoices = response;
@@ -227,7 +218,7 @@ export const useGlobalStore = defineStore('globalStore', {
         async authenticate() {
             console.log('Authenticating user TRYING');
             if (this.auth.token == '') {
-                this.auth.token = useCookie('auth-token').value;
+                this.auth.token = useCookie('auth-token').value as string;
             }
             if (!this.auth.token)
                 return;

@@ -73,7 +73,7 @@ Aswell as the first videos recorded that are not deleted
 4.  Account is verified created
 
 ## ToDo for MVP
-- [ ] Rename all Sniff Entry / Streamer Slots etc. to Automations
+- [x] Rename all Sniff Entry / Streamer Slots etc. to Automations
 - [ ] Get the account notification settings working in the db
   - [ ] Work on sending those notifications
 - [ ] Move all the restrictions to the server side

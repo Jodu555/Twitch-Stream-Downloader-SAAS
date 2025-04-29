@@ -21,7 +21,7 @@ import RecordEntry, { MetaRepresent, RecordEntryState, VideoMeta } from './Recor
 import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
-import { router as sniffEntriesRouter } from './router/sniffEntries';
+import { router as automationsRouter } from './router/automations';
 import { AuthenticatedRequest, authentication, router as authRouter, getUser } from './router/auth';
 import { Account, Automation, DatabaseInvoice, DatabaseRecordEntry } from './utils/types';
 import EmailManager from './EmailManager';
@@ -35,7 +35,7 @@ app.use(morgan('dev'));
 app.use(cors());
 
 app.use(paypalRouter);
-app.use(sniffEntriesRouter);
+app.use(automationsRouter);
 app.use(authRouter);
 
 const server = http.createServer(app);
@@ -336,7 +336,7 @@ const commandManager = CommandManager.createCommandManager(process.stdin, proces
 
 const processes = [] as RecordEntry[];
 
-const enbaleSniffEntries = false;
+const enbaleautomations = false;
 
 let lastCheck = Date.now();
 main();
@@ -452,7 +452,7 @@ async function main() {
 
             (await io.fetchSockets()).filter(x => x.data.user.UUID == automation.userUUID).forEach(x => x.emit('automationUpdate', { ID: automation.ID, data: automation }));
 
-            if (enbaleSniffEntries) {
+            if (enbaleautomations) {
                 if (!await isLive(automation.twitchStreamerName)) {
                     console.log('Stream', automation.twitchStreamerName, 'is not live!');
                     continue;

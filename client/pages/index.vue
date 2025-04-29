@@ -183,6 +183,9 @@ async function startRecording() {
 		watchLive: boolean;
 	}>(`http://138.201.131.52:8081/api/v1/streamers/record/${twitchUsernameToRecord.value}/${twitchRecordWatchLive.value}`, {
 		method: 'GET',
+		headers: {
+			'auth-token': globalStore.auth.token
+		},
 	}));
 
 	if (error) {
@@ -198,6 +201,9 @@ async function startRecording() {
 async function stopRecording(id: string) {
 	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/videos/${id}/transcode`, {
 		method: 'GET',
+		headers: {
+			'auth-token': globalStore.auth.token
+		},
 	}));
 	if (error) {
 		console.log(error);
