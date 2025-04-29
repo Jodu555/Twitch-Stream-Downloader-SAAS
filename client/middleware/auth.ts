@@ -1,11 +1,9 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
     const globalStore = useGlobalStore();
 
-    if (globalStore.auth.token == undefined) {
+    if (globalStore.auth.token == '') {
         return navigateTo('/login');
     }
-
-    console.log('USER', JSON.stringify(globalStore.auth), typeof globalStore.auth.user);
 
     if (globalStore.auth.isAuthenticated == false) {
         console.log('User is not defined, trying to authenticate');

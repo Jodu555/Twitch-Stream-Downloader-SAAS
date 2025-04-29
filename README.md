@@ -74,7 +74,7 @@ Aswell as the first videos recorded that are not deleted
 
 ## ToDo for MVP
 - [x] Rename all Sniff Entry / Streamer Slots etc. to Automations
-- [ ] Link the RecordEntry / Videos with the automations together (if they are linked)
+- [x] Link the RecordEntry / Videos with the automations together (if they are linked)
 - [ ] Get the account notification settings working in the db
   - [ ] Work on sending those notifications
 - [ ] Move all the restrictions to the server side

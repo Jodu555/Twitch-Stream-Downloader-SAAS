@@ -5,6 +5,7 @@ import { getMetaData, isLive } from './streamLinkHelpers';
 import { Database } from '@jodu555/mysqlapi';
 import { DatabaseRecordEntry } from './utils/types';
 import { io } from '.';
+import { getUserLimit } from './router/auth';
 
 const database = Database.getDatabase();
 
@@ -88,6 +89,10 @@ class RecordEntry {
         this.notLiveAttempts = 0;
         this.outputFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
         this.createdAt = Date.now();
+        getUserLimit(this.userUUID, 'maxRecordingTime').then(maxRecordingTime => {
+            this.maxRecordingTimeSeconds = maxRecordingTime * 60 * 60;
+            this.updateRecordInDatabaseAndSockets();
+        });
     }
 
     static fromDatabase(entry: DatabaseRecordEntry) {

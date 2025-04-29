@@ -22,7 +22,7 @@ import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
 import { router as automationsRouter } from './router/automations';
-import { AuthenticatedRequest, authentication, router as authRouter, getUser } from './router/auth';
+import { AuthenticatedRequest, authentication, router as authRouter, getUser, getUserLimit } from './router/auth';
 import { Account, Automation, DatabaseInvoice, DatabaseRecordEntry } from './utils/types';
 import EmailManager from './EmailManager';
 import { z } from 'zod';
@@ -147,27 +147,67 @@ app.get('/api/v1/videos', authentication(), async (req: AuthenticatedRequest, re
     res.json(processes.filter(x => x.userUUID == userUUID).filter(x => x.getState() == 'FINISHED').map(x => x.toFrontend()));
 });
 
-app.get('/api/v1/streamers/record/:name/:watchLive?', authentication(), async (req: AuthenticatedRequest, res) => {
-    const userUUID = req.credentials.user.UUID;
-    //TODO: Check if user is allowed to record
-    const parse = z.object({
-        name: z.string(),
-        watchLive: z.boolean(),
-    });
-    const reqData = parse.parse(req.params);
-    const twitchUsername = reqData.name;
-    const watchLive = reqData.watchLive;
-    const entry = new RecordEntry(userUUID, twitchUsername, undefined, watchLive);
-    processes.push(entry);
-    entry.onRecordingFinished(() => {
-        console.log('Recording Finished for', entry.toFrontend());
-    });
-    res.json({
-        id: entry.id,
-        twitchStreamerName: entry.twitchStreamerName,
-        watchLive,
-    });
-    entry.record();
+async function isAbleToRecord(userUUID: string) {
+
+    const usedSlots = processes.filter(x => x.getState() == 'RECORDING' && x.userUUID == userUUID).length;
+
+    const recordingSlotLimit = await getUserLimit(userUUID, 'recordingSlots');
+
+    if (recordingSlotLimit == -1) {
+        return true;
+    }
+    return usedSlots < recordingSlotLimit;
+}
+
+async function isAbleToHaveVideo(userUUID: string) {
+    const usedSlots = processes.filter(x => x.getState() == 'FINISHED' && x.userUUID == userUUID).length;
+
+    const videoSlotLimit = await getUserLimit(userUUID, 'videoSlots');
+
+    if (videoSlotLimit == -1) {
+        return true;
+    }
+    return usedSlots < videoSlotLimit;
+}
+
+app.get('/api/v1/streamers/record/:name/:watchLive?', authentication(), async (req: AuthenticatedRequest, res, next) => {
+    try {
+        const userUUID = req.credentials.user.UUID;
+        //TODO: Check if user is allowed to record
+        const parse = z.object({
+            name: z.string(),
+            watchLive: z.boolean(),
+        });
+        const reqData = parse.parse(req.params);
+        const twitchUsername = reqData.name;
+        const watchLive = reqData.watchLive;
+
+        if (watchLive == true && await getUserLimit(userUUID, 'watchWhileRecording') == false) {
+            return next(new Error('Not able to watch while recording! Hit Limit'));
+        }
+
+        if (!await isAbleToRecord(userUUID)) {
+            return next(new Error('Not able to record! Hit recording limit!'));
+        }
+
+        if (!await isAbleToHaveVideo(userUUID)) {
+            return next(new Error('Not able to record! Hit video limit!'));
+        }
+
+        const entry = new RecordEntry(userUUID, twitchUsername, undefined, watchLive);
+        processes.push(entry);
+        entry.onRecordingFinished(() => {
+            console.log('Recording Finished for', entry.toFrontend());
+        });
+        res.json({
+            id: entry.id,
+            twitchStreamerName: entry.twitchStreamerName,
+            watchLive,
+        });
+        entry.record();
+    } catch (error) {
+        next(error);
+    }
 });
 
 app.delete('/api/v1/videos/:id', authentication(), async (req: AuthenticatedRequest, res) => {
@@ -457,9 +497,8 @@ async function main() {
                     console.log('Stream', automation.twitchStreamerName, 'is not live!');
                     continue;
                 }
-                //TODO: Add here the check for the actual process automation uuid field
-                if (processes.find(x => x.userUUID == automation.userUUID && x.twitchStreamerName == automation.twitchStreamerName)) {
-                    console.log('Process already exists for', automation.twitchStreamerName);
+                if (processes.find(x => x.automationUUID == automation.ID && x.userUUID == automation.userUUID)) {
+                    console.log('Process already exists for', automation.userUUID, 'and', automation.twitchStreamerName);
                     continue;
                 }
                 const entry = new RecordEntry(automation.userUUID, automation.twitchStreamerName, automation.ID, false);

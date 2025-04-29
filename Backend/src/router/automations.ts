@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { Database } from '@jodu555/mysqlapi';
 import { Automation } from 'src/utils/types';
 import { io } from '..';
-import { AuthenticatedRequest, authentication } from './auth';
+import { AuthenticatedRequest, authentication, getUserLimit } from './auth';
 import { z } from 'zod';
 
 const database = Database.getDatabase();
@@ -19,6 +19,19 @@ router.get('/api/v1/automations', authentication(), async (req: AuthenticatedReq
     }
 });
 
+async function isAbleToCreateAutomation(userUUID: string) {
+
+    const automations = await database.get<Automation>('automations').get({ userUUID });
+    const usedSlots = automations.length;
+
+    const automationSlotLimit = await getUserLimit(userUUID, 'automationSlots');
+
+    if (automationSlotLimit == -1) {
+        return true;
+    }
+    return usedSlots < automationSlotLimit;
+}
+
 router.post('/api/v1/automations', authentication(), async (req: AuthenticatedRequest, res, next) => {
     try {
         const userUUID = req.credentials.user.UUID;
@@ -30,6 +43,10 @@ router.post('/api/v1/automations', authentication(), async (req: AuthenticatedRe
             linkedAccountUUID: z.string().uuid().optional(),
         });
         const reqData = parse.parse(req.body);
+
+        if (!await isAbleToCreateAutomation(userUUID)) {
+            return next(new Error('Not able to create automation! Hit automation limit!'));
+        }
 
         if (reqData.linkedAccountUUID) {
             //TODO: Check if uuid exists and yada yada
