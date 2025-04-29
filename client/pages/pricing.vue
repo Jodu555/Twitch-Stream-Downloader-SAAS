@@ -55,14 +55,19 @@
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key as PricingTableKey].price
-                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key as PricingTableKey].features" :key="feature">{{
                                     feature }}</li>
                             </ul>
                             <template v-if="globalStore.auth.isAuthenticated">
-                                <button type="button" class="w-100 btn btn-lg btn-outline-primary">Upgrade / Downgrade
-                                    other</button>
+                                <button type="button"
+                                    :disabled="globalStore.auth.user?.subscription_type == key.toUpperCase()"
+                                    class="w-100 btn btn-lg" :class="{
+                                        'btn-outline-gray': globalStore.auth.user?.subscription_type == key.toUpperCase(),
+                                        'btn-outline-primary': globalStore.auth.user?.subscription_type != key.toUpperCase(),
+                                    }">{{ globalStore.auth.user?.subscription_type == key.toUpperCase() ? `Current
+                                    Plan` : 'Upgrade' }}</button>
                             </template>
                             <template v-else>
                                 <button type="button" class="w-100 btn btn-lg btn-outline-primary"
@@ -93,7 +98,7 @@
                             <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
                                 <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof
                                     PricingTableObject)
-                                }}
+                                    }}
                                 </th>
                                 <td v-for="value in Object.keys(pricingTable)" :key="value">
                                     <template v-if="getSub(value, key) === true">

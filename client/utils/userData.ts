@@ -1,7 +1,6 @@
 export function useUserData() {
-    const userData = ref<PricingTableObject>(usePricingTable().value.advanced);
-
-    userData.value.videoRetentionDays = userData.value.videoRetentionDays - 2;
+    const globalStore = useGlobalStore();
+    const userData = ref<PricingTableObject>(usePricingTable().value[globalStore.auth.user?.subscription_type.toLowerCase() as PricingTableKey]);
 
     return userData;
 }
