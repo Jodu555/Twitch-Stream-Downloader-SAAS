@@ -157,7 +157,7 @@ app.get('/api/v1/streamers/record/:name/:watchLive?', authentication(), async (r
     const reqData = parse.parse(req.params);
     const twitchUsername = reqData.name;
     const watchLive = reqData.watchLive;
-    const entry = new RecordEntry(userUUID, twitchUsername, watchLive);
+    const entry = new RecordEntry(userUUID, twitchUsername, undefined, watchLive);
     processes.push(entry);
     entry.onRecordingFinished(() => {
         console.log('Recording Finished for', entry.toFrontend());
@@ -381,7 +381,7 @@ async function main() {
         const streamer = args[1];
         const watchLive = args[2] ? (args[2] == '1' || args[2] == 'true') : false;
         console.log('Recording:', streamer, ' with watchLive Flag:', watchLive);
-        const entry = new RecordEntry('JODU', streamer, watchLive);
+        const entry = new RecordEntry('JODU', streamer, undefined, watchLive);
         await entry.record();
         processes.push(entry);
         entry.onRecordingFinished(() => {
@@ -462,7 +462,7 @@ async function main() {
                     console.log('Process already exists for', automation.twitchStreamerName);
                     continue;
                 }
-                const entry = new RecordEntry(automation.userUUID, automation.twitchStreamerName, false);
+                const entry = new RecordEntry(automation.userUUID, automation.twitchStreamerName, automation.ID, false);
                 await entry.record();
                 processes.push(entry);
                 entry.onRecordingFinished(() => {
