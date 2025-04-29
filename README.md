@@ -74,11 +74,13 @@ Aswell as the first videos recorded that are not deleted
 
 ## ToDo for MVP
 - [x] Rename all Sniff Entry / Streamer Slots etc. to Automations
+- [ ] Link the RecordEntry / Videos with the automations together (if they are linked)
 - [ ] Get the account notification settings working in the db
   - [ ] Work on sending those notifications
 - [ ] Move all the restrictions to the server side
 - [ ] Let the client pull those restrictions and act on it
 - [ ] Impement the restrictions on all the endpoints
+- [ ] Dynamically show the Unlock More button and if shown get them working
 - [ ] Better handle the pricing page since thechnically there is no Downgrade, is you just dont pay you downgrade to free and can then upgrade to some other plan
 - [ ] Describe the subscription process in the explanations
 - [ ] Actually create an invoice when a user tries to upgrade to a paid plan
