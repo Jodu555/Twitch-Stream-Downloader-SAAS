@@ -71,3 +71,15 @@ Aswell as the first videos recorded that are not deleted
 2.  Get send a email code to verify
 3.  Enter the code in the input field
 4.  Account is verified created
+
+## ToDo for MVP
+- [ ] Rename all Sniff Entry / Streamer Slots etc. to Automations
+- [ ] Get the account notification settings working in the db
+  - [ ] Work on sending those notifications
+- [ ] Move all the restrictions to the server side
+- [ ] Let the client pull those restrictions and act on it
+- [ ] Impement the restrictions on all the endpoints
+- [ ] Better handle the pricing page since thechnically there is no Downgrade, is you just dont pay you downgrade to free and can then upgrade to some other plan
+- [ ] Describe the subscription process in the explanations
+- [ ] Actually create an invoice when a user tries to upgrade to a paid plan
+- [ ] Implement the cron endpoints and get them hooked up

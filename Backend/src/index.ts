@@ -45,8 +45,8 @@ interface ServerToClientEvents {
     basicEmit: (a: number, b: string, c: Buffer) => void;
     withAck: (d: string, callback: (e: number) => void) => void;
     recordingUpdate: (d: { ID: string, data: Partial<RecordEntry>; }) => void;
-    monitoringUpdate: (d: { streamer: string, data: SniffEntry; }) => void;
-    monitoringDeletion: (d: { streamer: string; }) => void;
+    automationUpdate: (d: { streamer: string, data: SniffEntry; }) => void;
+    automationDeletion: (d: { streamer: string; }) => void;
     videoUpdate: (d: { ID: string, data: Partial<RecordEntry>; }) => void;
     videoDeletion: (d: { ID: string; }) => void;
 }
@@ -447,7 +447,7 @@ async function main() {
                 lastCheck: sniffEntry.lastCheck
             });
 
-            (await io.fetchSockets()).filter(x => x.data.user.UUID == sniffEntry.userUUID).forEach(x => x.emit('monitoringUpdate', { streamer: sniffEntry.twitchStreamerName, data: sniffEntry }));
+            (await io.fetchSockets()).filter(x => x.data.user.UUID == sniffEntry.userUUID).forEach(x => x.emit('automationUpdate', { streamer: sniffEntry.twitchStreamerName, data: sniffEntry }));
 
             if (enbaleSniffEntries) {
                 if (!await isLive(sniffEntry.twitchStreamerName)) {

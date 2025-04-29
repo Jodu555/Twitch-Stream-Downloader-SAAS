@@ -13,7 +13,7 @@
 							<NuxtLink to="/" class="nav-link" active-class="active">Home</NuxtLink>
 						</li>
 						<li class="nav-item">
-							<NuxtLink to="/sniffEntries" class="nav-link" active-class="active">SniffEntrys</NuxtLink>
+							<NuxtLink to="/automations" class="nav-link" active-class="active">Automations</NuxtLink>
 						</li>
 						<li class="nav-item">
 							<NuxtLink to="/videos" class="nav-link position-relative" active-class="active">
@@ -98,12 +98,12 @@ function connectSocket() {
 		globalStore.onRecordingUpdate(ID, obj)
 	);
 
-	socket.on('monitoringUpdate', async ({ streamer, data: obj }) =>
-		globalStore.onMonitoringUpdate(streamer, obj)
+	socket.on('automationUpdate', async ({ streamer, data: obj }) =>
+		globalStore.onAutomationUpdate(streamer, obj)
 	);
 
-	socket.on('monitoringDeletion', ({ streamer }) =>
-		globalStore.onMonitoringDeletion(streamer)
+	socket.on('automationDeletion', ({ streamer }) =>
+		globalStore.onAutomationDeletion(streamer)
 	);
 
 	socket.on('videoUpdate', ({ ID, data: obj }) =>
@@ -131,14 +131,14 @@ async function fetchAll(once: boolean = false) {
 	if (once) {
 		await Promise.all([
 			callOnce(globalStore.fetchStreamers),
-			callOnce(globalStore.fetchSniffEntrys),
+			callOnce(globalStore.fetchAutomations),
 			callOnce(globalStore.fetchVideos),
 			callOnce(globalStore.fetchInvoices),
 		]);
 	} else {
 		await Promise.all([
 			globalStore.fetchStreamers,
-			globalStore.fetchSniffEntrys,
+			globalStore.fetchAutomations,
 			globalStore.fetchVideos,
 			globalStore.fetchInvoices,
 		]);

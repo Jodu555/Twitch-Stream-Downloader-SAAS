@@ -35,11 +35,13 @@ export interface FfmpegMetadata {
     from: number;
 }
 
-export interface SniffEntry {
+interface Automation {
+    ID: string;
+    userUUID: string;
     twitchStreamerName: string;
     everyxMinute: number;
-    users?: string[];
     lastCheck: number;
+    linkedAccountUUID?: string;
 }
 
 export interface RecordedVideo {
@@ -113,7 +115,7 @@ export interface Account {
 export const useGlobalStore = defineStore('globalStore', {
     state: () => ({
         streamers: [] as Streamer[],
-        sniffEntrys: [] as SniffEntry[],
+        automations: [] as Automation[],
         videos: [] as RecordedVideo[],
         invoices: [] as Invoice[],
         auth: {
@@ -148,20 +150,20 @@ export const useGlobalStore = defineStore('globalStore', {
                 await this.fetchStreamers();
             }
         },
-        async onMonitoringUpdate(streamer: string, obj: Partial<SniffEntry>) {
-            const sniffEntry = this.sniffEntrys.find((s) => s.twitchStreamerName.toLowerCase() === streamer.toLowerCase());
-            if (sniffEntry) {
-                Object.assign(sniffEntry, obj);
+        async onAutomationUpdate(streamer: string, obj: Partial<Automation>) {
+            const automations = this.automations.find((s) => s.twitchStreamerName.toLowerCase() === streamer.toLowerCase());
+            if (automations) {
+                Object.assign(automations, obj);
             } else {
-                await this.fetchSniffEntrys();
+                await this.fetchAutomations();
             }
         },
-        async onMonitoringDeletion(streamer: string) {
-            const sniffEntry = this.sniffEntrys.find((s) => s.twitchStreamerName.toLowerCase() === streamer.toLowerCase());
+        async onAutomationDeletion(streamer: string) {
+            const sniffEntry = this.automations.find((s) => s.twitchStreamerName.toLowerCase() === streamer.toLowerCase());
             if (sniffEntry) {
-                this.sniffEntrys.splice(this.sniffEntrys.findIndex(x => x.twitchStreamerName === streamer), 1);
+                this.automations.splice(this.automations.findIndex(x => x.twitchStreamerName === streamer), 1);
             } else {
-                await this.fetchSniffEntrys();
+                await this.fetchAutomations();
             }
         },
         async fetchStreamers() {
@@ -178,18 +180,18 @@ export const useGlobalStore = defineStore('globalStore', {
             this.streamers = response;
             return response;
         },
-        async fetchSniffEntrys() {
+        async fetchAutomations() {
             const authToken = useCookie('auth-token');
             if (!authToken.value) {
                 return [];
             }
             const token = authToken.value as string;
-            const response = await $fetch<SniffEntry[]>('http://138.201.131.52:8081/api/v1/sniffEntrys', {
+            const response = await $fetch<Automation[]>('http://138.201.131.52:8081/api/v1/automations', {
                 headers: {
                     'auth-token': token,
                 },
             });
-            this.sniffEntrys = response;
+            this.automations = response;
             return response;
         },
         async fetchVideos() {

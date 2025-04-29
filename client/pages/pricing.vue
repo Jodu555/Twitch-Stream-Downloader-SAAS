@@ -55,7 +55,7 @@
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key as PricingTableKey].price
-                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key as PricingTableKey].features" :key="feature">{{
                                     feature }}</li>
@@ -98,7 +98,7 @@
                             <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
                                 <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof
                                     PricingTableObject)
-                                    }}
+                                }}
                                 </th>
                                 <td v-for="value in Object.keys(pricingTable)" :key="value">
                                     <template v-if="getSub(value, key) === true">
@@ -202,7 +202,7 @@ const detailedExplanation = ref([
     {
         id: 'recording-slots',
         title: 'Recording Slots',
-        description: `You have a finite number of streams you can record at the same time! If a monitoring Slot tries to record a stream when your slots are full! It will just fail! There are no priorities.`,
+        description: `You have a finite number of streams you can record at the same time! If a automation Slot tries to record a stream when your slots are full! It will just fail! There are no priorities.`,
     },
     {
         id: 'video-slots',
@@ -211,9 +211,10 @@ const detailedExplanation = ref([
         small: 'If a video is deleted you cannot restore it! It is gone forever! So be careful! And double check if you actually already downloaded the video!',
     },
     {
-        id: 'streamer-slots',
-        title: 'Streamer Slots',
-        description: `You have a finite number of Streamers you can monitor! If a streamer starts its stream the record will then automatically start. If you have enough Record and Video Slots available`,
+        id: 'automation-slots',
+        title: 'Automation Slots',
+        description: `You have a finite number of Streamers you can Automate! If a streamer starts its stream the record will then automatically start. If you have enough Record and Video Slots available!
+        Later you will also be able to add an YouTube account where the automatically recorded stream will be uploaded to!`,
     },
     {
         id: 'max-recording-time',
@@ -223,7 +224,7 @@ const detailedExplanation = ref([
     {
         id: 'streamer-check',
         title: 'Streamer Check Every x Minutes',
-        description: `The Monitoring Slots will be checked every x minutes. If a streamer is live during that check and the user has 1 Recording and 1 Video Slot available the stream will be automatically recorded!`,
+        description: `The Automation Slots will be checked every x minutes. If a streamer is live during that check and the user has 1 Recording and 1 Video Slot available the stream will be automatically recorded!`,
     },
     {
         id: 'video-retention',

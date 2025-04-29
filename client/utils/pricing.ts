@@ -9,7 +9,7 @@ export interface PricingTableObject {
     resumableStream: boolean;
     recordingSlots: number;
     videoSlots: number;
-    streamerSlots: number;
+    automationSlots: number;
     maxRecordingTime: number;
     streamerCheckEvery: number;
     videoRetentionDays: number;
@@ -34,7 +34,7 @@ export function usePricingTable() {
             resumableStream: false,
             recordingSlots: 1,
             videoSlots: 2,
-            streamerSlots: 3,
+            automationSlots: 3,
             maxRecordingTime: 8,
             streamerCheckEvery: 30,
             videoRetentionDays: 2,
@@ -45,7 +45,7 @@ export function usePricingTable() {
             resumableStream: true,
             recordingSlots: 4,
             videoSlots: 6,
-            streamerSlots: 8,
+            automationSlots: 8,
             maxRecordingTime: 24,
             streamerCheckEvery: 5,
             videoRetentionDays: 7,
@@ -56,7 +56,7 @@ export function usePricingTable() {
             resumableStream: true,
             recordingSlots: 8,
             videoSlots: 20,
-            streamerSlots: 15,
+            automationSlots: 15,
             maxRecordingTime: 24,
             streamerCheckEvery: 1,
             videoRetentionDays: 14,
@@ -90,8 +90,8 @@ export function limitationToNiceName(key: keyof PricingTableObject) {
             return 'Recording Slots';
         case 'videoSlots':
             return 'Video Slots';
-        case 'streamerSlots':
-            return 'Streamer Slots';
+        case 'automationSlots':
+            return 'Automation Slots';
         case 'maxRecordingTime':
             return 'Max. Recording Time';
         case 'streamerCheckEvery':
@@ -113,7 +113,7 @@ export const cardTable = ref<CardTable>({
             'Completely Ad-Free',
             '1 Simultaneous Stream Recording',
             '2 Recorded Streams',
-            '3 Streamer Monitorings',
+            '3 Automation Slots',
             '8 Hours Recording Time',
             '30 Minute Check for new Streams',
             '2 Days Video Retention',
@@ -126,7 +126,7 @@ export const cardTable = ref<CardTable>({
             'Resumable: If Stream stops for a short time',
             '5 Simultaneous Stream Recordings',
             '7 Recorded Streams',
-            '7 Streamer Monitorings',
+            '7 Automation Slots',
             '24 Hours Recording Time',
             '1 Minute Check for new Streams',
             '7 Days Video Retention',
@@ -140,7 +140,7 @@ export const cardTable = ref<CardTable>({
             'Resumable: If Stream stops for a short time',
             '8 Simultaneous Stream Recordings',
             '20 Recorded Streams',
-            '11 Streamer Monitorings',
+            '11 Automation Slots',
             '24 Hours Recording Time',
             '1 Minute Check for new Streams',
             '14 Days Video Retention',

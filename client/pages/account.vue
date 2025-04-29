@@ -37,7 +37,7 @@
                             <input class="form-check-input" type="checkbox" role="switch" :id="notification.id"
                                 v-model="notification.enabled">
                             <label class="form-check-label" :for="notification.id">{{ notification.description
-                            }}</label>
+                                }}</label>
                         </div>
 
                     </div>
@@ -214,7 +214,7 @@ const used = computed(() => {
     return {
         recordingSlots: globalStore.streamers.length,
         videoSlots: globalStore.videos.length,
-        streamerSlots: globalStore.sniffEntrys.length,
+        streamerSlots: globalStore.automations.length,
     };
 });
 

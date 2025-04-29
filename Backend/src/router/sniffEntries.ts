@@ -33,7 +33,7 @@ router.post('/api/v1/sniffEntrys', authentication(), async (req: AuthenticatedRe
         userUUID: userUUID,
     } satisfies SniffEntry;
     await database.get<SniffEntry>('sniffEntries').create(entry);
-    (await io.fetchSockets()).filter(x => x.data.user.UUID == userUUID).forEach(x => x.emit('monitoringUpdate', { streamer: twitchStreamerName, data: entry }));
+    (await io.fetchSockets()).filter(x => x.data.user.UUID == userUUID).forEach(x => x.emit('automationUpdate', { streamer: twitchStreamerName, data: entry }));
 
     res.send('Created');
 });
@@ -46,6 +46,6 @@ router.delete('/api/v1/sniffEntrys/:name', authentication(), async (req: Authent
     const reqData = parse.parse(req.params);
     const twitchStreamerName = reqData.name;
     await database.get<SniffEntry>('sniffEntries').delete({ userUUID, twitchStreamerName: twitchStreamerName });
-    (await io.fetchSockets()).filter(x => x.data.user.UUID == userUUID).forEach(s => s.emit('monitoringDeletion', { streamer: twitchStreamerName }));
+    (await io.fetchSockets()).filter(x => x.data.user.UUID == userUUID).forEach(s => s.emit('automationDeletion', { streamer: twitchStreamerName }));
     res.send('Deleted');
 });
