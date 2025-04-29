@@ -46,18 +46,18 @@
 
         <main>
             <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
-                <div v-for="key in Object.keys(cardTable)" :key="key" class="col">
+                <div v-for="key in Object.keys(cardTable) as SubscriptionTypes[]" :key="key" class="col">
                     <div class="card mb-4 rounded-3 shadow-lg">
                         <div class="card-header py-3">
                             <h4 class="my-0 fw-normal" :class="{
-                                [getRoleColor(key as PricingTableKey)]: true,
-                            }">{{ keyToNiceName(key as PricingTableKey) }}</h4>
+                                [getRoleColor(key)]: true,
+                            }">{{ keyToNiceName(key) }}</h4>
                         </div>
                         <div class="card-body">
-                            <h1 class="card-title pricing-card-title">{{ cardTable[key as PricingTableKey].price
-                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                            <h1 class="card-title pricing-card-title">{{ cardTable[key].price
+                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
-                                <li v-for="feature in cardTable[key as PricingTableKey].features" :key="feature">{{
+                                <li v-for="feature in cardTable[key].features" :key="feature">{{
                                     feature }}</li>
                             </ul>
                             <template v-if="globalStore.auth.isAuthenticated">
@@ -88,17 +88,16 @@
                             <tr>
                                 <th style="width: 34%;"></th>
 
-                                <th style="width: 22%;" v-for="key in Object.keys(pricingTable)" :key="key" :class="{
-                                    [getRoleColor(key as PricingTableKey)]: true,
-                                }">{{
-                                    keyToNiceName(key as PricingTableKey) }}</th>
+                                <th style="width: 22%;"
+                                    v-for="key in (Object.keys(pricingTable) as SubscriptionTypes[])" :key="key"
+                                    :class="{ [getRoleColor(key)]: true, }">{{ keyToNiceName(key) }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
+                            <tr v-for="key in Object.keys(pricingTable['FREE'])" :key="key">
                                 <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof
                                     PricingTableObject)
-                                }}
+                                    }}
                                 </th>
                                 <td v-for="value in Object.keys(pricingTable)" :key="value">
                                     <template v-if="getSub(value, key) === true">
@@ -163,14 +162,14 @@
 
 <script lang="ts" setup>
 
-import { cardTable, keyToNiceName, limitationToNiceName, type PricingTableKey, type PricingTableObject } from '~/utils/pricing';
+import { cardTable, keyToNiceName, limitationToNiceName, type SubscriptionTypes, type PricingTableObject } from '~/utils/pricing';
 
 const globalStore = useGlobalStore();
 
 const pricingTable = usePricingTable();
 
 function getSub(value: string, key: string) {
-    return pricingTable.value[value as PricingTableKey][key as keyof PricingTableObject];
+    return pricingTable.value[value as SubscriptionTypes][key as keyof PricingTableObject];
 }
 onMounted(() => {
     const nuxtApp = useNuxtApp();

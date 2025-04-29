@@ -1,7 +1,7 @@
 
-export type PricingTableKey = 'free' | 'premium' | 'advanced';
+export type SubscriptionTypes = 'FREE' | 'PREMIUM' | 'ADVANCED';
 
-export type PricingTable = Record<PricingTableKey, PricingTableObject>;
+export type PricingTable = Record<SubscriptionTypes, PricingTableObject>;
 
 export interface PricingTableObject {
     adFree: boolean;
@@ -15,20 +15,20 @@ export interface PricingTableObject {
     videoRetentionDays: number;
 }
 
-export function getRoleColor(key: PricingTableKey) {
+export function getRoleColor(key: SubscriptionTypes) {
     switch (key) {
-        case 'free':
+        case 'FREE':
             return 'text-secondary-emphasis';
-        case 'premium':
+        case 'PREMIUM':
             return 'text-light-emphasis';
-        case 'advanced':
+        case 'ADVANCED':
             return 'text-warning-emphasis';
     }
 }
 
 export function usePricingTable() {
     const pricingTable = ref<PricingTable>({
-        free: {
+        FREE: {
             adFree: true,
             watchWhileRecording: false,
             resumableStream: false,
@@ -39,7 +39,7 @@ export function usePricingTable() {
             streamerCheckEvery: 30,
             videoRetentionDays: 2,
         },
-        premium: {
+        PREMIUM: {
             adFree: true,
             watchWhileRecording: false,
             resumableStream: true,
@@ -50,7 +50,7 @@ export function usePricingTable() {
             streamerCheckEvery: 5,
             videoRetentionDays: 7,
         },
-        advanced: {
+        ADVANCED: {
             adFree: true,
             watchWhileRecording: true,
             resumableStream: true,
@@ -67,13 +67,13 @@ export function usePricingTable() {
 }
 
 
-export function keyToNiceName(key: PricingTableKey) {
+export function keyToNiceName(key: SubscriptionTypes) {
     switch (key) {
-        case 'free':
+        case 'FREE':
             return 'Free';
-        case 'premium':
+        case 'PREMIUM':
             return 'Premium';
-        case 'advanced':
+        case 'ADVANCED':
             return 'Advanced';
     }
 }
@@ -101,13 +101,13 @@ export function limitationToNiceName(key: keyof PricingTableObject) {
     }
 }
 
-export type CardTable = Record<PricingTableKey, {
+export type CardTable = Record<SubscriptionTypes, {
     price: number;
     features: string[];
 }>;
 
 export const cardTable = ref<CardTable>({
-    free: {
+    FREE: {
         price: 0,
         features: [
             'Completely Ad-Free',
@@ -119,7 +119,7 @@ export const cardTable = ref<CardTable>({
             '2 Days Video Retention',
         ],
     },
-    premium: {
+    PREMIUM: {
         price: 10,
         features: [
             'Completely Ad-Free',
@@ -132,7 +132,7 @@ export const cardTable = ref<CardTable>({
             '7 Days Video Retention',
         ],
     },
-    advanced: {
+    ADVANCED: {
         price: 25,
         features: [
             'Completely Ad-Free',

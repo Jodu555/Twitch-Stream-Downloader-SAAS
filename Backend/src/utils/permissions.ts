@@ -1,5 +1,5 @@
 import { Database } from '@jodu555/mysqlapi';
-import { Account, Automation } from 'src/utils/types';
+import { Account, Automation, SubscriptionTypes } from 'src/utils/types';
 import { processes } from '..';
 
 const database = Database.getDatabase();
@@ -16,8 +16,8 @@ export interface LimitKeys {
     videoRetentionDays: number;
 }
 
-const LIMITS = {
-    free: {
+const LIMITS: Record<SubscriptionTypes, LimitKeys> = {
+    FREE: {
         adFree: true,
         watchWhileRecording: false,
         resumableStream: false,
@@ -28,7 +28,7 @@ const LIMITS = {
         streamerCheckEvery: 30,
         videoRetentionDays: 2,
     },
-    premium: {
+    PREMIUM: {
         adFree: true,
         watchWhileRecording: false,
         resumableStream: true,
@@ -39,7 +39,7 @@ const LIMITS = {
         streamerCheckEvery: 5,
         videoRetentionDays: 7,
     },
-    advanced: {
+    ADVANCED: {
         adFree: true,
         watchWhileRecording: true,
         resumableStream: true,
@@ -55,7 +55,7 @@ const LIMITS = {
 export async function getUserLimits(userUUID: string): Promise<LimitKeys> {
     const search = await database.get<Account>('accounts').getOne({ UUID: userUUID });
 
-    const limits = { ...LIMITS[search.subscription_type as keyof typeof limits], ...JSON.parse(search.overrides || '{}') };
+    const limits = { ...LIMITS[search.subscription_type], ...JSON.parse(search.overrides || '{}') };
 
     return limits;
 }
