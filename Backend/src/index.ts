@@ -443,7 +443,7 @@ async function main() {
                 continue;
 
             sniffEntry.lastCheck = Date.now();
-            await database.get<SniffEntry>('sniffEntries').update({ twitchStreamerName: sniffEntry.twitchStreamerName, userUUID: sniffEntry.userUUID }, {
+            await database.get<SniffEntry>('sniffEntries').update({ twitchStreamerName: sniffEntry.twitchStreamerName, userUUID: sniffEntry.userUUID, unique: true }, {
                 lastCheck: sniffEntry.lastCheck
             });
 
