@@ -68,3 +68,12 @@ export interface AuthToken {
     TOKEN: string;
     UUID: string;
 }
+
+export interface Automation {
+    ID: string;
+    userUUID: string;
+    twitchStreamerName: string;
+    everyxMinute: number;
+    lastCheck: number;
+    linkedAccountUUID?: string;
+}

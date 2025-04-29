@@ -23,7 +23,7 @@ import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
 import { router as sniffEntriesRouter } from './router/sniffEntries';
 import { AuthenticatedRequest, authentication, router as authRouter, getUser } from './router/auth';
-import { Account, DatabaseInvoice, DatabaseRecordEntry, SniffEntry } from './utils/types';
+import { Account, Automation, DatabaseInvoice, DatabaseRecordEntry } from './utils/types';
 import EmailManager from './EmailManager';
 import { z } from 'zod';
 
@@ -44,9 +44,12 @@ interface ServerToClientEvents {
     noArg: () => void;
     basicEmit: (a: number, b: string, c: Buffer) => void;
     withAck: (d: string, callback: (e: number) => void) => void;
+
     recordingUpdate: (d: { ID: string, data: Partial<RecordEntry>; }) => void;
-    automationUpdate: (d: { streamer: string, data: SniffEntry; }) => void;
-    automationDeletion: (d: { streamer: string; }) => void;
+
+    automationUpdate: (d: { ID: string; data: Automation; }) => void;
+    automationDeletion: (d: { ID: string; }) => void;
+
     videoUpdate: (d: { ID: string, data: Partial<RecordEntry>; }) => void;
     videoDeletion: (d: { ID: string; }) => void;
 }
@@ -353,7 +356,7 @@ async function main() {
 
     let counter = 0;
     commandManager.registerCommand(new Command(['list', 'l'], 'list', 'Lists currently waiting / active streams', async (command, [...args], scope) => {
-        const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
+        const automations = await database.get<Automation>('automations').get();
 
         const finished = processes.filter(x => x.getState() != 'RECORDING' && x.getState() != 'TRANSCODING');
         const recording = processes.filter(x => x.getState() == 'RECORDING' || x.getState() == 'TRANSCODING');
@@ -363,7 +366,7 @@ async function main() {
             `  - Last Check: ${formatNumPrec((Date.now() - lastCheck) / 1000, 1)}s`,
             '',
             'Sniff Entrys:',
-            ...sniffEntrys.map(x => `  ${x.twitchStreamerName} => Waiting (every ${x.everyxMinute} minute${x.everyxMinute > 1 ? 's' : ''})`),
+            ...automations.map(x => `  ${x.twitchStreamerName} => Waiting (every ${x.everyxMinute} minute${x.everyxMinute > 1 ? 's' : ''})`),
             '',
             'Finished:',
             ...finished.map(x => `  ${x.twitchStreamerName} - ${x.getState()} => ${x.videoMeta?.time} - ${bytesToHumanReadable(parseInt(x.videoMeta?.size))} from ${new Date(x.finishedAt).toLocaleString('de')} with ${x.metas.length} Title/s`),
@@ -437,28 +440,29 @@ async function main() {
 
         await Promise.all(processes.filter(x => x.getState() == 'RECORDING').map(process => process.heartbeat()));
 
-        const sniffEntrys = await database.get<SniffEntry>('sniffEntries').get();
-        for (const sniffEntry of sniffEntrys) {
-            if (counter % sniffEntry.everyxMinute != 0)
+        const automations = await database.get<Automation>('automations').get();
+        for (const automation of automations) {
+            if (counter % automation.everyxMinute != 0)
                 continue;
 
-            sniffEntry.lastCheck = Date.now();
-            await database.get<SniffEntry>('sniffEntries').update({ twitchStreamerName: sniffEntry.twitchStreamerName, userUUID: sniffEntry.userUUID, unique: true }, {
-                lastCheck: sniffEntry.lastCheck
+            automation.lastCheck = Date.now();
+            await database.get<Automation>('automations').update({ ID: automation.ID, userUUID: automation.userUUID, unique: true }, {
+                lastCheck: automation.lastCheck
             });
 
-            (await io.fetchSockets()).filter(x => x.data.user.UUID == sniffEntry.userUUID).forEach(x => x.emit('automationUpdate', { streamer: sniffEntry.twitchStreamerName, data: sniffEntry }));
+            (await io.fetchSockets()).filter(x => x.data.user.UUID == automation.userUUID).forEach(x => x.emit('automationUpdate', { ID: automation.ID, data: automation }));
 
             if (enbaleSniffEntries) {
-                if (!await isLive(sniffEntry.twitchStreamerName)) {
-                    console.log('Stream', sniffEntry.twitchStreamerName, 'is not live!');
+                if (!await isLive(automation.twitchStreamerName)) {
+                    console.log('Stream', automation.twitchStreamerName, 'is not live!');
                     continue;
                 }
-                if (processes.find(x => x.userUUID == sniffEntry.userUUID && x.twitchStreamerName == sniffEntry.twitchStreamerName)) {
-                    console.log('Process already exists for', sniffEntry.twitchStreamerName);
+                //TODO: Add here the check for the actual process automation uuid field
+                if (processes.find(x => x.userUUID == automation.userUUID && x.twitchStreamerName == automation.twitchStreamerName)) {
+                    console.log('Process already exists for', automation.twitchStreamerName);
                     continue;
                 }
-                const entry = new RecordEntry(sniffEntry.userUUID, sniffEntry.twitchStreamerName, false);
+                const entry = new RecordEntry(automation.userUUID, automation.twitchStreamerName, false);
                 await entry.record();
                 processes.push(entry);
                 entry.onRecordingFinished(() => {

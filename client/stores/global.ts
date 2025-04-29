@@ -35,7 +35,7 @@ export interface FfmpegMetadata {
     from: number;
 }
 
-interface Automation {
+export interface Automation {
     ID: string;
     userUUID: string;
     twitchStreamerName: string;
@@ -150,18 +150,18 @@ export const useGlobalStore = defineStore('globalStore', {
                 await this.fetchStreamers();
             }
         },
-        async onAutomationUpdate(streamer: string, obj: Partial<Automation>) {
-            const automations = this.automations.find((s) => s.twitchStreamerName.toLowerCase() === streamer.toLowerCase());
+        async onAutomationUpdate(ID: string, obj: Partial<Automation>) {
+            const automations = this.automations.find((s) => s.ID == ID);
             if (automations) {
                 Object.assign(automations, obj);
             } else {
                 await this.fetchAutomations();
             }
         },
-        async onAutomationDeletion(streamer: string) {
-            const sniffEntry = this.automations.find((s) => s.twitchStreamerName.toLowerCase() === streamer.toLowerCase());
+        async onAutomationDeletion(ID: string) {
+            const sniffEntry = this.automations.find((s) => s.ID == ID);
             if (sniffEntry) {
-                this.automations.splice(this.automations.findIndex(x => x.twitchStreamerName === streamer), 1);
+                this.automations.splice(this.automations.findIndex(s => s.ID == ID), 1);
             } else {
                 await this.fetchAutomations();
             }

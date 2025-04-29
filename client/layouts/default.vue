@@ -98,12 +98,12 @@ function connectSocket() {
 		globalStore.onRecordingUpdate(ID, obj)
 	);
 
-	socket.on('automationUpdate', async ({ streamer, data: obj }) =>
-		globalStore.onAutomationUpdate(streamer, obj)
+	socket.on('automationUpdate', async ({ ID, data: obj }) =>
+		globalStore.onAutomationUpdate(ID, obj)
 	);
 
-	socket.on('automationDeletion', ({ streamer }) =>
-		globalStore.onAutomationDeletion(streamer)
+	socket.on('automationDeletion', ({ ID }) =>
+		globalStore.onAutomationDeletion(ID)
 	);
 
 	socket.on('videoUpdate', ({ ID, data: obj }) =>
