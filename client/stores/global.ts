@@ -224,7 +224,9 @@ export const useGlobalStore = defineStore('globalStore', {
         },
         async authenticate() {
             console.log('Authenticating user TRYING');
-            this.auth.token = useCookie('auth-token').value;
+            if (this.auth.token == '') {
+                this.auth.token = useCookie('auth-token').value;
+            }
             if (!this.auth.token)
                 return;
             const token = this.auth.token;
@@ -238,6 +240,18 @@ export const useGlobalStore = defineStore('globalStore', {
             this.auth.isAuthenticated = true;
             this.auth.user = response;
             return response;
+        },
+        async logout() {
+            const response = await $fetch<Account>('http://138.201.131.52:8081/api/v1/auth/logout', {
+                headers: {
+                    'auth-token': this.auth.token as string,
+                },
+            });
+            const authCookie = useCookie('auth-token');
+            authCookie.value = '';
+            this.auth.token = '';
+            this.auth.isAuthenticated = false;
+            this.auth.user = null;
         }
     }
 });

@@ -33,10 +33,18 @@
 							<NuxtLink to="/pricing" class="nav-link" active-class="active">Pricing</NuxtLink>
 						</li>
 					</ul>
-					<div class="d-flex">
-						<div class="btn btn-outline-info">
-							<NuxtLink to="/account" class="nav-link">Account</NuxtLink>
+					<div class="d-flex" v-if="globalStore.auth.isAuthenticated">
+						<div class="nav-item">
+							<NuxtLink to="/account" class="align-middle text-center" active-class="active">Account
+							</NuxtLink>
 						</div>
+						<button @click="globalStore.logout" type="button" class="ms-2 btn btn-outline-danger">
+							Logout
+						</button>
+
+						<!-- <div class="nav-item">
+							<NuxtLink to="/account" class="nav-link">Account</NuxtLink>
+						</div> -->
 					</div>
 				</div>
 			</div>
@@ -60,6 +68,7 @@ watch(
 		if (newValue) {
 			connectSocket();
 		} else {
+			useSocket()?.disconnect();
 			console.log('No auth token found');
 		}
 	}, { immediate: true });
@@ -115,6 +124,10 @@ onMounted(() => {
 });
 
 async function fetchAll(once: boolean = false) {
+	if (!globalStore.auth.isAuthenticated) {
+		await globalStore.authenticate();
+		return;
+	}
 	if (once) {
 		await Promise.all([
 			callOnce(globalStore.fetchStreamers),

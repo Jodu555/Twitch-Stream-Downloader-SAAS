@@ -55,12 +55,20 @@
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key as PricingTableKey].price
-                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key as PricingTableKey].features" :key="feature">{{
                                     feature }}</li>
                             </ul>
-                            <button type="button" class="w-100 btn btn-lg btn-outline-primary">Sign up for free</button>
+                            <template v-if="globalStore.auth.isAuthenticated">
+                                <button type="button" class="w-100 btn btn-lg btn-outline-primary">Upgrade / Downgrade
+                                    other</button>
+                            </template>
+                            <template v-else>
+                                <button type="button" class="w-100 btn btn-lg btn-outline-primary"
+                                    @click="navigateTo('/login')">Sign up for
+                                    free</button>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -85,7 +93,7 @@
                             <tr v-for="key in Object.keys(pricingTable['free'])" :key="key">
                                 <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof
                                     PricingTableObject)
-                                    }}
+                                }}
                                 </th>
                                 <td v-for="value in Object.keys(pricingTable)" :key="value">
                                     <template v-if="getSub(value, key) === true">
@@ -151,6 +159,8 @@
 <script lang="ts" setup>
 
 import { cardTable, keyToNiceName, limitationToNiceName, type PricingTableKey, type PricingTableObject } from '~/utils/pricing';
+
+const globalStore = useGlobalStore();
 
 const pricingTable = usePricingTable();
 

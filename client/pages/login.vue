@@ -179,12 +179,14 @@ async function onLogin() {
     }
 
     const authToken = useCookie('auth-token', { expires: new Date(Date.now() + 60 * 60 * 24 * 1000) });
-    const token = data.token;
     console.log('DATA', data);
+    const token = data.token;
     authToken.value = token;
 
     globalStore.auth.token = token;
     await globalStore.authenticate();
+    console.log('CAMECAMECAME');
+
 
     navigateTo('/');
 }
