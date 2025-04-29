@@ -22,10 +22,11 @@ import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
 import { router as automationsRouter } from './router/automations';
-import { AuthenticatedRequest, authentication, router as authRouter, getUser, getUserLimit } from './router/auth';
+import { AuthenticatedRequest, authentication, router as authRouter, getUser } from './router/auth';
 import { Account, Automation, DatabaseInvoice, DatabaseRecordEntry } from './utils/types';
 import EmailManager from './EmailManager';
 import { z } from 'zod';
+import { getUserLimit, isAbleToHaveVideo, isAbleToRecord } from './utils/permissions';
 
 const app = express();
 
@@ -146,29 +147,6 @@ app.get('/api/v1/videos', authentication(), async (req: AuthenticatedRequest, re
     const userUUID = req.credentials.user.UUID;
     res.json(processes.filter(x => x.userUUID == userUUID).filter(x => x.getState() == 'FINISHED').map(x => x.toFrontend()));
 });
-
-async function isAbleToRecord(userUUID: string) {
-
-    const usedSlots = processes.filter(x => x.getState() == 'RECORDING' && x.userUUID == userUUID).length;
-
-    const recordingSlotLimit = await getUserLimit(userUUID, 'recordingSlots');
-
-    if (recordingSlotLimit == -1) {
-        return true;
-    }
-    return usedSlots < recordingSlotLimit;
-}
-
-async function isAbleToHaveVideo(userUUID: string) {
-    const usedSlots = processes.filter(x => x.getState() == 'FINISHED' && x.userUUID == userUUID).length;
-
-    const videoSlotLimit = await getUserLimit(userUUID, 'videoSlots');
-
-    if (videoSlotLimit == -1) {
-        return true;
-    }
-    return usedSlots < videoSlotLimit;
-}
 
 app.get('/api/v1/streamers/record/:name/:watchLive?', authentication(), async (req: AuthenticatedRequest, res, next) => {
     try {
@@ -374,7 +352,7 @@ server.listen(PORT, () => {
 
 const commandManager = CommandManager.createCommandManager(process.stdin, process.stdout);
 
-const processes = [] as RecordEntry[];
+export const processes = [] as RecordEntry[];
 
 const enbaleautomations = false;
 

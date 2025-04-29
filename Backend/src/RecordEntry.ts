@@ -5,7 +5,7 @@ import { getMetaData, isLive } from './streamLinkHelpers';
 import { Database } from '@jodu555/mysqlapi';
 import { DatabaseRecordEntry } from './utils/types';
 import { io } from '.';
-import { getUserLimit } from './router/auth';
+import { getUserLimit } from './utils/permissions';
 
 const database = Database.getDatabase();
 

@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { Database } from '@jodu555/mysqlapi';
 import { Automation } from 'src/utils/types';
 import { io } from '..';
-import { AuthenticatedRequest, authentication, getUserLimit } from './auth';
+import { AuthenticatedRequest, authentication } from './auth';
 import { z } from 'zod';
+import { isAbleToCreateAutomation } from 'src/utils/permissions';
 
 const database = Database.getDatabase();
 
@@ -18,19 +19,6 @@ router.get('/api/v1/automations', authentication(), async (req: AuthenticatedReq
         next(error);
     }
 });
-
-async function isAbleToCreateAutomation(userUUID: string) {
-
-    const automations = await database.get<Automation>('automations').get({ userUUID });
-    const usedSlots = automations.length;
-
-    const automationSlotLimit = await getUserLimit(userUUID, 'automationSlots');
-
-    if (automationSlotLimit == -1) {
-        return true;
-    }
-    return usedSlots < automationSlotLimit;
-}
 
 router.post('/api/v1/automations', authentication(), async (req: AuthenticatedRequest, res, next) => {
     try {
