@@ -2,20 +2,20 @@ import { Database } from '@jodu555/mysqlapi';
 
 export function setupTables() {
     const database = Database.getDatabase();
-    database.createTable('sniffEntries', {
-        userUUID: {
-            type: 'varchar(64)',
-        },
-        twitchStreamerName: {
-            type: 'varchar(64)',
-        },
-        everyxMinute: {
-            type: 'INT',
-        },
-        lastCheck: {
-            type: 'BIGINT',
-        },
-    });
+    // database.createTable('sniffEntries', {
+    //     userUUID: {
+    //         type: 'varchar(64)',
+    //     },
+    //     twitchStreamerName: {
+    //         type: 'varchar(64)',
+    //     },
+    //     everyxMinute: {
+    //         type: 'INT',
+    //     },
+    //     lastCheck: {
+    //         type: 'BIGINT',
+    //     },
+    // });
 
     database.createTable('automations', {
         ID: {
@@ -90,6 +90,10 @@ export function setupTables() {
         userUUID: {
             type: 'varchar(64)',
             null: false,
+        },
+        automationUUID: {
+            type: 'varchar(64)',
+            null: true,
         },
         state: {
             type: 'VARCHAR(32)',

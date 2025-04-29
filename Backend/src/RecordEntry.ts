@@ -47,6 +47,7 @@ class RecordEntry {
     public metas: MetaRepresent[];
     public watchingLive: boolean;
     private state: RecordEntryState;
+    public automationUUID?: string;
 
     public createdAt: number;
     public finishedAt: number;
@@ -72,10 +73,11 @@ class RecordEntry {
 
     private notLiveAttempts: number;
 
-    constructor(userUUID: string, twitchStreamerName: string, watchingLive?: boolean) {
+    constructor(userUUID: string, twitchStreamerName: string, automationUUID?: string, watchingLive?: boolean) {
         this.id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         this.userUUID = userUUID;
         this.twitchStreamerName = twitchStreamerName;
+        this.automationUUID = automationUUID;
         this.metas = [];
         this.finishedCallbacks = [];
         //TODO: Do math based on user stuff
@@ -89,7 +91,7 @@ class RecordEntry {
     }
 
     static fromDatabase(entry: DatabaseRecordEntry) {
-        const record = new RecordEntry(entry.userUUID, entry.twitchStreamerName, false);
+        const record = new RecordEntry(entry.userUUID, entry.twitchStreamerName, entry.automationUUID, false);
         record.id = entry.ID;
         record.state = entry.state;
         record.metas = JSON.parse(entry.metas);
@@ -108,6 +110,7 @@ class RecordEntry {
         return {
             id: this.id,
             twitchStreamerName: this.twitchStreamerName,
+            automationUUID: this.automationUUID,
             metas: this.metas,
             state: this.getState(),
             watchingLive: this.watchingLive,
@@ -130,6 +133,7 @@ class RecordEntry {
             ID: this.id,
             twitchStreamerName: this.twitchStreamerName,
             userUUID: this.userUUID,
+            automationUUID: this.automationUUID,
             state: this.state,
             metas: JSON.stringify(this.metas, null, 3),
             videoMeta: JSON.stringify(this.videoMeta, null, 3),
@@ -147,6 +151,7 @@ class RecordEntry {
         await database.get<DatabaseRecordEntry>('recordEntries').update({ ID: this.id }, {
             twitchStreamerName: this.twitchStreamerName,
             userUUID: this.userUUID,
+            automationUUID: this.automationUUID,
             state: this.state,
             metas: JSON.stringify(this.metas, null, 3),
             videoMeta: JSON.stringify(this.videoMeta, null, 3),

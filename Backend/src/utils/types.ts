@@ -21,6 +21,7 @@ export interface DatabaseRecordEntry {
     ID: string;
     twitchStreamerName: string;
     userUUID: string;
+    automationUUID?: string;
     state: RecordEntryState;
     metas: string;
     videoMeta: string;
