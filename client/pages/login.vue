@@ -262,6 +262,21 @@ const rules = reactive({
         (value: string) => value.length >= 8 || 'Must be at least 8 Characters and can only be 100',
         (value: string) => value == form.password || 'Passwords do not match!',
     ],
-})
+});
+
+onMounted(async () => {
+    console.log('Mounted');
+
+    const authToken = useCookie('auth-token', { expires: new Date(Date.now() + 60 * 60 * 24 * 1000) });
+    if (authToken.value) {
+        console.log('Token found', authToken.value);
+        globalStore.auth.token = authToken.value;
+        await globalStore.authenticate();
+        console.log('Authenticated', globalStore.auth.isAuthenticated);
+        if (globalStore.auth.isAuthenticated) {
+            navigateTo('/');
+        }
+    }
+});
 
 </script>

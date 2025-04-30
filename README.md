@@ -76,9 +76,9 @@ Aswell as the first videos recorded that are not deleted
 
 -   [x] Rename all Sniff Entry / Streamer Slots etc. to Automations
 -   [x] Link the RecordEntry / Videos with the automations together (if they are linked)
--   [ ] Move the /streamers routes all to recordings and get them into their own router file as well as the record route to a post route
+-   [x] Move the /streamers routes all to recordings and get them into their own router file as well as the record route to a post route
 -   [x] Move all the restrictions to the server side
--   [ ] Implement the restrictions on all the endpoints
+-   [x] Implement the restrictions on all the endpoints
 -   [ ] Let the client pull those restrictions and act on it
 -   [ ] Get the account notification settings working in the db
     -   [ ] Work on sending those notifications

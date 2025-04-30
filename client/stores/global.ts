@@ -122,7 +122,9 @@ export const useGlobalStore = defineStore('globalStore', {
             isAuthenticated: false,
             token: '',
             user: null as Account | null,
+            userData: {} as PricingTableObject,
         }
+        // userData = ref<PricingTableObject>(usePricingTable().value[globalStore.auth.user?.subscription_type.toLowerCase() as PricingTableKey]);
     }),
     actions: {
         async onVideoUpdate(ID: string, obj: Partial<RecordedVideo>) {
@@ -232,6 +234,7 @@ export const useGlobalStore = defineStore('globalStore', {
             console.log('Authenticating user', response);
             this.auth.isAuthenticated = true;
             this.auth.user = response;
+            this.auth.userData = usePricingTable().value[response.subscription_type];
             return response;
         },
         async logout() {

@@ -164,13 +164,12 @@ definePageMeta({
 
 
 import { useTimestamp } from '@vueuse/core';
-import { useUserData } from '~/utils/userData';
 
 const startRecordingLoading = ref(false);
 const twitchUsernameToRecord = ref('');
 const twitchRecordWatchLive = ref(false);
 
-const userData = useUserData();
+const userData = computed(() => globalStore.auth.userData);
 
 async function startRecording() {
 	if (startRecordingLoading.value) {

@@ -115,7 +115,7 @@ definePageMeta({
 const globalStore = useGlobalStore();
 const twitchUsernameToMonitor = ref('');
 
-const userData = useUserData();
+const userData = computed(() => globalStore.auth.userData);
 
 const automations = computed(() => globalStore.automations);
 
