@@ -87,7 +87,7 @@
                 </div>
             </template>
 
-            <div class="col-sm-4 col-md-5">
+            <div class="col-sm-4 col-md-5" v-if="globalStore.auth.user?.subscription_type != 'ADVANCED'">
                 <div class="card">
                     <div class="card-body">
                         <h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{

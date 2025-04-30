@@ -104,7 +104,7 @@ export interface Account {
     emailVerifyCode: string;
     created_at: number;
     updated_at: number;
-    subscription_type: 'FREE' | 'PREMIUM' | 'ADVANCED';
+    subscription_type: SubscriptionTypes;
     last_renewed?: number;
     first_subscribed?: number;
     last_handshake?: number;

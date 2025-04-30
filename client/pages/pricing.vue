@@ -61,13 +61,17 @@
                                     feature }}</li>
                             </ul>
                             <template v-if="globalStore.auth.isAuthenticated">
-                                <button type="button"
-                                    :disabled="globalStore.auth.user?.subscription_type == key.toUpperCase()"
-                                    class="w-100 btn btn-lg" :class="{
-                                        'btn-outline-gray': globalStore.auth.user?.subscription_type == key.toUpperCase(),
-                                        'btn-outline-primary': globalStore.auth.user?.subscription_type != key.toUpperCase(),
-                                    }">{{ globalStore.auth.user?.subscription_type == key.toUpperCase() ? `Current
-                                    Plan` : 'Upgrade' }}</button>
+                                <template v-if="globalStore.auth.user?.subscription_type == key">
+                                    <button type="button" disabled class="w-100 btn btn-lg btn-outline-gray">Current
+                                        Plan</button>
+                                </template>
+                                <template v-else-if="isHigherSubscriptionType(key)">
+                                    <!-- <button type="button" disabled class="w-100 btn btn-lg btn-outline-gray">Below
+                                        current Plan</button> -->
+                                </template>
+                                <template v-if="!isHigherSubscriptionType(key)">
+                                    <button type="button" class="w-100 btn btn-lg btn-outline-primary">Upgrade</button>
+                                </template>
                             </template>
                             <template v-else>
                                 <button type="button" class="w-100 btn btn-lg btn-outline-primary"
@@ -175,6 +179,16 @@ onMounted(() => {
     const nuxtApp = useNuxtApp();
     console.log(nuxtApp);
 });
+
+const numMap: Record<SubscriptionTypes, number> = {
+    FREE: 0,
+    PREMIUM: 1,
+    ADVANCED: 2,
+};
+
+function isHigherSubscriptionType(type: SubscriptionTypes) {
+    return numMap[globalStore.auth.user?.subscription_type!] >= numMap[type];
+}
 
 const expanded = ref('');
 

@@ -137,7 +137,7 @@
 					</div>
 				</template>
 
-				<div class="col-4 col-md-3 mb-3 card">
+				<div class="col-4 col-md-3 mb-3 card" v-if="globalStore.auth.user?.subscription_type != 'ADVANCED'">
 					<!-- <pre>{{ sniffEntry }}</pre> -->
 					<div class="card-body">
 						<h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
