@@ -4,7 +4,7 @@ import { Automation } from 'src/utils/types';
 import { io } from '..';
 import { AuthenticatedRequest, authentication } from './auth';
 import { z } from 'zod';
-import { isAbleToCreateAutomation, PermissionError } from 'src/utils/permissions';
+import { isAbleToCreateAutomation, PermissionError } from '../utils/permissions';
 
 const database = Database.getDatabase();
 

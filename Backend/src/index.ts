@@ -21,13 +21,13 @@ import RecordEntry, { MetaRepresent, RecordEntryState, VideoMeta } from './Recor
 import { formatNumPrec, bytesToHumanReadable } from './utils';
 import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
+import { PermissionError } from './utils/permissions';
 import { router as automationsRouter } from './router/automations';
 import { AuthenticatedRequest, authentication, router as authRouter, getUser } from './router/auth';
 import { router as recordsRouter } from './router/records';
 import { Account, Automation, DatabaseInvoice, DatabaseRecordEntry } from './utils/types';
 import EmailManager from './EmailManager';
 import { z } from 'zod';
-import { getUserLimit, isAbleToHaveVideo, isAbleToRecord, PermissionError } from './utils/permissions';
 
 const app = express();
 

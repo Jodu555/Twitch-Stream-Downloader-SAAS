@@ -4,8 +4,8 @@ import { Automation } from 'src/utils/types';
 import { io, processes } from '..';
 import { AuthenticatedRequest, authentication } from './auth';
 import { z } from 'zod';
-import { getUserLimit, isAbleToCreateAutomation, isAbleToHaveVideo, isAbleToRecord, PermissionError } from 'src/utils/permissions';
-import RecordEntry from 'src/RecordEntry';
+import { getUserLimit, isAbleToCreateAutomation, isAbleToHaveVideo, isAbleToRecord, PermissionError } from '../utils/permissions';
+import RecordEntry from '../RecordEntry';
 
 const database = Database.getDatabase();
 

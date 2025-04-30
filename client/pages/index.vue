@@ -177,11 +177,7 @@ async function startRecording() {
 		return;
 	}
 	startRecordingLoading.value = true;
-	const { data: response, error } = await tryCatch($fetch<{
-		id: string;
-		twitchStreamerName: string;
-		watchLive: boolean;
-	}>(`http://138.201.131.52:8081/api/v1/records`, {
+	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/records`, {
 		method: 'POST',
 		body: {
 			name: twitchUsernameToRecord.value,

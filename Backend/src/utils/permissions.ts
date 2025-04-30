@@ -62,7 +62,14 @@ export class PermissionError extends Error {
 export async function getUserLimits(userUUID: string): Promise<LimitKeys> {
     const search = await database.get<Account>('accounts').getOne({ UUID: userUUID });
 
-    const limits = { ...LIMITS[search.subscription_type], ...JSON.parse(search.overrides || '{}') };
+    let limits: LimitKeys;
+    if (search !== undefined) {
+        limits = { ...LIMITS[search.subscription_type], ...JSON.parse(search.overrides || '{}') };
+    } else {
+        limits = { ...LIMITS['FREE'] };
+    }
+
+
 
     return limits;
 }
