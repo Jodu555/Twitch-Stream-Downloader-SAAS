@@ -52,6 +52,13 @@ const LIMITS: Record<SubscriptionTypes, LimitKeys> = {
     },
 };
 
+export class PermissionError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'PermissionError';
+    }
+}
+
 export async function getUserLimits(userUUID: string): Promise<LimitKeys> {
     const search = await database.get<Account>('accounts').getOne({ UUID: userUUID });
 

@@ -26,7 +26,7 @@ import { AuthenticatedRequest, authentication, router as authRouter, getUser } f
 import { Account, Automation, DatabaseInvoice, DatabaseRecordEntry } from './utils/types';
 import EmailManager from './EmailManager';
 import { z } from 'zod';
-import { getUserLimit, isAbleToHaveVideo, isAbleToRecord } from './utils/permissions';
+import { getUserLimit, isAbleToHaveVideo, isAbleToRecord, PermissionError } from './utils/permissions';
 
 const app = express();
 
@@ -161,15 +161,15 @@ app.get('/api/v1/streamers/record/:name/:watchLive?', authentication(), async (r
         const watchLive = reqData.watchLive;
 
         if (watchLive == true && await getUserLimit(userUUID, 'watchWhileRecording') == false) {
-            return next(new Error('Not able to watch while recording! Hit Limit'));
+            return next(new PermissionError('Not able to watch while recording! Hit Limit'));
         }
 
         if (!await isAbleToRecord(userUUID)) {
-            return next(new Error('Not able to record! Hit recording limit!'));
+            return next(new PermissionError('Not able to record! Hit recording limit!'));
         }
 
         if (!await isAbleToHaveVideo(userUUID)) {
-            return next(new Error('Not able to record! Hit video limit!'));
+            return next(new PermissionError('Not able to record! Hit video limit!'));
         }
 
         const entry = new RecordEntry(userUUID, twitchUsername, undefined, watchLive);

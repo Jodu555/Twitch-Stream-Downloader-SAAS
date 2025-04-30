@@ -4,7 +4,7 @@ import { Automation } from 'src/utils/types';
 import { io } from '..';
 import { AuthenticatedRequest, authentication } from './auth';
 import { z } from 'zod';
-import { isAbleToCreateAutomation } from 'src/utils/permissions';
+import { isAbleToCreateAutomation, PermissionError } from 'src/utils/permissions';
 
 const database = Database.getDatabase();
 
@@ -33,7 +33,7 @@ router.post('/api/v1/automations', authentication(), async (req: AuthenticatedRe
         const reqData = parse.parse(req.body);
 
         if (!await isAbleToCreateAutomation(userUUID)) {
-            return next(new Error('Not able to create automation! Hit automation limit!'));
+            return next(new PermissionError('Not able to create automation! Hit automation limit!'));
         }
 
         if (reqData.linkedAccountUUID) {
