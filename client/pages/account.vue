@@ -112,13 +112,12 @@
                             <h5 class="card-title">Current Subscription</h5>
                             <div class="card-header fw-normal py-3">
                                 <h4 class="my-0"
-                                    :class="{ [getRoleColor(globalStore.auth.user?.subscription_type.toLowerCase() as PricingTableKey)]: true, }">
+                                    :class="{ [getRoleColor(globalStore.auth.user?.subscription_type!)]: true, }">
                                     {{
-                                        keyToNiceName(globalStore.auth.user?.subscription_type.toLowerCase() as
-                                            PricingTableKey) }}</h4>
+                                        keyToNiceName(globalStore.auth.user?.subscription_type!) }}</h4>
                             </div>
                             <ul class="mt-3 mb-4">
-                                <li v-for="feature in cardTable[globalStore.auth.user?.subscription_type.toLowerCase() as PricingTableKey].features"
+                                <li v-for="feature in cardTable[globalStore.auth.user?.subscription_type!].features"
                                     :key="feature">
                                     {{
                                         feature }}</li>
@@ -196,17 +195,46 @@ definePageMeta({
 import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
 const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
 
-const notificationSettings = ref([
-    { id: 'DiscountCode', enabled: true, description: 'Send a notification when there is a new Discount code' },
-    { id: 'VideoDeletion', enabled: true, description: 'Send a notification if a Video is about to be deleted' },
-    { id: 'RecordingStart', enabled: true, description: 'Send a notification when a recording is automatically started' },
-    { id: 'RecordingFinished', enabled: true, description: 'Send a notification when a recording is finished' },
-    { id: 'OpenInvoice', enabled: true, description: 'Send a notification when an Invoice is opened' },
-    { id: 'InvoiceDue', enabled: true, description: 'Send a notification when an Invoice is due' },
-]);
+interface NotificationSettings {
+    discountCode: boolean;
+    videoDeletion: boolean;
+    recordingStart: boolean;
+    recordingFinished: boolean;
+    openInvoice: boolean;
+    invoiceDue: boolean;
+}
 
+const userNotificationSettings: NotificationSettings = {
+    discountCode: true,
+    videoDeletion: true,
+    recordingStart: true,
+    recordingFinished: true,
+    openInvoice: true,
+    invoiceDue: true,
+};
 
-const userData = useUserData();
+interface NotificationObject {
+    id: keyof NotificationSettings;
+    enabled: boolean;
+    description: string;
+}
+
+const notificationSettings = computed(() => {
+    return (Object.keys(userNotificationSettings) as (keyof NotificationSettings)[]).map(x => {
+        return { id: x, enabled: userNotificationSettings[x], description: notificationDescriptionLookup[x] };
+    });
+});
+
+const notificationDescriptionLookup: Record<keyof NotificationSettings, string> = {
+    'discountCode': 'Send a notification when there is a new Discount code',
+    'videoDeletion': 'Send a notification if a Video is about to be deleted',
+    'recordingStart': 'Send a notification when a recording is automatically started',
+    'recordingFinished': 'Send a notification when a recording is finished',
+    'openInvoice': 'Send a notification when an Invoice is opened',
+    'invoiceDue': 'Send a notification when an Invoice is due',
+};
+
+const userData = computed(() => globalStore.auth.userData);
 
 const globalStore = useGlobalStore();
 
@@ -214,7 +242,7 @@ const used = computed(() => {
     return {
         recordingSlots: globalStore.streamers.length,
         videoSlots: globalStore.videos.length,
-        streamerSlots: globalStore.automations.length,
+        automationSlots: globalStore.automations.length,
     };
 });
 
@@ -238,7 +266,7 @@ const tabs = [
     { name: 'Linked Accounts', disabled: false },
 ] as { name: TabKeys, disabled: boolean; }[];
 
-const selectedTab = ref<TabKeys>('Linked Accounts');
+const selectedTab = ref<TabKeys>('Infos');
 
 
 const invoices = computed(() => globalStore.invoices);
@@ -341,7 +369,7 @@ async function renderInvoicePaypalButtons() {
 }
 
 onMounted(async () => {
-    await renderInvoicePaypalButtons();
+    renderInvoicePaypalButtons();
 });
 
 
