@@ -23,6 +23,7 @@ import { isLive } from './streamLinkHelpers';
 import { router as paypalRouter } from './router/paypal';
 import { router as automationsRouter } from './router/automations';
 import { AuthenticatedRequest, authentication, router as authRouter, getUser } from './router/auth';
+import { router as recordsRouter } from './router/records';
 import { Account, Automation, DatabaseInvoice, DatabaseRecordEntry } from './utils/types';
 import EmailManager from './EmailManager';
 import { z } from 'zod';
@@ -38,7 +39,7 @@ app.use(cors());
 app.use(paypalRouter);
 app.use(automationsRouter);
 app.use(authRouter);
-
+app.use(recordsRouter);
 const server = http.createServer(app);
 
 interface ServerToClientEvents {
@@ -138,54 +139,9 @@ app.get('/api/v1/invoices', authentication(), async (req: AuthenticatedRequest, 
     res.json(await database.get<DatabaseInvoice>('invoices').get({ userUUID }));
 });
 
-app.get('/api/v1/streamers', authentication(), async (req: AuthenticatedRequest, res) => {
-    const userUUID = req.credentials.user.UUID;
-    res.json(processes.filter(x => x.userUUID == userUUID).filter(x => x.getState() == 'RECORDING' || x.getState() == 'TRANSCODING').map(x => x.toFrontend()));
-});
-
 app.get('/api/v1/videos', authentication(), async (req: AuthenticatedRequest, res) => {
     const userUUID = req.credentials.user.UUID;
     res.json(processes.filter(x => x.userUUID == userUUID).filter(x => x.getState() == 'FINISHED').map(x => x.toFrontend()));
-});
-
-app.get('/api/v1/streamers/record/:name/:watchLive?', authentication(), async (req: AuthenticatedRequest, res, next) => {
-    try {
-        const userUUID = req.credentials.user.UUID;
-        //TODO: Check if user is allowed to record
-        const parse = z.object({
-            name: z.string(),
-            watchLive: z.boolean(),
-        });
-        const reqData = parse.parse(req.params);
-        const twitchUsername = reqData.name;
-        const watchLive = reqData.watchLive;
-
-        if (watchLive == true && await getUserLimit(userUUID, 'watchWhileRecording') == false) {
-            return next(new PermissionError('Not able to watch while recording! Hit Limit'));
-        }
-
-        if (!await isAbleToRecord(userUUID)) {
-            return next(new PermissionError('Not able to record! Hit recording limit!'));
-        }
-
-        if (!await isAbleToHaveVideo(userUUID)) {
-            return next(new PermissionError('Not able to record! Hit video limit!'));
-        }
-
-        const entry = new RecordEntry(userUUID, twitchUsername, undefined, watchLive);
-        processes.push(entry);
-        entry.onRecordingFinished(() => {
-            console.log('Recording Finished for', entry.toFrontend());
-        });
-        res.json({
-            id: entry.id,
-            twitchStreamerName: entry.twitchStreamerName,
-            watchLive,
-        });
-        entry.record();
-    } catch (error) {
-        next(error);
-    }
 });
 
 app.delete('/api/v1/videos/:id', authentication(), async (req: AuthenticatedRequest, res) => {
@@ -204,25 +160,6 @@ app.delete('/api/v1/videos/:id', authentication(), async (req: AuthenticatedRequ
     }
     await process.delete();
     res.send('Deleted');
-});
-
-app.get('/api/v1/videos/:id/transcode', authentication(), async (req: AuthenticatedRequest, res) => {
-    const userUUID = req.credentials.user.UUID;
-    const parse = z.object({
-        id: z.string(),
-    });
-    const reqData = parse.parse(req.params);
-    const process = processes.filter(x => x.userUUID == userUUID).find(x => x.id == reqData.id);
-    if (process == null) {
-        res.status(404).send('Process Not Found');
-        return;
-    }
-    if (process.getState() != 'RECORDING') {
-        res.status(404).send('Process Not in state recording');
-        return;
-    }
-    await process.callCleanup();
-    res.send('Transcoded');
 });
 
 app.get('/api/v1/streamers/image/:id', authentication(), async (req: AuthenticatedRequest, res) => {
@@ -313,6 +250,13 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
         status = 400;
         error.message = err.errors.map(x => x.message).join(', ');
         error.stack = err.errors.map(x => x.path.join('.')).join(', ');
+    }
+
+    if (err instanceof PermissionError) {
+        status = 403;
+        console.log('Permission Error:', err.message);
+        error.message = err.message;
+        error.stack = err.stack;
     }
 
     try {

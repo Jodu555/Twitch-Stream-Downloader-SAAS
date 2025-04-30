@@ -181,8 +181,12 @@ async function startRecording() {
 		id: string;
 		twitchStreamerName: string;
 		watchLive: boolean;
-	}>(`http://138.201.131.52:8081/api/v1/streamers/record/${twitchUsernameToRecord.value}/${twitchRecordWatchLive.value}`, {
-		method: 'GET',
+	}>(`http://138.201.131.52:8081/api/v1/records`, {
+		method: 'POST',
+		body: {
+			name: twitchUsernameToRecord.value,
+			watchLive: twitchRecordWatchLive.value,
+		},
 		headers: {
 			'auth-token': globalStore.auth.token
 		},

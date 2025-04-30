@@ -170,7 +170,7 @@ export const useGlobalStore = defineStore('globalStore', {
             if (!this.auth.isAuthenticated) {
                 return [];
             }
-            const response = await $fetch<Streamer[]>('http://138.201.131.52:8081/api/v1/streamers', {
+            const response = await $fetch<Streamer[]>('http://138.201.131.52:8081/api/v1/records', {
                 headers: {
                     'auth-token': this.auth.token,
                 },
