@@ -6,6 +6,7 @@ import { Database } from '@jodu555/mysqlapi';
 import { DatabaseRecordEntry } from './utils/types';
 import { io } from '.';
 import { getUserLimit } from './utils/permissions';
+import { checkAndSendNotification } from './utils/notifications';
 
 const database = Database.getDatabase();
 
@@ -89,6 +90,8 @@ class RecordEntry {
         this.notLiveAttempts = 0;
         this.outputFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
         this.createdAt = Date.now();
+        //TODO: Maybe do this only if automation UUID is present
+        checkAndSendNotification(this.userUUID, 'recordingStart');
         getUserLimit(this.userUUID, 'maxRecordingTime').then(maxRecordingTime => {
             this.maxRecordingTimeSeconds = maxRecordingTime * 60 * 60;
             this.updateRecordInDatabaseAndSockets();
@@ -435,6 +438,8 @@ class RecordEntry {
             this.state = 'FINISHED';
             this.finishedCallbacks.forEach(x => x());
             this.finishedAt = Date.now();
+
+            await checkAndSendNotification(this.userUUID, 'recordingFinished');
             await this.updateRecordInDatabaseAndSockets();
         };
         await this.updateRecordInDatabaseAndSockets();

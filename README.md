@@ -80,8 +80,8 @@ Aswell as the first videos recorded that are not deleted
 -   [x] Move all the restrictions to the server side
 -   [x] Implement the restrictions on all the endpoints
 -   [ ] Let the client pull those restrictions and act on it
--   [ ] Get the account notification settings working in the db
-    -   [ ] Work on sending those notifications
+-   [x] Get the account notification settings working in the db
+        - [x] Work on sending those notifications
 -   [x] Dynamically show the Unlock More button and if shown get them working
 -   [x] Better handle the pricing page since thechnically there is no Downgrade, is you just dont pay you downgrade to free and can then upgrade to some other plan
 -   [ ] Describe the subscription process in the explanations

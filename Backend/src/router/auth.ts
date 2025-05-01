@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import e, { Router, Request, Response, NextFunction } from 'express';
 import { Database } from '@jodu555/mysqlapi';
-import { Account, AuthToken, SniffEntry } from 'src/utils/types';
+import { Account, AuthToken, NotificationSettings, SniffEntry } from 'src/utils/types';
 import { emailManager, io } from '..';
 import { z } from 'zod';
 import bcrypt from "bcryptjs";
@@ -39,6 +39,16 @@ router.post('/api/v1/auth/register', async (req, res, next) => {
 
         if (result.length == 0) {
             registerData.password = await bcrypt.hash(registerData.password, 8);
+
+            const defaultNotificationSettings = {
+                discountCode: false,
+                videoDeletion: true,
+                recordingStart: false,
+                recordingFinished: false,
+                openInvoice: true,
+                invoiceDue: true,
+            } satisfies NotificationSettings;
+
             const user = {
                 UUID: crypto.randomUUID(),
                 email: registerData.email,
@@ -48,6 +58,8 @@ router.post('/api/v1/auth/register', async (req, res, next) => {
                 created_at: Date.now(),
                 updated_at: Date.now(),
                 subscription_type: 'FREE',
+                overrides: '{}',
+                notificationSettings: JSON.stringify(defaultNotificationSettings),
             } as Account;
             await database.get<Account>('accounts').create(user);
 
