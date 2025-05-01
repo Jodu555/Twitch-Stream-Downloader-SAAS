@@ -249,6 +249,10 @@ export function setupTables() {
             type: 'TEXT',
             null: true,
         },
+        notificationSettings: {
+            type: 'TEXT',
+            null: true,
+        }
     });
 
     database.createTable('authtokens', {

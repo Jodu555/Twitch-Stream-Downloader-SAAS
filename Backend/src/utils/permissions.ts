@@ -63,28 +63,45 @@ export async function getUserLimits(userUUID: string): Promise<LimitKeys> {
     const search = await database.get<Account>('accounts').getOne({ UUID: userUUID });
 
     let limits: LimitKeys;
-    if (search !== undefined) {
+    if (search !== undefined && typeof search.overrides === 'string') {
         limits = { ...LIMITS[search.subscription_type], ...JSON.parse(search.overrides || '{}') };
     } else {
         limits = { ...LIMITS['FREE'] };
     }
 
-
-
     return limits;
 }
-
 export async function getUserLimit<K extends keyof LimitKeys>(userUUID: string, key: K): Promise<LimitKeys[K]> {
     const limits = await getUserLimits(userUUID);
     return limits[key];
 }
 
+export async function getUserLimitsByAccount(search: Account): Promise<LimitKeys> {
 
-export async function isAbleToRecord(userUUID: string) {
+    let limits: LimitKeys;
+    if (search !== undefined) {
+        if (typeof search.overrides === 'string') {
+            limits = { ...LIMITS[search.subscription_type], ...JSON.parse(search.overrides || '{}') };
+        } else {
+            limits = { ...LIMITS[search.subscription_type], ...search.overrides };
+        }
+    } else {
+        limits = { ...LIMITS['FREE'] };
+    }
 
-    const usedSlots = processes.filter(x => x.getState() == 'RECORDING' && x.userUUID == userUUID).length;
+    return limits;
+}
 
-    const recordingSlotLimit = await getUserLimit(userUUID, 'recordingSlots');
+export async function getUserLimitByAccount<K extends keyof LimitKeys>(user: Account, key: K): Promise<LimitKeys[K]> {
+    const limits = await getUserLimitsByAccount(user);
+    return limits[key];
+}
+
+export async function isAbleToRecord(user: Account) {
+
+    const usedSlots = processes.filter(x => x.getState() == 'RECORDING' && x.userUUID == user.UUID).length;
+
+    const recordingSlotLimit = await getUserLimitByAccount(user, 'recordingSlots');
 
     if (recordingSlotLimit == -1) {
         return true;
@@ -92,10 +109,10 @@ export async function isAbleToRecord(userUUID: string) {
     return usedSlots < recordingSlotLimit;
 }
 
-export async function isAbleToHaveVideo(userUUID: string) {
-    const usedSlots = processes.filter(x => x.getState() == 'FINISHED' && x.userUUID == userUUID).length;
+export async function isAbleToHaveVideo(user: Account) {
+    const usedSlots = processes.filter(x => x.getState() == 'FINISHED' && x.userUUID == user.UUID).length;
 
-    const videoSlotLimit = await getUserLimit(userUUID, 'videoSlots');
+    const videoSlotLimit = await getUserLimitByAccount(user, 'videoSlots');
 
     if (videoSlotLimit == -1) {
         return true;
@@ -104,12 +121,12 @@ export async function isAbleToHaveVideo(userUUID: string) {
 }
 
 
-export async function isAbleToCreateAutomation(userUUID: string) {
+export async function isAbleToCreateAutomation(user: Account) {
 
-    const automations = await database.get<Automation>('automations').get({ userUUID });
+    const automations = await database.get<Automation>('automations').get({ userUUID: user.UUID });
     const usedSlots = automations.length;
 
-    const automationSlotLimit = await getUserLimit(userUUID, 'automationSlots');
+    const automationSlotLimit = await getUserLimitByAccount(user, 'automationSlots');
 
     if (automationSlotLimit == -1) {
         return true;

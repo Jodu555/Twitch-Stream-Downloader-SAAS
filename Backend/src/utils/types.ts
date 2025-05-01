@@ -1,4 +1,5 @@
 import { RecordEntryState } from 'src/RecordEntry';
+import { LimitKeys } from './permissions';
 
 export interface SniffEntry {
     twitchStreamerName: string;
@@ -51,6 +52,15 @@ export interface Email {
 
 export type SubscriptionTypes = 'FREE' | 'PREMIUM' | 'ADVANCED';
 
+export interface NotificationSettings {
+    discountCode: boolean;
+    videoDeletion: boolean;
+    recordingStart: boolean;
+    recordingFinished: boolean;
+    openInvoice: boolean;
+    invoiceDue: boolean;
+}
+
 export interface Account {
     UUID: string;
     email: string;
@@ -64,7 +74,8 @@ export interface Account {
     first_subscribed?: number;
     last_handshake?: number;
     last_login?: number;
-    overrides?: string;
+    overrides?: string | LimitKeys;
+    notificationSettings?: string | NotificationSettings;
 }
 
 export interface AuthToken {

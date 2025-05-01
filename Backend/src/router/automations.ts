@@ -22,7 +22,7 @@ router.get('/api/v1/automations', authentication(), async (req: AuthenticatedReq
 
 router.post('/api/v1/automations', authentication(), async (req: AuthenticatedRequest, res, next) => {
     try {
-        const userUUID = req.credentials.user.UUID;
+        const user = req.credentials.user;
 
         //TODO: Check if user is allowed to add entry
 
@@ -32,7 +32,7 @@ router.post('/api/v1/automations', authentication(), async (req: AuthenticatedRe
         });
         const reqData = parse.parse(req.body);
 
-        if (!await isAbleToCreateAutomation(userUUID)) {
+        if (!await isAbleToCreateAutomation(user)) {
             return next(new PermissionError('Not able to create automation! Hit automation limit!'));
         }
 
@@ -46,10 +46,10 @@ router.post('/api/v1/automations', authentication(), async (req: AuthenticatedRe
             everyxMinute: 1,
             lastCheck: Date.now() - 1000 * 60,
             twitchStreamerName: twitchStreamerName,
-            userUUID: userUUID,
+            userUUID: user.UUID,
         } satisfies Automation;
         await database.get<Automation>('automations').create(entry);
-        (await io.fetchSockets()).filter(x => x.data.user.UUID == userUUID).forEach(x => x.emit('automationUpdate', { ID: entry.ID, data: entry }));
+        (await io.fetchSockets()).filter(x => x.data.user.UUID == user.UUID).forEach(x => x.emit('automationUpdate', { ID: entry.ID, data: entry }));
 
         res.send('Created');
     } catch (error) {
