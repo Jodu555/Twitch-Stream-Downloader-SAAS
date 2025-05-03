@@ -1,8 +1,16 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
     const globalStore = useGlobalStore();
 
-    if (globalStore.auth.token == '') {
+    const authCookie = useCookie('auth-token');
+
+    if (typeof authCookie.value != 'string' || authCookie.value == '') {
         return navigateTo('/login');
+    }
+
+    if (globalStore.auth.token == '') {
+        globalStore.auth.token = authCookie.value.toString();
+        await globalStore.authenticate();
+        // return navigateTo('/login');
     }
 
     if (globalStore.auth.isAuthenticated == false) {

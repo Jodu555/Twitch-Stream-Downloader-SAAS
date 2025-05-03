@@ -32,12 +32,15 @@
                     </div>
                     <div class="col-6 shadow-sm p-4 mb-5 rounded">
                         <h3 class="text-left">Notification Settings</h3>
+                        <pre>
+                            {{ globalStore.auth.user?.notificationSettings }}
+                        </pre>
                         <div v-for="notification in notificationSettings" :key="notification.id"
                             class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" :id="notification.id"
                                 v-model="notification.enabled">
                             <label class="form-check-label" :for="notification.id">{{ notification.description
-                                }}</label>
+                            }}</label>
                         </div>
 
                     </div>

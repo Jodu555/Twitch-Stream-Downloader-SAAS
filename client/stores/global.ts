@@ -110,6 +110,16 @@ export interface Account {
     last_handshake?: number;
     last_login?: number;
     overrides?: string;
+    notificationSettings?: NotificationSettings;
+}
+
+export interface NotificationSettings {
+    discountCode: boolean;
+    videoDeletion: boolean;
+    recordingStart: boolean;
+    recordingFinished: boolean;
+    openInvoice: boolean;
+    invoiceDue: boolean;
 }
 
 export const useGlobalStore = defineStore('globalStore', {
