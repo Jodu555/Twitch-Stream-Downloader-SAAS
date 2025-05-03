@@ -91,7 +91,7 @@ class RecordEntry {
         this.outputFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
         this.createdAt = Date.now();
         //TODO: Maybe do this only if automation UUID is present
-        checkAndSendNotification(this.userUUID, 'recordingStart');
+        checkAndSendNotification(this.userUUID, 'recordingStart', { twitchStreamerName: this.twitchStreamerName });
         getUserLimit(this.userUUID, 'maxRecordingTime').then(maxRecordingTime => {
             this.maxRecordingTimeSeconds = maxRecordingTime * 60 * 60;
             this.updateRecordInDatabaseAndSockets();
@@ -439,7 +439,7 @@ class RecordEntry {
             this.finishedCallbacks.forEach(x => x());
             this.finishedAt = Date.now();
 
-            await checkAndSendNotification(this.userUUID, 'recordingFinished');
+            await checkAndSendNotification(this.userUUID, 'recordingFinished', { twitchStreamerName: this.twitchStreamerName });
             await this.updateRecordInDatabaseAndSockets();
         };
         await this.updateRecordInDatabaseAndSockets();

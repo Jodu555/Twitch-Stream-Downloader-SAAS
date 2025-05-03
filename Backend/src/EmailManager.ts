@@ -5,7 +5,27 @@ import { Email, EmailTypes } from './utils/types';
 
 const database = Database.getDatabase();
 
-type DataType<T> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } : never;
+// type EmailTypeData<K extends EmailTypes> = {
+//     [key in K]: K extends 'VERIFICATION' ? { email: string; verificationToken: string; } : K extends 'DISCOUNT' ? { discountAmount: number; discountCode: string; } : never;
+// };
+
+// type EmailTypeDataD = {
+//     VERIFICATION: { email: string; verificationToken: string; };
+//     DISCOUNT: { discountAmount: number; discountCode: string; };
+// } & Record<EmailTypes, { [key: string]: string; }>;
+
+// export type EmailTypes = 'VERIFICATION' | 'INVOICE_OPENED' | 'INVOICE_DUE' | 'DISCOUNT' | 'VIDEO_ABT_DELETED' | 'RECORDING_AUTO_STARTED' | 'RECORDING_AUTO_ENDED';
+
+// type DataType<T extends EmailTypes> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } : never;
+
+// type DataType<T> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } : never;
+
+type DataType<T> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } :
+    T extends 'DISCOUNT' ? { discountAmount: number; discountCode: string; } :
+    T extends 'VIDEO_ABT_DELETED' ? { videoName: string; } :
+    T extends 'RECORDING_AUTO_STARTED' ? { streamerName: string; } :
+    T extends 'RECORDING_AUTO_ENDED' ? { streamerName: string; } :
+    never;
 
 export default class EmailManager {
     transporter: nodemailer.Transporter;
@@ -67,9 +87,12 @@ export default class EmailManager {
         // await this.deepSendEmail(email);
     }
 
-    getEmailData(email_type: EmailTypes, data: DataType<EmailTypes>) {
-        if (email_type == 'VERIFICATION') {
+    getEmailData<T extends EmailTypes>(email_type: T, data: any) {
+        if (email_type === 'VERIFICATION') {
             return this.generateEmailVerification(data);
+        }
+        if (email_type === 'DISCOUNT') {
+            data;
         }
     }
 
