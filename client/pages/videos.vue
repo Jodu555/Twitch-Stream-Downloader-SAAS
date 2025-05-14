@@ -64,7 +64,7 @@
                     'border-success': false,
                 }">
                     <div class="card-body">
-                        <span class="text-muted">Slot {{ idx + 1 }} / {{ userData.recordingSlots }}</span>
+                        <span class="text-muted">Slot {{ idx + 1 }} / {{ userData.videoSlots }}</span>
                         <h1 class="card-title text-center" style="text-transform: capitalize;">{{
                             video.twitchStreamerName }}</h1>
                     </div>
@@ -79,7 +79,7 @@
                         </li> -->
                         <li class="list-group-item text-danger fw-bold"><b>Deletion:</b> {{
                             countdown((calcVideoDeletion(video) - timestamp) / 1000)
-                            }}</li>
+                        }}</li>
                     </ul>
                     <div class="card-body">
                         <div class="row justify-content-around">
@@ -87,7 +87,7 @@
                                 Date(video.finishedAt).toLocaleString('de') }}</span>
                             <span class="col-auto text-warning fw-bold">Video löschung: {{ new
                                 Date(calcVideoDeletion(video)).toLocaleString('de')
-                            }}</span>
+                                }}</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
                             <button class="col-7 btn btn-outline-secondary"
@@ -105,15 +105,13 @@
                         </div>
                     </div>
                 </div>
-                <template
-                    v-if="(videos?.length || 0) < userData.videoSlots && userData.recordingSlots - (videos?.length || 0) > 0">
-                    <div v-for="idx in userData.recordingSlots - (videos?.length || 0)" :key="idx"
-                        class="col-3 mb-3 card">
+                <template v-if="(videos?.length || 0) < userData.videoSlots">
+                    <div v-for="idx in userData.videoSlots - (videos?.length || 0)" :key="idx" class="col-3 mb-3 card">
                         <div class="card-body">
                             <h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{ idx +
                                 (videos?.length || 0) }} /
                                 {{
-                                    userData.recordingSlots }}</h1>
+                                    userData.videoSlots }}</h1>
                         </div>
                     </div>
                 </template>
@@ -121,7 +119,7 @@
                 <div class="col-3 mb-3 card" v-if="globalStore.auth.user?.subscription_type != 'ADVANCED'">
                     <div class="card-body">
                         <h1 class="card-title text-center" style="text-transform: capitalize;">Slot {{
-                            userData.recordingSlots }} / 🔒
+                            userData.videoSlots }} / 🔒
                         </h1>
                         <div class="mt-4 d-grid gap-2">
                             <button class="btn btn-outline-success">
