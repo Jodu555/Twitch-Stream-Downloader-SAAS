@@ -68,7 +68,8 @@
 						</div>
 					</div>
 					<template v-if="streamer.imageUrl">
-						<img :src="streamer.imageUrl" class="card-img-top py-2" alt="previewImage" />
+						<img :src="streamer.imageUrl + '&auth-token=' + globalStore.auth.token"
+							class="card-img-top py-2" alt="previewImage" />
 					</template>
 					<ClientOnly v-if="streamer.watchingLive && streamer.state == 'RECORDING'"
 						fallback="Loading video...">
