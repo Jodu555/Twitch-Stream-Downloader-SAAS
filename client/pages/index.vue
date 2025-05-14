@@ -199,7 +199,7 @@ async function startRecording() {
 }
 
 async function stopRecording(id: string) {
-	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/videos/${id}/transcode`, {
+	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/records/${id}/transcode`, {
 		method: 'GET',
 		headers: {
 			'auth-token': globalStore.auth.token

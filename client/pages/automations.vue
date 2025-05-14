@@ -64,8 +64,7 @@
                             <a :href="`https://twitch.tv/${automation.twitchStreamerName}`" target="_blank"
                                 class="col btn btn-outline-info">Kanal</a>
 
-                            <button @click="deleteAutomation(automation.twitchStreamerName)"
-                                class="col btn btn-outline-danger">
+                            <button @click="deleteAutomation(automation.ID)" class="col btn btn-outline-danger">
                                 Delete
                             </button>
                         </div>
@@ -149,9 +148,12 @@ function getLastCheck(timestamp: number | undefined, lastCheck: number, seconds:
     return parseFloat(Math.abs(num).toString()).toFixed(1);
 }
 
-async function deleteAutomation(name: string) {
-    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/sniffEntrys/${name}`, {
+async function deleteAutomation(ID: string) {
+    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/automations/${ID}`, {
         method: 'DELETE',
+        headers: {
+            'auth-token': globalStore.auth.token
+        },
     }));
 
     if (error) {
