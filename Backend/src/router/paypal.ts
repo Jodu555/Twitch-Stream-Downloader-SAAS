@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { Database } from '@jodu555/mysqlapi';
 import { ApiError, CheckoutPaymentIntent, Client, Environment, LogLevel, OrdersController, OrderStatus, PayeePaymentMethodPreference, PaypalExperienceUserAction } from '@paypal/paypal-server-sdk';
 import { DatabaseInvoice } from 'src/utils/types';
+import { z } from 'zod';
 
 const database = Database.getDatabase();
 
@@ -38,7 +39,12 @@ router.get('/api/v1/paypal/test', async (req, res) => {
 });
 
 router.post('/api/v1/paypal/captureOrder', async (req, res) => {
-    const { invoiceID, orderID } = req.body;
+    const bodyData = z.object({
+        invoiceID: z.string(),
+        orderID: z.string(),
+    });
+    const reqData = bodyData.parse(req.body);
+    const { invoiceID, orderID } = reqData;
     console.log('Cpaturing Order for invoice', invoiceID, 'with OrderID', orderID);
     if (invoiceID == null || typeof invoiceID != 'string' || invoiceID.trim().length == 0) {
         res.status(500).json({ error: 'Invoice ID is required' });
@@ -92,7 +98,11 @@ router.post('/api/v1/paypal/captureOrder', async (req, res) => {
 });
 
 router.post('/api/v1/paypal/createOrder', async (req, res) => {
-    const { invoiceID } = req.body;
+    const bodyData = z.object({
+        invoiceID: z.string(),
+    });
+    const reqData = bodyData.parse(req.body);
+    const { invoiceID } = reqData;
     console.log('Creating Order for invoice', invoiceID);
     if (invoiceID == null || typeof invoiceID != 'string' || invoiceID.trim().length == 0) {
         res.status(500).json({ error: 'Invoice ID is required' });

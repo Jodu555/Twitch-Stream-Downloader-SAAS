@@ -37,8 +37,8 @@
 
             <div class="pricing-header p-3 pb-md-4 mx-auto text-center">
                 <h1 class="display-4 fw-normal text-body-emphasis">Pricing</h1>
-                <p class="fs-5 text-body-secondary">Quickly record and download Streams at the best possible Quality
-                    completely Ad-Free and without any limits.
+                <p class="fs-5 text-body-secondary">Quickly record and Download Streams at the Best possible Quality
+                    completely Ad-Free and without any limits. No hidden fees,
                     No muted or disabled VOD's! Just Record and Download!
                 </p>
             </div>
@@ -66,11 +66,12 @@
                                         Plan</button>
                                 </template>
                                 <template v-else-if="isHigherSubscriptionType(key)">
-                                    <!-- <button type="button" disabled class="w-100 btn btn-lg btn-outline-gray">Below
-                                        current Plan</button> -->
+                                    <button type="button" class="w-100 btn btn-lg btn-outline-secondary"
+                                        @click="downgrade(key)">Downgrade</button>
                                 </template>
                                 <template v-if="!isHigherSubscriptionType(key)">
-                                    <button type="button" class="w-100 btn btn-lg btn-outline-primary">Upgrade</button>
+                                    <button type="button" class="w-100 btn btn-lg btn-outline-primary"
+                                        @click="upgrade(key)">Upgrade</button>
                                 </template>
                             </template>
                             <template v-else>
@@ -175,10 +176,10 @@ const pricingTable = usePricingTable();
 function getSub(value: string, key: string) {
     return pricingTable.value[value as SubscriptionTypes][key as keyof PricingTableObject];
 }
-onMounted(() => {
-    const nuxtApp = useNuxtApp();
-    console.log(nuxtApp);
-});
+// onMounted(() => {
+//     const nuxtApp = useNuxtApp();
+//     console.log(nuxtApp);
+// });
 
 const numMap: Record<SubscriptionTypes, number> = {
     FREE: 0,
@@ -200,8 +201,10 @@ const detailedExplanation = ref([
         Then an invoice will be generated and once the invoice is paid the plan will be activated. 
         After 25 Days a new invoice will be generated of which you will be notified via email from that you have 10 days to pay the invoice. 
         If you do not pay the invoice within 10 days then the plan will be cancelled and the invoice will be deleted. No additional fees will be charged.
-        That means i you dont want to use the service anymore you can just stop paying the invoice and the plan will be cancelled.
-        `
+        That means i you dont want to use the service anymore you can just stop paying the invoice and the plan will be cancelled. 
+        Or you could click the downgrade button on the free Tier!
+        `,
+        small: `Please keep in mind that the slots will be reset and everything that goes over your then current plan will be automatically deleted without any notice`
     },
     {
         id: 'upgrade-options',
@@ -218,8 +221,8 @@ const detailedExplanation = ref([
         title: 'Subscription Downgrade Options',
         description: `If you decide to downgrade from an already paid plan to a lower plan. The you can just click downgrade on the pricing page!
         You then can enjoy your current plan until the next invoice is generated and paid. Until the you still have access to the featues of the higher plan.
-        But keep in mind that the Slots will be reset and everything that goes over your then current plan will be automatically deleted without any notice.
-        `
+        `,
+        small: `Please keep in mind that the slots will be reset and everything that goes over your then current plan will be automatically deleted without any notice`
     },
     {
         id: 'ad-free',
@@ -274,6 +277,34 @@ const detailedExplanation = ref([
         small: 'If a video got removed that you might not have downloaded then reach out to us and we might be able to help you out!',
     }
 ]);
+
+async function upgrade(to: SubscriptionTypes) {
+    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/auth/upgrade/${to}`, {
+        method: 'GET',
+        headers: {
+            'auth-token': globalStore.auth.token
+        },
+    }));
+    if (error) {
+        console.log(error);
+        return;
+    }
+    console.log(response);
+}
+
+async function downgrade(to: SubscriptionTypes) {
+    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/auth/downgrade/${to}`, {
+        method: 'GET',
+        headers: {
+            'auth-token': globalStore.auth.token
+        },
+    }));
+    if (error) {
+        console.log(error);
+        return;
+    }
+    console.log(response);
+}
 
 </script>
 

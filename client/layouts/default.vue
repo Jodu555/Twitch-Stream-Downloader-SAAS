@@ -145,7 +145,7 @@ async function fetchAll(once: boolean = false) {
 	}
 }
 
-fetchAll(true);
+await fetchAll(true);
 
 // await callOnce(globalStore.fetchStreamers);
 // await callOnce(globalStore.fetchSniffEntrys);

@@ -11,11 +11,11 @@ export interface SniffEntry {
 export interface DatabaseInvoice {
     ID: string;
     userUUID: string;
-    paypalOrderID: string;
+    paypalOrderID?: string;
     amount: number;
     status: 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED';
     createdAt: number;
-    paidAt: number;
+    paidAt?: number;
 }
 
 export interface DatabaseRecordEntry {

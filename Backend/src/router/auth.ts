@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import e, { Router, Request, Response, NextFunction } from 'express';
 import { Database } from '@jodu555/mysqlapi';
-import { Account, AuthToken, NotificationSettings, SniffEntry } from 'src/utils/types';
+import { Account, AuthToken, DatabaseInvoice, NotificationSettings, SniffEntry, SubscriptionTypes } from 'src/utils/types';
 import { emailManager, io } from '..';
 import { z } from 'zod';
 import bcrypt from "bcryptjs";
@@ -138,6 +138,62 @@ router.get('/api/v1/auth/logout', authentication(), async (req: AuthenticatedReq
 router.get('/api/v1/auth/info', authentication(), async (req: AuthenticatedRequest, res, next) => {
     try {
         await database.get<Account>('accounts').update({ UUID: req.credentials?.user.UUID }, { last_handshake: Date.now() });
+        res.json(req.credentials.user);
+    } catch (error) {
+        next(error);
+    }
+});
+
+const numMap: Record<SubscriptionTypes, number> = {
+    FREE: 0,
+    PREMIUM: 1,
+    ADVANCED: 2,
+};
+
+const priceMap: Record<SubscriptionTypes, number> = {
+    FREE: 0,
+    PREMIUM: 10,
+    ADVANCED: 25,
+};
+
+const planEnum = z.enum(['FREE', 'PREMIUM', 'ADVANCED']);
+
+router.get('/api/v1/auth/upgrade/:type', authentication(), async (req: AuthenticatedRequest, res, next) => {
+    try {
+        const type = planEnum.parse(req.params.type);
+
+        const user = req.credentials.user;
+
+        if (user.status == 'EMAIL_VERIFY_PENDING') {
+            next(new Error('Please verify your email first!'));
+            return;
+        }
+
+        if (type == 'FREE') {
+            next(new Error('Cannot upgrade to a non paid plan!'));
+            return;
+        }
+
+        if (user.subscription_type == type) {
+            next(new Error('You are already on this plan!'));
+            return;
+        }
+
+        if (numMap[type] < numMap[user.subscription_type]) {
+            next(new Error('You cannot upgrade to a lower plan!'));
+            return;
+        }
+
+        const invoice = {
+            ID: crypto.randomUUID(),
+            userUUID: user.UUID,
+            amount: priceMap[type],
+            status: 'UNPAID',
+            createdAt: Date.now(),
+        } satisfies DatabaseInvoice;
+
+        await database.get<DatabaseInvoice>('invoices').create(invoice);
+
         res.json(req.credentials.user);
     } catch (error) {
         next(error);
