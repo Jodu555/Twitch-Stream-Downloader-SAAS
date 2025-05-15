@@ -66,12 +66,24 @@
                                         Plan</button>
                                 </template>
                                 <template v-else-if="isHigherSubscriptionType(key)">
-                                    <button type="button" class="w-100 btn btn-lg btn-outline-secondary"
+                                    <button v-if="!actionLoading" type="button"
+                                        class="w-100 btn btn-lg btn-outline-secondary"
                                         @click="downgrade(key)">Downgrade</button>
+                                    <button v-else type="button" class="w-100 btn btn-lg btn-outline-secondary"
+                                        disabled><span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Loading......
+                                    </button>
                                 </template>
                                 <template v-if="!isHigherSubscriptionType(key)">
-                                    <button type="button" class="w-100 btn btn-lg btn-outline-primary"
+                                    <button v-if="!actionLoading" type="button"
+                                        class="w-100 btn btn-lg btn-outline-primary"
                                         @click="upgrade(key)">Upgrade</button>
+                                    <button v-else type="button" class="w-100 btn btn-lg btn-outline-primary"
+                                        disabled><span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Loading......
+                                    </button>
                                 </template>
                             </template>
                             <template v-else>
@@ -168,6 +180,8 @@
 <script lang="ts" setup>
 
 import { cardTable, keyToNiceName, limitationToNiceName, type SubscriptionTypes, type PricingTableObject } from '~/utils/pricing';
+
+const actionLoading = ref(false);
 
 const globalStore = useGlobalStore();
 
@@ -279,6 +293,7 @@ const detailedExplanation = ref([
 ]);
 
 async function upgrade(to: SubscriptionTypes) {
+    actionLoading.value = true;
     const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/auth/upgrade/${to}`, {
         method: 'GET',
         headers: {
@@ -293,6 +308,7 @@ async function upgrade(to: SubscriptionTypes) {
 }
 
 async function downgrade(to: SubscriptionTypes) {
+    actionLoading.value = true;
     const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/auth/downgrade/${to}`, {
         method: 'GET',
         headers: {
