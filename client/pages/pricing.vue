@@ -16,7 +16,7 @@
         </svg>
 
         <header>
-            <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
+            <!-- <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
                 <a href="/" class="d-flex align-items-center link-body-emphasis text-decoration-none">
                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="32" class="me-2" viewBox="0 0 118 94"
                         role="img">
@@ -33,7 +33,7 @@
                     <a class="me-3 py-2 link-body-emphasis text-decoration-none" href="#">Pricing</a>
                     <a class="me-3 py-2 link-body-emphasis text-decoration-none" href="#">FAQ</a>
                 </nav>
-            </div>
+            </div> -->
 
             <div class="pricing-header p-3 pb-md-4 mx-auto text-center">
                 <h1 class="display-4 fw-normal text-body-emphasis">Pricing</h1>
@@ -55,7 +55,7 @@
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key].price
-                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key].features" :key="feature">{{
                                     feature }}</li>
@@ -101,7 +101,7 @@
                             <tr v-for="key in Object.keys(pricingTable['FREE'])" :key="key">
                                 <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof
                                     PricingTableObject)
-                                    }}
+                                }}
                                 </th>
                                 <td v-for="value in Object.keys(pricingTable)" :key="value">
                                     <template v-if="getSub(value, key) === true">
@@ -193,6 +193,25 @@ function isHigherSubscriptionType(type: SubscriptionTypes) {
 const expanded = ref('');
 
 const detailedExplanation = ref([
+    {
+        id: 'subscription-prepaid',
+        title: 'Prepaid Subscription',
+        description: ` If you decide to subscribe to a plan. 
+        Then an invoice will be generated and once the invoice is paid the plan will be activated. 
+        After 25 Days a new invoice will be generated of which you will be notified via email from that you have 10 days to pay the invoice. 
+        If you do not pay the invoice within 10 days then the plan will be cancelled and the invoice will be deleted. No additional fees will be charged.
+        That means i you dont want to use the service anymore you can just stop paying the invoice and the plan will be cancelled.
+        `
+    },
+    {
+        id: 'upgrade-options',
+        title: 'Subscription Upgrade Options',
+        description: `If you decide to upgrade from an already paid plan to a higher plan. The you can just click update!
+        Since I' am very grateful for your support I will not charge you until your current plan would have expired. 
+        This means if you had 20 Days Left on your premium plan and decided to upgrade to the advanced plan. 
+        Then you can enjoy the advanced plan for 20 Days without paying anything. After that you will as usual get an invoice for the next month at the full price of the new plan.
+        `
+    },
     {
         id: 'ad-free',
         title: 'Ad-Free',
