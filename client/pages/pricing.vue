@@ -206,10 +206,19 @@ const detailedExplanation = ref([
     {
         id: 'upgrade-options',
         title: 'Subscription Upgrade Options',
-        description: `If you decide to upgrade from an already paid plan to a higher plan. The you can just click update!
-        Since I' am very grateful for your support I will not charge you until your current plan would have expired. 
+        description: `If you decide to upgrade from an already paid plan to a higher plan. The you can just click update on the pricing page!
+        Since I' am very grateful for your support I decided that I will not charge you until your current plan would have expired. 
         This means if you had 20 Days Left on your premium plan and decided to upgrade to the advanced plan. 
-        Then you can enjoy the advanced plan for 20 Days without paying anything. After that you will as usual get an invoice for the next month at the full price of the new plan.
+        Then you can enjoy the advanced plan for 20 Days without paying anything for It!
+        After that you will as usual get an invoice for the next month at the full price of the new plan.
+        `
+    },
+    {
+        id: 'downgrade-options',
+        title: 'Subscription Downgrade Options',
+        description: `If you decide to downgrade from an already paid plan to a lower plan. The you can just click downgrade on the pricing page!
+        You then can enjoy your current plan until the next invoice is generated and paid. Until the you still have access to the featues of the higher plan.
+        But keep in mind that the Slots will be reset and everything that goes over your then current plan will be automatically deleted without any notice.
         `
     },
     {
@@ -261,8 +270,8 @@ const detailedExplanation = ref([
     {
         id: 'video-retention',
         title: 'Video Retention',
-        description: `Videos will be deleted after x days. If a video got deleted by the video Retention then there is a change that it still exists`,
-        small: 'If a video got removed that you might not have downloaded then reach out to us and we might be able to help yout!',
+        description: `Videos will be deleted after x days. If a video got deleted by the video Retention then there is a chance that it still exists`,
+        small: 'If a video got removed that you might not have downloaded then reach out to us and we might be able to help you out!',
     }
 ]);
 
