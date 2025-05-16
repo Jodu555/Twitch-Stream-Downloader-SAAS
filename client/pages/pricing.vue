@@ -55,7 +55,7 @@
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key].price
-                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key].features" :key="feature">{{
                                     feature }}</li>
@@ -114,7 +114,7 @@
                             <tr v-for="key in Object.keys(pricingTable['FREE'])" :key="key">
                                 <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof
                                     PricingTableObject)
-                                }}
+                                    }}
                                 </th>
                                 <td v-for="value in Object.keys(pricingTable)" :key="value">
                                     <template v-if="getSub(value, key) === true">
@@ -304,7 +304,8 @@ async function upgrade(to: SubscriptionTypes) {
         console.log(error);
         return;
     }
-    console.log(response);
+    await globalStore.fetchInvoices();
+    navigateTo('/account/?tab=Invoices');
 }
 
 async function downgrade(to: SubscriptionTypes) {

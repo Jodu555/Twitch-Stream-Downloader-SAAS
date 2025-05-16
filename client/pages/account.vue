@@ -47,16 +47,16 @@
                 </div>
             </div>
             <div class="tab-pane fade" :class="{ active: selectedTab == 'Invoices', show: selectedTab == 'Invoices' }">
-                <pre>
+                <!-- <pre>
                     {{ { status, error } }}
                 </pre>
                 <div class="d-grid gap-2">
                     <button type="button" @click="refresh()" class="btn btn-outline-primary">
                         Refresh
                     </button>
-                </div>
+                </div> -->
 
-                <h2 class="text-center mt-3">Invoices</h2>
+                <h2 class="text-center mt-3 mb-2">Invoices</h2>
                 <div class="table-responsive-lg">
                     <table class="table align-middle">
                         <thead>
@@ -71,7 +71,7 @@
                         <tbody class="table-group-divider">
                             <tr v-for="invoice in sortedInvoices" :id="invoice.ID"
                                 :class="{ 'table-danger': invoice.status == 'UNPAID' }">
-                                <th scope="row">{{ invoice.ID }}</th>
+                                <th scope="row">{{ invoice.ID.split('-')[0] }}</th>
                                 <td>{{ new Date(invoice.createdAt).toLocaleString('de') }}</td>
                                 <td style="text-transform: capitalize;">{{ invoice.status }}</td>
                                 <td :class="{ 'text-danger': invoice.status == 'UNPAID' }">{{ invoice.amount }}€</td>
@@ -190,6 +190,8 @@
 
 <script lang="ts" setup>
 
+const route = useRoute();
+
 definePageMeta({
     middleware: 'auth'
 });
@@ -269,7 +271,29 @@ const tabs = [
     { name: 'Linked Accounts', disabled: false },
 ] as { name: TabKeys, disabled: boolean; }[];
 
-const selectedTab = ref<TabKeys>('Infos');
+
+let queryTab = route.query?.tab?.toString();
+
+const found = tabs.map(x => x.name.toLowerCase()).find(x => x.includes(queryTab as any));
+if (found !== undefined) {
+    const actualName = tabs.find(x => x.name.toLowerCase() == found)?.name;
+    console.log(actualName);
+    route.query.tab = actualName as string;
+    queryTab = actualName;
+}
+
+const selectedTab = ref<TabKeys>(queryTab == undefined ? 'Infos' : (queryTab as TabKeys));
+
+watch(selectedTab, (newValue) => {
+    useRouter().push({
+        query: {
+            ...route.query,
+            tab: newValue,
+        }
+    });
+});
+
+
 
 
 const invoices = computed(() => globalStore.invoices);
@@ -323,6 +347,7 @@ async function renderInvoicePaypalButtons() {
 
                     if (response.status == 'PAID') {
                         refresh();
+                        await globalStore.authenticate();
                     }
                 },
                 onCancel(data) {
