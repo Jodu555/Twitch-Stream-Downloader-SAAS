@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { Database } from '@jodu555/mysqlapi';
 import { ApiError, CheckoutPaymentIntent, Client, Environment, LogLevel, OrdersController, OrderStatus, PayeePaymentMethodPreference, PaypalExperienceUserAction } from '@paypal/paypal-server-sdk';
-import { DatabaseInvoice } from 'src/utils/types';
+import { Account, DatabaseInvoice, SubscriptionTypes } from 'src/utils/types';
 import { z } from 'zod';
 
 const database = Database.getDatabase();
@@ -85,6 +85,17 @@ router.post('/api/v1/paypal/captureOrder', async (req, res) => {
             status: 'PAID',
             paidAt: Date.now(),
         });
+
+        console.log('Invoice paid', invoiceID, invoice);
+
+        const [invoiceActionIntent, invoiceActionData] = invoice.action.split(':');
+
+        console.log('Invoice action intent', { invoiceActionIntent, invoiceActionData });
+
+        if (invoiceActionIntent == 'setRank') {
+            await database.get<Account>('accounts').update({ UUID: invoice.userUUID }, { subscription_type: invoiceActionData as SubscriptionTypes });
+        }
+
         res.json({ status: 'PAID' });
         return;
     } else if (order.status == OrderStatus.PayerActionRequired || order.status == OrderStatus.Voided || order.status == OrderStatus.Created) {

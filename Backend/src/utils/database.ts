@@ -65,6 +65,10 @@ export function setupTables() {
             type: 'varchar(32)',
             null: false,
         },
+        action: {
+            type: 'varchar(64)',
+            null: false,
+        },
         createdAt: {
             type: 'BIGINT',
             null: false,

@@ -14,6 +14,7 @@ export interface DatabaseInvoice {
     paypalOrderID?: string;
     amount: number;
     status: 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED';
+    action: string;
     createdAt: number;
     paidAt?: number;
 }

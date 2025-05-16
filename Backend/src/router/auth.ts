@@ -184,15 +184,59 @@ router.get('/api/v1/auth/upgrade/:type', authentication(), async (req: Authentic
             return;
         }
 
-        const invoice = {
-            ID: crypto.randomUUID(),
-            userUUID: user.UUID,
-            amount: priceMap[type],
-            status: 'UNPAID',
-            createdAt: Date.now(),
-        } satisfies DatabaseInvoice;
+        if (user.subscription_type == 'FREE') {
+            //If User is on free plan, create an invoice for the first time and wait for payment before upgrading
+            const invoice = {
+                ID: crypto.randomUUID(),
+                userUUID: user.UUID,
+                amount: priceMap[type],
+                status: 'UNPAID',
+                action: 'setRank:' + type,
+                createdAt: Date.now(),
+            } satisfies DatabaseInvoice;
 
-        await database.get<DatabaseInvoice>('invoices').create(invoice);
+            await database.get<DatabaseInvoice>('invoices').create(invoice);
+        } else {
+            //If User is on a paid plan, upgrade to the new plan immediately new invoice will be generated after the current plan ends
+            await database.get<Account>('accounts').update({ UUID: user.UUID }, { subscription_type: type, first_subscribed: Date.now() });
+        }
+
+
+        res.json(req.credentials.user);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/api/v1/auth/downgrade/:type', authentication(), async (req: AuthenticatedRequest, res, next) => {
+    try {
+        const type = planEnum.parse(req.params.type);
+
+        const user = req.credentials.user;
+
+        if (user.status == 'EMAIL_VERIFY_PENDING') {
+            next(new Error('Please verify your email first!'));
+            return;
+        }
+
+        if (user.subscription_type == 'FREE') {
+            next(new Error('Cannot Downgrade from free!'));
+            return;
+        }
+
+        if (user.subscription_type == type) {
+            next(new Error('You are already on this plan!'));
+            return;
+        }
+
+        if (numMap[type] > numMap[user.subscription_type]) {
+            next(new Error('You cannot downgrade to a higher plan!'));
+            return;
+        }
+
+        //TODO: Downgrade to type after the current plan ends
+
+        // await database.get<Account>('accounts').update({ UUID: user.UUID }, { subscription_type: type });
 
         res.json(req.credentials.user);
     } catch (error) {
