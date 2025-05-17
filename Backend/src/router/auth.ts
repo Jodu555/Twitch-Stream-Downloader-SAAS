@@ -150,7 +150,7 @@ const numMap: Record<SubscriptionTypes, number> = {
     ADVANCED: 2,
 };
 
-const priceMap: Record<SubscriptionTypes, number> = {
+export const priceMap: Record<SubscriptionTypes, number> = {
     FREE: 0,
     PREMIUM: 10,
     ADVANCED: 25,

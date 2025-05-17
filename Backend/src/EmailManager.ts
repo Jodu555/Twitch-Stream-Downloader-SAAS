@@ -21,112 +21,112 @@ const database = Database.getDatabase();
 // type DataType<T> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } : never;
 
 type DataType<T> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } :
-    T extends 'DISCOUNT' ? { discountAmount: number; discountCode: string; } :
-    T extends 'VIDEO_ABT_DELETED' ? { videoName: string; } :
-    T extends 'RECORDING_AUTO_STARTED' ? { streamerName: string; } :
-    T extends 'RECORDING_AUTO_ENDED' ? { streamerName: string; } :
-    never;
+  T extends 'DISCOUNT' ? { discountAmount: number; discountCode: string; } :
+  T extends 'VIDEO_ABT_DELETED' ? { videoName: string; } :
+  T extends 'RECORDING_AUTO_STARTED' ? { streamerName: string; } :
+  T extends 'RECORDING_AUTO_ENDED' ? { streamerName: string; } :
+  undefined;
 
 export default class EmailManager {
-    transporter: nodemailer.Transporter;
-    ready: boolean = false;
-    constructor() {
-        // const config = {
-        //     service: 'gmail',
-        //     host: process.env.MAIL_APP_HOST,
-        //     port: parseInt(process.env.MAIL_APP_PORT),
-        //     secure: true,
-        //     auth: {
-        //         user: process.env.MAIL_APP_MAIL,
-        //         pass: process.env.MAIL_APP_PASSWORD,
-        //     },
-        // };
-        // console.log(config);
+  transporter: nodemailer.Transporter;
+  ready: boolean = false;
+  constructor() {
+    // const config = {
+    //     service: 'gmail',
+    //     host: process.env.MAIL_APP_HOST,
+    //     port: parseInt(process.env.MAIL_APP_PORT),
+    //     secure: true,
+    //     auth: {
+    //         user: process.env.MAIL_APP_MAIL,
+    //         pass: process.env.MAIL_APP_PASSWORD,
+    //     },
+    // };
+    // console.log(config);
 
-        // this.transporter = nodemailer.createTransport(config);
+    // this.transporter = nodemailer.createTransport(config);
 
-        // this.transporter.verify(function (error, success) {
-        //     console.log({ error, success });
+    // this.transporter.verify(function (error, success) {
+    //     console.log({ error, success });
 
-        //     if (error) {
-        //         console.log('Error verifying email transporter:', error);
-        //     }
-        //     if (success) {
-        //         console.log('Email transporter is ready');
-        //         this.ready = true;
-        //     }
-        // });
+    //     if (error) {
+    //         console.log('Error verifying email transporter:', error);
+    //     }
+    //     if (success) {
+    //         console.log('Email transporter is ready');
+    //         this.ready = true;
+    //     }
+    // });
+  }
+
+  async processEmails() {
+    const emails = await database.get<Email>('emails').get({ status: 'PENDING' });
+    for (const email of emails) {
+      if (email.status == 'PENDING') {
+        await this.deepSendEmail(email);
+      }
     }
+  }
 
-    async processEmails() {
-        const emails = await database.get<Email>('emails').get({ status: 'PENDING' });
-        for (const email of emails) {
-            if (email.status == 'PENDING') {
-                await this.deepSendEmail(email);
-            }
-        }
+
+  async sendEmail<T extends EmailTypes>(userUUID: string, email_type: T, data: DataType<T>) {
+    const obj = this.getEmailData(email_type, data);
+
+    const email: Email = {
+      ID: crypto.randomUUID(),
+      userUUID,
+      email_type,
+      status: 'PENDING',
+      data: JSON.stringify(data),
+      sent_at: null,
+      created_at: Date.now(),
+      ...obj,
+    } satisfies Email;
+
+    database.get<Email>('emails').create(email);
+
+    // await this.deepSendEmail(email);
+  }
+
+  getEmailData<T extends EmailTypes>(email_type: T, data: any) {
+    if (email_type === 'VERIFICATION') {
+      return this.generateEmailVerification(data);
     }
-
-
-    async sendEmail<T extends EmailTypes>(userUUID: string, email_type: T, data: DataType<T>) {
-        const obj = this.getEmailData(email_type, data);
-
-        const email: Email = {
-            ID: crypto.randomUUID(),
-            userUUID,
-            email_type,
-            status: 'PENDING',
-            data: JSON.stringify(data),
-            sent_at: null,
-            created_at: Date.now(),
-            ...obj,
-        } satisfies Email;
-
-        database.get<Email>('emails').create(email);
-
-        // await this.deepSendEmail(email);
+    if (email_type === 'DISCOUNT') {
+      data;
     }
+  }
 
-    getEmailData<T extends EmailTypes>(email_type: T, data: any) {
-        if (email_type === 'VERIFICATION') {
-            return this.generateEmailVerification(data);
-        }
-        if (email_type === 'DISCOUNT') {
-            data;
-        }
+  private async deepSendEmail(email: Email) {
+    if (!this.ready) {
+      console.log('Email transporter not ready for', email);
+      return;
     }
+    const data = JSON.parse(email.data);
 
-    private async deepSendEmail(email: Email) {
-        if (!this.ready) {
-            console.log('Email transporter not ready for', email);
-            return;
-        }
-        const data = JSON.parse(email.data);
+    // this.transporter.sendMail(
+    //     {
+    //         from: process.env.MAIL_APP_MAIL,
+    //         to: 'Jodu505@gmail.com',
+    //         ...obj,
+    //     },
+    //     function (error, info) {
+    //         if (error) {
+    //             console.log(error);
+    //             return;
+    //         } else {
+    //             console.log('Email sent: ' + info);
+    //             email.sent_at = Date.now();
+    //             email.status = 'SENT';
+    //             database.get<Email>('emails').update({ ID: email.ID }, email);
+    //         }
+    //     }
+    // );
+  }
 
-        // this.transporter.sendMail(
-        //     {
-        //         from: process.env.MAIL_APP_MAIL,
-        //         to: 'Jodu505@gmail.com',
-        //         ...obj,
-        //     },
-        //     function (error, info) {
-        //         if (error) {
-        //             console.log(error);
-        //             return;
-        //         } else {
-        //             console.log('Email sent: ' + info);
-        //             email.sent_at = Date.now();
-        //             email.status = 'SENT';
-        //             database.get<Email>('emails').update({ ID: email.ID }, email);
-        //         }
-        //     }
-        // );
-    }
+  generateEmailVerification(data: DataType<'VERIFICATION'>) {
+    const { email, verificationToken } = data;
 
-    generateEmailVerification(data: DataType<'VERIFICATION'>) {
-        const { email, verificationToken } = data;
-
-        const html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
           <html lang="en">
           <head>
             <meta charset="UTF-8">
@@ -217,7 +217,7 @@ export default class EmailManager {
           </body>
           </html>`;
 
-        const text = `
+    const text = `
           Hello ${email},
           
           Thank you for signing up! To complete your registration, please input the following code on the registration page:
@@ -232,6 +232,6 @@ export default class EmailManager {
           The TwitchStreamRecorder App
         `;
 
-        return { subject: 'Email Verification', html, text };
-    }
+    return { subject: 'Email Verification', html, text };
+  }
 }
