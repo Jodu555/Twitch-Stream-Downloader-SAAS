@@ -436,11 +436,10 @@ class RecordEntry {
                 console.log('Error on deleting the tmp video files', error);
             }
             this.state = 'FINISHED';
-            this.finishedCallbacks.forEach(x => x());
             this.finishedAt = Date.now();
-
             await checkAndSendNotification(this.userUUID, 'recordingFinished', { twitchStreamerName: this.twitchStreamerName });
             await this.updateRecordInDatabaseAndSockets();
+            this.finishedCallbacks.forEach(x => x());
         };
         await this.updateRecordInDatabaseAndSockets();
 

@@ -16,7 +16,7 @@ export interface LimitKeys {
     videoRetentionDays: number;
 }
 
-const LIMITS: Record<SubscriptionTypes, LimitKeys> = {
+export const LIMITS: Record<SubscriptionTypes, LimitKeys> = {
     FREE: {
         adFree: true,
         watchWhileRecording: false,

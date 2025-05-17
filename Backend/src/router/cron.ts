@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { Account, DatabaseInvoice } from '../utils/types';
 import { getUserLimitByAccount } from '../utils/permissions';
 import { emailManager, processes } from '..';
-import { priceMap } from './auth';
+import { priceMap, resetAccountToTier } from './auth';
 
 const database = Database.getDatabase();
 
@@ -60,15 +60,15 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
             }
         }
 
-        const accountsVerifyPending = await database.get<Account>('accounts').get({ status: 'EMAIL_VERIFY_PENDING' });
-        for (const account of accountsVerifyPending) {
-            const daysNoEmailVerify = 2;
-            if (account.created_at + toDays(daysNoEmailVerify) < Date.now()) {
-                // await database.get<Account>('accounts').delete({ UUID: account.UUID });
-                // await database.get('emails').delete({ userUUID: account.UUID, email_type: 'VERIFICATION' });
-                //TODO: Delete the user from the server / disk with emails automations recordEntries etc
-            }
-        }
+        // const accountsVerifyPending = await database.get<Account>('accounts').get({ status: 'EMAIL_VERIFY_PENDING' });
+        // for (const account of accountsVerifyPending) {
+        //     const daysNoEmailVerify = 2;
+        //     if (account.created_at + toDays(daysNoEmailVerify) < Date.now()) {
+        //         // await database.get<Account>('accounts').delete({ UUID: account.UUID });
+        //         // await database.get('emails').delete({ userUUID: account.UUID, email_type: 'VERIFICATION' });
+        //         //TODO: Delete the user from the server / disk with emails automations recordEntries etc
+        //     }
+        // }
 
         const accounts = await database.get<Account>('accounts').get({ status: 'VERIFIED' });
         for (const account of accounts) {
@@ -96,7 +96,7 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
             }
 
             if (account.last_renewed + toDays(35) <= Date.now() && invoices.length > 0) {
-                //TODO: Reset the account back to the free plan
+                resetAccountToTier(account.UUID, 'FREE');
             }
 
 

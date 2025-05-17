@@ -1,12 +1,12 @@
 import { RecordEntryState } from 'src/RecordEntry';
 import { LimitKeys } from './permissions';
 
-export interface SniffEntry {
-    twitchStreamerName: string;
-    everyxMinute: number;
-    userUUID: string;
-    lastCheck: number;
-}
+// export interface SniffEntry {
+//     twitchStreamerName: string;
+//     everyxMinute: number;
+//     userUUID: string;
+//     lastCheck: number;
+// }
 
 export interface DatabaseInvoice {
     ID: string;

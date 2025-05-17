@@ -1,10 +1,11 @@
 import crypto from 'crypto';
 import e, { Router, Request, Response, NextFunction } from 'express';
 import { Database } from '@jodu555/mysqlapi';
-import { Account, AuthToken, DatabaseInvoice, NotificationSettings, SniffEntry, SubscriptionTypes } from 'src/utils/types';
-import { emailManager, io } from '..';
+import { Account, AuthToken, Automation, DatabaseInvoice, NotificationSettings, SubscriptionTypes } from 'src/utils/types';
+import { emailManager, io, processes } from '..';
 import { z } from 'zod';
 import bcrypt from "bcryptjs";
+import { getUserLimitByAccount, LIMITS } from 'src/utils/permissions';
 
 const database = Database.getDatabase();
 
@@ -292,4 +293,53 @@ export function authenticationFull(cb: (user: Account) => boolean) {
             next(new Error('Missing auth-token in headers'));
         }
     };
+}
+
+export async function resetAccountToTier(userUUID: string, tier: SubscriptionTypes) {
+    //TODO: Reset the account to the below tier includes remove overflowing data
+
+    const user = await database.get<Account>('accounts').getOne({ UUID: userUUID });
+
+    if (user) {
+        await database.get<Account>('accounts').update({ UUID: user.UUID }, { subscription_type: tier, first_subscribed: Date.now() });
+
+        const freeLimits = LIMITS[tier];
+
+        const automations = await database.get<Automation>('automations').get({ userUUID });
+        const toDeleteAutomations = getWhatToDeleteByNumber(automations, freeLimits.automationSlots);
+        for await (const automation of toDeleteAutomations) {
+            console.log('Not in free tier anymore, deleting automation', freeLimits.automationSlots, automation.ID);
+            await database.get<Automation>('automations').delete({ ID: automation.ID });
+        }
+
+        const records = processes.filter(x => x.userUUID == user.UUID && x.getState() == 'RECORDING' || x.getState() == 'TRANSCODING');
+        const toStopRecords = getWhatToDeleteByNumber(records, freeLimits.recordingSlots);
+        for await (const record of toStopRecords) {
+            console.log('Not in free tier anymore, deleting video', freeLimits.videoSlots, record.id);
+            if (record.getState() == 'RECORDING') {
+                await record.stopRecordAndTranscode();
+                await new Promise<void>(resolve => {
+                    record.onRecordingFinished(resolve);
+                });
+                await record.delete();
+            }
+        }
+
+        const videos = processes.filter(x => x.userUUID == user.UUID && x.getState() == 'FINISHED');
+        const toDeleteVideos = getWhatToDeleteByNumber(videos, freeLimits.videoSlots);
+        for await (const video of toDeleteVideos) {
+            console.log('Not in free tier anymore, deleting video', freeLimits.videoSlots, video.ID);
+            await video.delete();
+        }
+    }
+}
+
+function getWhatToDeleteByNumber<T>(array: T[], number: number) {
+    const toDelete = [];
+    for (let i = 0; i < array.length; i++) {
+        if (i >= number) {
+            toDelete.push(array[i]);
+        }
+    }
+    return toDelete;
 }
