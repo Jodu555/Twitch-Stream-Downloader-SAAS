@@ -79,7 +79,7 @@
                         </li> -->
                         <li class="list-group-item text-danger fw-bold"><b>Deletion:</b> {{
                             countdown((calcVideoDeletion(video) - timestamp) / 1000)
-                        }}</li>
+                            }}</li>
                     </ul>
                     <div class="card-body">
                         <div class="row justify-content-around">
@@ -87,7 +87,7 @@
                                 Date(video.finishedAt).toLocaleString('de') }}</span>
                             <span class="col-auto text-warning fw-bold">Video löschung: {{ new
                                 Date(calcVideoDeletion(video)).toLocaleString('de')
-                                }}</span>
+                            }}</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
                             <button class="col-7 btn btn-outline-secondary"
@@ -95,7 +95,8 @@
                             <span class="col-4 text-info-emphasis text-center align-middle">Coming Soon</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
-                            <button class="col-6 btn btn-outline-success">Herunterladen</button>
+                            <a :href="`http://138.201.131.52:8081/api/v1/video${video.id}?auth-token=${globalStore.auth.token}`"
+                                download class="col-6 btn btn-outline-success">Herunterladen</a>
                             <button @click="deleteVideo(video.id)" class="col-4 btn btn-outline-danger">
                                 Löschen
                             </button>

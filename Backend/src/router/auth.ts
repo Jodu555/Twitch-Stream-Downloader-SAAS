@@ -5,7 +5,7 @@ import { Account, AuthToken, Automation, DatabaseInvoice, NotificationSettings, 
 import { emailManager, io, processes } from '..';
 import { z } from 'zod';
 import bcrypt from "bcryptjs";
-import { getUserLimitByAccount, LIMITS } from 'src/utils/permissions';
+import { LIMITS } from '../utils/permissions';
 
 const database = Database.getDatabase();
 

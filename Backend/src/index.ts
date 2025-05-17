@@ -141,6 +141,37 @@ app.get('/api/v1/invoices', authentication(), async (req: AuthenticatedRequest, 
     res.json(await database.get<DatabaseInvoice>('invoices').get({ userUUID }));
 });
 
+app.get('/api/v1/video/:id', authentication(), async (req: AuthenticatedRequest, res, next) => {
+    try {
+        const { id } = z.object({ id: z.string() }).parse(req.params);
+
+        const userUUID = req.credentials.user.UUID;
+
+        const video = processes.find(x => x.id == id && x.userUUID == userUUID);
+
+        if (video == null) {
+            res.status(404).send('Video not found');
+            return;
+        }
+
+        if (video.getState() !== 'FINISHED') {
+            res.status(404).send('Video not finished');
+            return;
+        }
+
+        if (fs.existsSync(video.outputFilePath) === false) {
+            res.status(404).send('Video not found on disk');
+            return;
+        }
+
+        res.sendFile(video.outputFilePath);
+
+    } catch (error) {
+        console.log('Error:', error);
+        next(error);
+    }
+});
+
 app.get('/api/v1/videos', authentication(), async (req: AuthenticatedRequest, res) => {
     const userUUID = req.credentials.user.UUID;
     res.json(processes.filter(x => x.userUUID == userUUID).filter(x => x.getState() == 'FINISHED').map(x => x.toFrontend()));
