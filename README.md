@@ -85,6 +85,10 @@ Aswell as the first videos recorded that are not deleted
         - [x] Work on sending those notifications
 -   [x] Dynamically show the Unlock More button and if shown get them working
 -   [x] Better handle the pricing page since thechnically there is no Downgrade, is you just dont pay you downgrade to free and can then upgrade to some other plan
--   [ ] Describe the subscription process in the explanations
--   [ ] Actually create an invoice when a user tries to upgrade to a paid plan
--   [ ] Implement the cron endpoints and get them hooked up
+-   [x] Describe the subscription process in the explanations
+-   [x] Actually create an invoice when a user tries to upgrade to a paid plan
+-   [x] Implement the cron endpoints and get them hooked up
+-   [ ] Implement a video download option
+
+# First Future Step
+-   [ ] Implement the auto video upload to youtube

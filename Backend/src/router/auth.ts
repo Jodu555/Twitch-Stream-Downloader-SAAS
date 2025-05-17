@@ -301,7 +301,7 @@ export async function resetAccountToTier(userUUID: string, tier: SubscriptionTyp
     const user = await database.get<Account>('accounts').getOne({ UUID: userUUID });
 
     if (user) {
-        await database.get<Account>('accounts').update({ UUID: user.UUID }, { subscription_type: tier, first_subscribed: Date.now() });
+        await database.get<Account>('accounts').update({ UUID: user.UUID }, { subscription_type: tier });
 
         const freeLimits = LIMITS[tier];
 

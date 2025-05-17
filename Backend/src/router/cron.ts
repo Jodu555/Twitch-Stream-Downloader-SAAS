@@ -11,15 +11,6 @@ const database = Database.getDatabase();
 
 export const router = Router();
 
-// -   Set old videos to be deleted and next day delete them
-// -   If a user is status verification pending, and the account was created 2 days ago
-//     -   Delete the account
-// -   Check every user for their subscription status:
-//     -   If only 5 days left create new invoice and email them and mark them as
-//     -   At the day it is due send them an email that their invoice is due and in 5 days their account will be reset
-//         -   send them an email that in 5 days their account will be reset
-//     -   If the invoice is unpaid after the 5th day, reset the account
-
 async function getUser(userMap: Map<string, Account>, userUUID: string) {
     if (!userMap.has(userUUID)) {
         const user = await database.get<Account>('accounts').getOne({ UUID: userUUID });
@@ -73,7 +64,6 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
         const accounts = await database.get<Account>('accounts').get({ status: 'VERIFIED' });
         for (const account of accounts) {
 
-
             //The Last renewed date is the date the user last renewed their subscription
             //If the user has not renewed their subscription in 25 days, send them an email that their subscription is about to expire in 5 days
             const invoices = await database.get<DatabaseInvoice>('invoices').get({ userUUID: account.UUID, status: 'UNPAID' });
@@ -98,13 +88,7 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
             if (account.last_renewed + toDays(35) <= Date.now() && invoices.length > 0) {
                 resetAccountToTier(account.UUID, 'FREE');
             }
-
-
-
         }
-
-
-
     } catch (error) {
         next(error);
     }
