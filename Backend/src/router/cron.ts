@@ -60,14 +60,19 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
             }
         }
 
-        const accounts = await database.get<Account>('accounts').get({ status: 'EMAIL_VERIFY_PENDING' });
-        for (const account of accounts) {
+        const accountsVerifyPending = await database.get<Account>('accounts').get({ status: 'EMAIL_VERIFY_PENDING' });
+        for (const account of accountsVerifyPending) {
             const daysNoEmailVerify = 2;
             if (account.created_at + toDays(daysNoEmailVerify) < Date.now()) {
                 // await database.get<Account>('accounts').delete({ UUID: account.UUID });
                 // await database.get('emails').delete({ userUUID: account.UUID, email_type: 'VERIFICATION' });
                 //TODO: Delete the user from the server / disk with emails automations recordEntries etc
             }
+        }
+
+        const accounts = await database.get<Account>('accounts').get({ status: 'VERIFIED' });
+        for (const account of accounts) {
+
 
             //The Last renewed date is the date the user last renewed their subscription
             //If the user has not renewed their subscription in 25 days, send them an email that their subscription is about to expire in 5 days
