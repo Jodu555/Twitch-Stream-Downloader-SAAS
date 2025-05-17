@@ -93,7 +93,7 @@ router.post('/api/v1/paypal/captureOrder', async (req, res) => {
         console.log('Invoice action intent', { invoiceActionIntent, invoiceActionData });
 
         if (invoiceActionIntent == 'setRank') {
-            await database.get<Account>('accounts').update({ UUID: invoice.userUUID }, { subscription_type: invoiceActionData as SubscriptionTypes });
+            await database.get<Account>('accounts').update({ UUID: invoice.userUUID }, { subscription_type: invoiceActionData as SubscriptionTypes, last_renewed: Date.now() });
         }
 
         res.json({ status: 'PAID' });

@@ -40,7 +40,7 @@
                             <input class="form-check-input" type="checkbox" role="switch" :id="notification.id"
                                 v-model="notification.enabled">
                             <label class="form-check-label" :for="notification.id">{{ notification.description
-                            }}</label>
+                                }}</label>
                         </div>
 
                     </div>
@@ -292,8 +292,6 @@ watch(selectedTab, (newValue) => {
         }
     });
 });
-
-
 
 
 const invoices = computed(() => globalStore.invoices);

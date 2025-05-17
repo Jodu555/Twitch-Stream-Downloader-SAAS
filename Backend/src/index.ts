@@ -25,6 +25,7 @@ import { PermissionError } from './utils/permissions';
 import { router as automationsRouter } from './router/automations';
 import { AuthenticatedRequest, authentication, router as authRouter, getUser } from './router/auth';
 import { router as recordsRouter } from './router/records';
+import { router as cronRouter } from './router/cron';
 import { Account, Automation, DatabaseInvoice, DatabaseRecordEntry } from './utils/types';
 import EmailManager from './EmailManager';
 import { z } from 'zod';
@@ -40,6 +41,7 @@ app.use(paypalRouter);
 app.use(automationsRouter);
 app.use(authRouter);
 app.use(recordsRouter);
+app.use(cronRouter);
 const server = http.createServer(app);
 
 interface ServerToClientEvents {

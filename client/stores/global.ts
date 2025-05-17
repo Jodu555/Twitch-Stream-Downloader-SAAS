@@ -228,24 +228,36 @@ export const useGlobalStore = defineStore('globalStore', {
             return response;
         },
         async authenticate() {
-            console.log('Authenticating user TRYING');
-            if (this.auth.token == '') {
-                this.auth.token = useCookie('auth-token').value as string;
-            }
-            if (!this.auth.token)
-                return;
-            const token = this.auth.token;
+            try {
+                console.log('Authenticating user TRYING');
+                if (this.auth.token == '') {
+                    this.auth.token = useCookie('auth-token').value as string;
+                }
+                if (!this.auth.token)
+                    return;
+                const token = this.auth.token;
 
-            const response = await $fetch<Account>('http://138.201.131.52:8081/api/v1/auth/info', {
-                headers: {
-                    'auth-token': token,
-                },
-            });
-            console.log('Authenticating user', response);
-            this.auth.isAuthenticated = true;
-            this.auth.user = response;
-            this.auth.userData = usePricingTable().value[response.subscription_type];
-            return response;
+                const response = await $fetch<Account>('http://138.201.131.52:8081/api/v1/auth/info', {
+                    headers: {
+                        'auth-token': token,
+                    },
+                });
+
+
+
+                console.log('Authenticating user', response);
+                this.auth.isAuthenticated = true;
+                this.auth.user = response;
+                this.auth.userData = usePricingTable().value[response.subscription_type];
+                return response;
+            } catch (error) {
+                console.log('Authenticating user FAILED', error);
+                const authCookie = useCookie('auth-token');
+                authCookie.value = '';
+                this.auth.token = '';
+                this.auth.isAuthenticated = false;
+                this.auth.user = null;
+            }
         },
         async logout() {
             const response = await $fetch<Account>('http://138.201.131.52:8081/api/v1/auth/logout', {

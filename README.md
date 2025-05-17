@@ -51,9 +51,10 @@ Of course you then have to be responsible for the server and the bandwidth.
 -   If a user is status verification pending, and the account was created 2 days ago
     -   Delete the account
 -   Check every user for their subscription status:
-    -   If only 7 days left create new invoice and email them and mark them as
-    -   At the day it is due send them an email that their invoice is due and in 7 days their account will be reset
-    -   If it is expired send them an email that in 7 days their account will be reset
+    -   If only 5 days left create new invoice and email them and mark them as
+    -   At the day it is due send them an email that their invoice is due and in 5 days their account will be reset
+        -   send them an email that in 5 days their account will be reset
+    -   If the invoice is unpaid after the 5th day, reset the account
 
 ### Account Reset Meaning
 
@@ -61,7 +62,7 @@ All Videos that overflow with the free tier slots will be marked as deleted
 All Monitors that overflow with the free tier slots will be deleted
 
 Here goes the rule of first come first server:
-This means the first sniffentry you deleted will persist
+This means the first sniffentry you created will persist
 Aswell as the first videos recorded that are not deleted
 
 ### Signup Flow

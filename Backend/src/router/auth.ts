@@ -238,6 +238,13 @@ router.get('/api/v1/auth/downgrade/:type', authentication(), async (req: Authent
 
         // await database.get<Account>('accounts').update({ UUID: user.UUID }, { subscription_type: type });
 
+        const dateToChange = new Date(user.last_renewed);
+
+        dateToChange.setMonth(dateToChange.getMonth() + 1);
+
+        console.log('The Rank change will be effective on', dateToChange.toLocaleString('de'));
+
+
         res.json(req.credentials.user);
     } catch (error) {
         next(error);
@@ -265,10 +272,10 @@ export function authenticationFull(cb: (user: Account) => boolean) {
         const token = (req.headers['auth-token'] as string) || (req.query['auth-token'] as string);
         if (token) {
             const user = await getUser(token);
-            if (typeof user.overrides == 'string') user.overrides = JSON.parse(user.overrides);
-            if (typeof user.notificationSettings == 'string') user.notificationSettings = JSON.parse(user.notificationSettings);
             if (user) {
                 if (!cb || cb(user)) {
+                    if (typeof user?.overrides == 'string') user.overrides = JSON.parse(user.overrides);
+                    if (typeof user.notificationSettings == 'string') user.notificationSettings = JSON.parse(user.notificationSettings);
                     req.credentials = {
                         token,
                         user,
