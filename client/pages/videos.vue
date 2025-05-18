@@ -79,7 +79,7 @@
                         </li> -->
                         <li class="list-group-item text-danger fw-bold"><b>Deletion:</b> {{
                             countdown((calcVideoDeletion(video) - timestamp) / 1000)
-                            }}</li>
+                        }}</li>
                     </ul>
                     <div class="card-body">
                         <div class="row justify-content-around">
@@ -87,7 +87,7 @@
                                 Date(video.finishedAt).toLocaleString('de') }}</span>
                             <span class="col-auto text-warning fw-bold">Video löschung: {{ new
                                 Date(calcVideoDeletion(video)).toLocaleString('de')
-                            }}</span>
+                                }}</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
                             <button class="col-7 btn btn-outline-secondary"
@@ -107,7 +107,7 @@
                                 </span>
                                 <span style="vertical-align: top;" class="h4" role="status">{{
                                     downloadingMap[video.id]?.progress
-                                }}%</span>
+                                    }}%</span>
                                 <br>
                                 <small class="h6">
                                     > {{ downloadingMap[video.id]?.rate }}
@@ -266,30 +266,24 @@ function downloadVideo(video: RecordedVideo) {
         }
     })
         .then((response) => {
-            // Create a blob URL from the response data
             const blob = new Blob([response.data]);
             const blobUrl = URL.createObjectURL(blob);
 
-            // Create a temporary download link
             const downloadLink = document.createElement('a');
             downloadLink.href = blobUrl;
-            downloadLink.download = `${video.twitchStreamerName}_${video.id}.mp4`;
+            downloadLink.download = `${video.twitchStreamerName}_${new Date(video.createdAt).toJSON()}_${video.id}.mp4`;
 
-            // Append to the document, click it, and remove it
             document.body.appendChild(downloadLink);
             downloadLink.click();
             document.body.removeChild(downloadLink);
 
-            // Clean up the blob URL
             URL.revokeObjectURL(blobUrl);
-
-            // Reset download state
-            downloadingMap.value[video.id].downloading = false;
-            downloadingMap.value[video.id].progress = 0;
-            downloadingMap.value[video.id].rate = formatSpeed(0);
         })
         .catch(error => {
             console.error('Download failed:', error);
+        })
+        .finally(() => {
+            // Reset download state
             downloadingMap.value[video.id].downloading = false;
             downloadingMap.value[video.id].progress = 0;
             downloadingMap.value[video.id].rate = formatSpeed(0);
