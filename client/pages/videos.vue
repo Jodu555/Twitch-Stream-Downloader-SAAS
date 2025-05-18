@@ -95,8 +95,25 @@
                             <span class="col-4 text-info-emphasis text-center align-middle">Coming Soon</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
-                            <a :href="`http://138.201.131.52:8081/api/v1/video${video.id}?auth-token=${globalStore.auth.token}`"
-                                download class="col-6 btn btn-outline-success">Herunterladen</a>
+
+                            <button
+                                v-if="downloadingMap[video.id] == undefined || downloadingMap[video.id].downloading === false"
+                                @click="downloadVideo(video)"
+                                class="col-6 btn btn-outline-success">Herunterladen</button>
+
+                            <button v-else type="button" class="col-6 btn btn-outline-success text-align-middle"
+                                disabled>
+                                <span class="spinner-border spinner-border me-3" role="status" aria-hidden="true">
+                                </span>
+                                <span style="vertical-align: top;" class="h4" role="status">{{
+                                    downloadingMap[video.id]?.progress
+                                }}%</span>
+                                <br>
+                                <small class="h6">
+                                    > {{ downloadingMap[video.id]?.rate }}
+                                </small>
+                            </button>
+
                             <button @click="deleteVideo(video.id)" class="col-4 btn btn-outline-danger">
                                 Löschen
                             </button>
@@ -137,6 +154,8 @@
 
 <script setup lang="ts">
 import { useIntervalFn } from '@vueuse/core';
+
+const downloadingMap = ref<Record<string, { downloading: boolean, progress: number; rate: string; }>>({});
 
 definePageMeta({
     middleware: 'auth'
@@ -214,7 +233,88 @@ async function deleteVideo(id: string) {
     await refresh();
 }
 
+function downloadVideo(video: RecordedVideo) {
+
+    if (downloadingMap.value[video.id]?.downloading) {
+        console.log('Already downloading');
+        return;
+    }
+
+    downloadingMap.value[video.id] = { downloading: true, progress: 0, rate: formatSpeed(0) };
+
+    // return;
+
+    const url = `http://138.201.131.52:8081/api/v1/video/${video.id}?auth-token=${globalStore.auth.token}`;
+
+    // Use axios with responseType blob and onDownloadProgress
+    axios({
+        url: url,
+        method: 'GET',
+        responseType: 'blob',
+        onDownloadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                downloadingMap.value[video.id].progress = percentCompleted;
+
+                if (progressEvent.rate) {
+                    downloadingMap.value[video.id].rate = formatSpeed(progressEvent.rate);
+                    console.log(`Rate: ${progressEvent.rate}`);
+                }
+                console.log(`Download progress: ${percentCompleted}%`);
+                console.log(`Estimated time left: ${progressEvent?.estimated} ms`);
+            }
+        }
+    })
+        .then((response) => {
+            // Create a blob URL from the response data
+            const blob = new Blob([response.data]);
+            const blobUrl = URL.createObjectURL(blob);
+
+            // Create a temporary download link
+            const downloadLink = document.createElement('a');
+            downloadLink.href = blobUrl;
+            downloadLink.download = `${video.twitchStreamerName}_${video.id}.mp4`;
+
+            // Append to the document, click it, and remove it
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            // Clean up the blob URL
+            URL.revokeObjectURL(blobUrl);
+
+            // Reset download state
+            downloadingMap.value[video.id].downloading = false;
+            downloadingMap.value[video.id].progress = 0;
+            downloadingMap.value[video.id].rate = formatSpeed(0);
+        })
+        .catch(error => {
+            console.error('Download failed:', error);
+            downloadingMap.value[video.id].downloading = false;
+            downloadingMap.value[video.id].progress = 0;
+            downloadingMap.value[video.id].rate = formatSpeed(0);
+        });
+
+}
+
+function formatSpeed(bytesPerSecond: number) {
+    if (bytesPerSecond === 0) return '0 KB/s';
+
+    const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+    let speed = bytesPerSecond;
+    let unitIndex = 0;
+
+    while (speed >= 1024 && unitIndex < units.length - 1) {
+        speed /= 1024;
+        unitIndex++;
+    }
+
+    // Round to two decimal places
+    return `${speed.toFixed(2)} ${units[unitIndex]}`;
+}
+
 import { useTimeAgo } from '@vueuse/core';
+import axios from 'axios';
 
 function until(ms: number) {
     const timeAgo = useTimeAgo(new Date(ms));

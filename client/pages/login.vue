@@ -186,6 +186,12 @@ async function onLogin() {
     globalStore.auth.token = token;
     await globalStore.authenticate();
     console.log('CAMECAMECAME');
+    await Promise.all([
+        globalStore.fetchStreamers(),
+        globalStore.fetchAutomations(),
+        globalStore.fetchVideos(),
+        globalStore.fetchInvoices(),
+    ]);
 
 
     navigateTo('/');
