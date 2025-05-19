@@ -273,4 +273,31 @@ export function setupTables() {
         },
     });
 
+    database.createTable('linkedAccounts', {
+        options: {
+            K: ['userUUID', 'youtubeAccountID'],
+            timestamps: true,
+        },
+        userUUID: {
+            type: 'varchar(64)',
+            null: false,
+        },
+        youtubeAccountID: {
+            type: 'varchar(64)',
+            null: false,
+        },
+        refreshToken: {
+            type: 'TEXT',
+            null: false,
+        },
+        expiresAt: {
+            type: 'BIGINT',
+            null: false,
+        },
+        youtubeChannelName: {
+            type: 'TEXT',
+        }
+
+    });
+
 }

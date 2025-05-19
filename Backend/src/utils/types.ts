@@ -92,3 +92,11 @@ export interface Automation {
     lastCheck: number;
     linkedAccountUUID?: string;
 }
+
+export interface LinkedAccount {
+    userUUID: string;
+    youtubeAccountID: string;
+    refreshToken: string;
+    expiresAt: number;
+    youtubeChannelName?: string;
+}

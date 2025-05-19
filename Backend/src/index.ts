@@ -10,7 +10,7 @@ import { Server, Socket } from 'socket.io';
 dotenv.config();
 
 import { Database } from '@jodu555/mysqlapi';
-const database = Database.createDatabase(process.env.DB_HOST, 'twitcher', process.env.DB_PASSWORD, 'twitch-stream-downloader');
+const database = Database.createDatabase(process.env.DB_HOST, process.env.DB_USERNAME, process.env.DB_PASSWORD, process.env.DB_DATABASE);
 database.connect({
     charset: 'utf8mb4_unicode_ci',
 });
