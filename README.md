@@ -88,7 +88,7 @@ Aswell as the first videos recorded that are not deleted
 -   [x] Describe the subscription process in the explanations
 -   [x] Actually create an invoice when a user tries to upgrade to a paid plan
 -   [x] Implement the cron endpoints and get them hooked up
--   [ ] Implement a video download option
+-   [x] Implement a video download option
 
 # First Future Step
 -   [ ] Implement the auto video upload to youtube
