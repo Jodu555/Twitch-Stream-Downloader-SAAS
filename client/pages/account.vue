@@ -141,7 +141,7 @@
                 <div class="d-flex justify-content-center">
                     <div class="col-6">
                         <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-outline-warning">
+                            <button type="button" @click="linkYoutubeAccount" class="btn btn-outline-warning">
                                 Link A YouTube Account
                             </button>
                         </div>
@@ -196,9 +196,43 @@ definePageMeta({
     middleware: 'auth'
 });
 
-
 import { loadScript, type PayPalNamespace } from "@paypal/paypal-js";
-const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
+
+async function linkYoutubeAccount() {
+    try {
+        const { data: response, error } = await tryCatch($fetch<{
+            authUrl: string;
+        }>(`http://138.201.131.52:8081/api/v1/youtube/getAuthURL`, {
+            method: 'GET',
+            headers: {
+                'auth-token': globalStore.auth.token
+            },
+        }));
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        // Open a popup window for authentication
+        const authWindow = window.open(
+            response.authUrl,
+            'YouTube Authentication',
+            'width=800,height=600'
+        );
+
+        // Monitor if window was closed without completing auth
+        const checkClosed = setInterval(() => {
+            if (authWindow?.closed) {
+                clearInterval(checkClosed);
+                // checkAuthStatus(); // Check if auth was successful
+            }
+        }, 1000);
+
+    } catch (error) {
+        console.error('Error initiating auth:', error);
+        // setErrorMessage('Failed to start authentication process');
+    }
+}
 
 interface NotificationSettings {
     discountCode: boolean;
@@ -309,6 +343,7 @@ watch(invoices, async (curr, prev) => {
 });
 
 async function renderInvoicePaypalButtons() {
+    const paypal = await loadScript({ currency: 'EUR', clientId: "AeW9es3hrOYHmwB8Fko2SzqnYt6UTkBPYuZZuBIdU5lcH0BVWz_9yv7Dm67LJuNwX2txj4c1zzth4XrM" });
     document?.querySelectorAll('.paypal-button-container').forEach(x => x.innerHTML = '');
     try {
         if (paypal == null || paypal == undefined) {

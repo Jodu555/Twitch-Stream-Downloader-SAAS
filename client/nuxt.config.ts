@@ -11,6 +11,11 @@ export default defineNuxtConfig({
       enabled: true,
     },
   },
+  vite: {
+    server: {
+      allowedHosts: true,
+    }
+  },
   app: {
     head: {
       bodyAttrs: {

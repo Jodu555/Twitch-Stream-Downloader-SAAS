@@ -24,7 +24,11 @@ const SCOPES = ['https://www.googleapis.com/auth/youtube.upload', 'https://www.g
 //     };
 // }
 
-const credentials = JSON.parse(fs.readFileSync(process.env.GOOGLE_CREDENTIALS_PATH, 'utf8')) as any;
+if (!fs.existsSync(process.env.GOOGLE_CREDENTIALS_PATH)) {
+    throw new Error('Google Credentials File not found! At:' + process.env.GOOGLE_CREDENTIALS_PATH);
+}
+const credentialsFileContent = fs.readFileSync(process.env.GOOGLE_CREDENTIALS_PATH, 'utf8');
+const credentials = JSON.parse(credentialsFileContent) as any;
 
 const oauth2Client = new google.auth.OAuth2(
     credentials.web.client_id,
@@ -39,6 +43,7 @@ router.get('/api/v1/youtube/getAuthURL', authentication(), async (req: Authentic
         access_type: 'offline',
         prompt: 'consent',
         scope: SCOPES,
+        redirect_uri: 'http://big.jodu555.de:3001/google/callback',
     });
     console.log('Auth URL:', authUrl);
     res.json({ authUrl });

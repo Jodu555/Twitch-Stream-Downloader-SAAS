@@ -6,6 +6,7 @@ TMP/
 
 *.mp4
 *.jpg
+google-credentials.json
 
 # Logs
 logs
