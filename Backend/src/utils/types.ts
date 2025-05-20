@@ -99,4 +99,6 @@ export interface LinkedAccount {
     refreshToken: string;
     expiresAt: number;
     youtubeChannelName?: string;
+    created_at?: number;
+    updated_at?: number;
 }

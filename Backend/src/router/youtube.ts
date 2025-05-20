@@ -81,3 +81,13 @@ router.get('/api/v1/youtube/callback', authentication(), async (req: Authenticat
         next(error);
     }
 });
+
+router.get('/api/v1/youtube/linkedAccounts', authentication(), async (req: AuthenticatedRequest, res) => {
+    const userUUID = req.credentials.user.UUID;
+    const linkedAccounts = await database.get<LinkedAccount>('linkedAccounts').get({ userUUID });
+    res.json(linkedAccounts.map((account) => {
+        delete account.refreshToken;
+        delete account.expiresAt;
+        return account;
+    }));
+});
