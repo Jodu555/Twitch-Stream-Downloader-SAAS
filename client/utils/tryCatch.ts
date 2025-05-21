@@ -50,7 +50,7 @@ export async function fetchErrorHandler(error: any, cleanup: () => void = () => 
                 title: 'Failed to connect to the server',
                 timerProgressBar: true,
             });
-            cleanup();
+            await cleanup();
             return;
         }
         Swal.fire({
@@ -62,7 +62,7 @@ export async function fetchErrorHandler(error: any, cleanup: () => void = () => 
             title: (error as any).data.error.message,
             timerProgressBar: true,
         });
-        cleanup();
+        await cleanup();
         return;
     }
 }
