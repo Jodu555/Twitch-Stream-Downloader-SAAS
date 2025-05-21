@@ -259,14 +259,14 @@ app.get('/api/v1/live/:id/hls/:filename', authentication(), async (req: Authenti
 
 });
 
-app.get('/api/v1/debug/mail/:type', (req, res) => {
+app.get('/api/v1/debug/mail/:type', async (req, res) => {
     // 'VERIFICATION' | 'INVOICE_OPENED' | 'INVOICE_DUE' | 'DISCOUNT' | 'VIDEO_ABT_DELETED' | 'RECORDING_AUTO_STARTED' | 'RECORDING_AUTO_ENDED'
     const parse = z.object({
         type: z.enum(['VERIFICATION', 'INVOICE_OPENED', 'INVOICE_DUE', 'DISCOUNT', 'VIDEO_ABT_DELETED', 'RECORDING_AUTO_STARTED', 'RECORDING_AUTO_ENDED']),
     });
     const { type } = parse.parse(req.params);
 
-    const data = emailManager.getEmailData(type, req.query as any);
+    const data = await emailManager.getEmailData(type, req.query as any);
 
     console.log(data.subject);
     res.send(data.html);

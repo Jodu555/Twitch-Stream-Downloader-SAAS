@@ -70,10 +70,9 @@ export default class EmailManager {
     }
   }
 
-
   async sendEmail<T extends EmailTypes>(userUUID: string, email_type: T, data: DataType<T> & { email?: string; }) {
     data.email = data.email || (await database.get<Account>('accounts').getOne({ UUID: userUUID }))?.email;
-    const obj = this.getEmailData(email_type, data);
+    const obj = await this.getEmailData(email_type, data);
 
     const email: Email = {
       ID: crypto.randomUUID(),
@@ -86,32 +85,32 @@ export default class EmailManager {
       ...obj,
     } satisfies Email;
 
-    database.get<Email>('emails').create(email);
+    await database.get<Email>('emails').create(email);
 
     // await this.deepSendEmail(email);
   }
 
-  getEmailData<T extends EmailTypes>(email_type: T, data: any) {
+  async getEmailData<T extends EmailTypes>(email_type: T, data: any) {
     if (email_type === 'VERIFICATION') {
       return this.generateEmailVerification(data);
     }
     if (email_type === 'DISCOUNT') {
-      data;
+      return this.generateEmailDiscount(data);
     }
     if (email_type === 'VIDEO_ABT_DELETED') {
-      data;
+      return this.generateEmailVideoAboutToBeDeleted(data);
     }
     if (email_type === 'RECORDING_AUTO_STARTED') {
-      data;
+      return this.generateEmailRecordingAutoStarted(data);
     }
     if (email_type === 'RECORDING_AUTO_ENDED') {
-      data;
+      return this.generateEmailRecordingAutoEnded(data);
     }
     if (email_type === 'INVOICE_OPENED') {
-      data;
+      return await this.generateEmailInvoiceOpened(data);
     }
     if (email_type === 'INVOICE_DUE') {
-      data;
+      return await this.generateEmailInvoiceDue(data);
     }
   }
 
@@ -254,7 +253,7 @@ export default class EmailManager {
     return { subject: 'Email Verification', html, text };
   }
 
-  generateDiscount(data: DataType<'DISCOUNT'> & { email: string; }) {
+  generateEmailDiscount(data: DataType<'DISCOUNT'> & { email: string; }) {
     const { email, discountCode, discountAmount, expiryDate } = data;
 
     const html = `<!DOCTYPE html>
@@ -336,7 +335,7 @@ export default class EmailManager {
                   <p>Use the code above at checkout or when renewing your subscription</p>
                 </div>
                 
-                <p>This exclusive offer expires on ${expiryDate}, so don't miss out!</p>
+                <p>This exclusive offer expires on ${new Date(expiryDate).toLocaleString('de')}, so don't miss out!</p>
                 
                 <div style="text-align: center; margin: 25px 0;">
                   <a href="#" class="button">Redeem Now</a>
@@ -361,7 +360,7 @@ export default class EmailManager {
           
           Save ${discountAmount}% on your next payment with code: ${discountCode}
           
-          This exclusive offer expires on ${expiryDate}, so don't miss out!
+          This exclusive offer expires on ${new Date(expiryDate).toLocaleString('de')}, so don't miss out!
           
           To redeem, visit our website and enter the code at checkout or when renewing your subscription.
           
@@ -374,7 +373,7 @@ export default class EmailManager {
     return { subject: `${discountAmount}% Off Your TwitchStreamRecorder Subscription`, html, text };
   }
 
-  generateVideoAboutToBeDeleted(data: DataType<'VIDEO_ABT_DELETED'> & { email: string; }) {
+  generateEmailVideoAboutToBeDeleted(data: DataType<'VIDEO_ABT_DELETED'> & { email: string; }) {
     const { email, videoName, deleteDate, } = data;
 
     const html = `<!DOCTYPE html>
@@ -454,7 +453,7 @@ export default class EmailManager {
                 
                 <div class="video-info">
                   <h3>Video: ${videoName}</h3>
-                  <p><strong>Will be deleted on:</strong> ${deleteDate}</p>
+                  <p><strong>Will be deleted on:</strong> ${new Date(deleteDate).toLocaleString('de')}</p>
                 </div>
                 
                 <div class="warning">
@@ -483,7 +482,7 @@ export default class EmailManager {
           This is a notification that one of your recorded videos will be automatically deleted soon.
           
           Video: ${videoName}
-          Will be deleted on: ${deleteDate}
+          Will be deleted on: ${new Date(deleteDate).toLocaleString('de')}
           
           IMPORTANT: After deletion, this video cannot be recovered. If you wish to keep this content, please download it before the deletion date.
           
@@ -498,7 +497,7 @@ export default class EmailManager {
     return { subject: 'Important: Your Video Will Be Deleted Soon', html, text };
   }
 
-  generateRecordingAutoStarted(data: DataType<'RECORDING_AUTO_STARTED'> & { email: string; }) {
+  generateEmailRecordingAutoStarted(data: DataType<'RECORDING_AUTO_STARTED'> & { email: string; }) {
     const { email, streamerName } = data;
 
     const html = `<!DOCTYPE html>
@@ -619,7 +618,7 @@ export default class EmailManager {
     return { subject: `Recording Started From: ${streamerName}`, html, text };
   }
 
-  generateRecordingAutoEnded(data: DataType<'RECORDING_AUTO_ENDED'> & { email: string; }) {
+  generateEmailRecordingAutoEnded(data: DataType<'RECORDING_AUTO_ENDED'> & { email: string; }) {
     const { email, streamerName } = data;
 
     const html = `<!DOCTYPE html>
@@ -723,8 +722,7 @@ export default class EmailManager {
                 <p>Your recording has been processed and is now available in your library. You can watch, download, or share it right away.</p>
                 
                 <div class="button-row">
-                  <a href="#" class="button">Watch Now</a>
-                  <a href="#" class="secondary-button">Download</a>
+                  <a href="#" class="button">View Recordings</a>
                 </div>
                 
                 <p>Remember that this recording will be stored according to your current subscription plan. Check your storage limits in your account settings.</p>
@@ -759,10 +757,10 @@ export default class EmailManager {
     return { subject: `Recording Complete From: ${streamerName}`, html, text };
   }
 
-  async generateInvoiceOpened(data: DataType<'INVOICE_OPENED'> & { email: string; }) {
+  async generateEmailInvoiceOpened(data: DataType<'INVOICE_OPENED'> & { email: string; }) {
     const { email, invoiceID } = data;
 
-    const invoice = await database.get<DatabaseInvoice>('invoices').getOne({ invoiceID });
+    const invoice = await database.get<DatabaseInvoice>('invoices').getOne({ ID: invoiceID });
 
     const invoiceNumber = invoice.ID.split('-')[0];
     const dueDate = new Date(invoice.createdAt + 10 * 24 * 60 * 60 * 1000).toLocaleDateString('de');
@@ -860,7 +858,7 @@ export default class EmailManager {
                   <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
                   <p><strong>Due Date:</strong> ${dueDate}</p>
                   <p><strong>Plan:</strong> ${subscriptionPlan}</p>
-                  <div class="amount">$${amount}</div>
+                  <div class="amount">${amount}€</div>
                 </div>
                 
                 <table>
@@ -900,7 +898,7 @@ export default class EmailManager {
 
           Due Date: ${dueDate}
           Plan: ${subscriptionPlan}
-          Amount: $${amount}
+          Amount: ${amount}€
 
           Please ensure payment is made by the due date to avoid any interruption to your service.
           Thank you for choosing TwitchStreamRecorder for your recording needs.
@@ -911,10 +909,10 @@ export default class EmailManager {
     return { subject: `Invoice #${invoiceNumber} Created`, html, text };
   }
 
-  async generateInvoiceDue(data: DataType<'INVOICE_DUE'> & { email: string; }) {
+  async generateEmailInvoiceDue(data: DataType<'INVOICE_DUE'> & { email: string; }) {
     const { email, invoiceID } = data;
 
-    const invoice = await database.get<DatabaseInvoice>('invoices').getOne({ invoiceID });
+    const invoice = await database.get<DatabaseInvoice>('invoices').getOne({ ID: invoiceID });
 
     const invoiceNumber = invoice.ID.split('-')[0];
     const dueDate = new Date(invoice.createdAt + 10 * 24 * 60 * 60 * 1000).toLocaleDateString('de');
@@ -1010,7 +1008,7 @@ export default class EmailManager {
                 <div class="invoice-info">
                   <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
                   <p><strong>Due Date:</strong> ${dueDate}</p>
-                  <div class="amount">${amount}</div>
+                  <div class="amount">${amount}€</div>
                 </div>
                 
                 <p>To ensure uninterrupted service and access to your recorded content, please make payment as soon as possible.</p>
@@ -1042,7 +1040,7 @@ export default class EmailManager {
           
           Invoice Number: ${invoiceNumber}
           Due Date: ${dueDate}
-          Amount: ${amount}
+          Amount: ${amount}€
           
           To ensure uninterrupted service and access to your recorded content, please make payment as soon as possible.
           
@@ -1055,6 +1053,7 @@ export default class EmailManager {
           Best regards,
           The TwitchStreamRecorder App
         `;
+    return { subject: `Invoice #${invoiceNumber} Due`, html, text };
   };
 
 }
