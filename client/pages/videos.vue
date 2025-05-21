@@ -79,7 +79,7 @@
                         </li> -->
                         <li class="list-group-item text-danger fw-bold"><b>Deletion:</b> {{
                             countdown((calcVideoDeletion(video) - timestamp) / 1000)
-                        }}</li>
+                            }}</li>
                     </ul>
                     <div class="card-body">
                         <div class="row justify-content-around">
@@ -87,7 +87,7 @@
                                 Date(video.finishedAt).toLocaleString('de') }}</span>
                             <span class="col-auto text-warning fw-bold">Video löschung: {{ new
                                 Date(calcVideoDeletion(video)).toLocaleString('de')
-                                }}</span>
+                            }}</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
                             <button class="col-7 btn btn-outline-secondary"
@@ -107,7 +107,7 @@
                                 </span>
                                 <span style="vertical-align: top;" class="h4" role="status">{{
                                     downloadingMap[video.id]?.progress
-                                    }}%</span>
+                                }}%</span>
                                 <br>
                                 <small class="h6">
                                     > {{ downloadingMap[video.id]?.rate }}
@@ -140,9 +140,9 @@
                             userData.videoSlots }} / 🔒
                         </h1>
                         <div class="mt-4 d-grid gap-2">
-                            <button class="btn btn-outline-success">
+                            <NuxtLink to="/pricing" class="btn btn-outline-success">
                                 <span class="h4">Unlock more 🔓</span>
-                            </button>
+                            </NuxtLink>
                         </div>
                     </div>
                 </div>

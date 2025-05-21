@@ -32,6 +32,17 @@
 						}">
 							<NuxtLink to="/pricing" class="nav-link" active-class="active">Pricing</NuxtLink>
 						</li>
+						<div v-if="globalStore.auth.user" class="ms-5">
+							<li class="nav-item" @click="globalStore.auth.user.subscription_type = 'FREE'">
+								Free
+							</li>
+							<li class="nav-item" @click="globalStore.auth.user.subscription_type = 'PREMIUM'">
+								Premium
+							</li>
+							<li class="nav-item" @click="globalStore.auth.user.subscription_type = 'ADVANCED'">
+								Advanced
+							</li>
+						</div>
 					</ul>
 					<div class="d-flex" v-if="globalStore.auth.isAuthenticated">
 						<div class="nav-item">
@@ -72,6 +83,11 @@ watch(
 			console.log('No auth token found');
 		}
 	}, { immediate: true });
+
+watchDeep(globalStore.auth.user!, (newValue) => {
+	if (newValue)
+		globalStore.auth.userData = usePricingTable().value[newValue.subscription_type];
+}, { immediate: true });
 
 function connectSocket() {
 	const socket = useSocket();

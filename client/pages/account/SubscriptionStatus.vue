@@ -32,10 +32,15 @@
                             {{
                                 feature }}</li>
                     </ul>
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-outline-success">
+                    <div v-if="globalStore.auth.user?.subscription_type != 'ADVANCED'" class="d-grid gap-2">
+                        <NuxtLink to="/pricing" type="button" class="btn btn-outline-success">
                             Upgrade
-                        </button>
+                        </NuxtLink>
+                    </div>
+                    <div v-if="globalStore.auth.user?.subscription_type != 'FREE'" class="d-grid gap-2 mt-4">
+                        <NuxtLink to="/pricing" type="button" class="btn btn-outline-secondary">
+                            Downgrade
+                        </NuxtLink>
                     </div>
                 </div>
             </div>

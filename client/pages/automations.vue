@@ -93,9 +93,9 @@
                             userData.automationSlots }} / 🔒
                         </h1>
                         <div class="mt-4 d-grid gap-2">
-                            <button class="btn btn-outline-success">
+                            <NuxtLink to="/pricing" class="btn btn-outline-success">
                                 <span class="h4">Unlock more 🔓</span>
-                            </button>
+                            </NuxtLink>
                         </div>
                     </div>
                 </div>

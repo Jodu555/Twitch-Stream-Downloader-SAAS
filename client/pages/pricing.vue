@@ -55,7 +55,7 @@
                         </div>
                         <div class="card-body">
                             <h1 class="card-title pricing-card-title">{{ cardTable[key].price
-                                }}€<small class="text-body-secondary fw-light">/mo</small></h1>
+                            }}€<small class="text-body-secondary fw-light">/mo</small></h1>
                             <ul class="list-unstyled mt-3 mb-4">
                                 <li v-for="feature in cardTable[key].features" :key="feature">{{
                                     feature }}</li>
@@ -114,7 +114,7 @@
                             <tr v-for="key in Object.keys(pricingTable['FREE'])" :key="key">
                                 <th scope="row" class="text-start">{{ limitationToNiceName(key as keyof
                                     PricingTableObject)
-                                }}
+                                    }}
                                 </th>
                                 <td v-for="value in Object.keys(pricingTable)" :key="value">
                                     <template v-if="getSub(value, key) === true">
@@ -250,13 +250,13 @@ const detailedExplanation = ref([
         title: 'Watch Live',
         description: `You can watch the stream live while it is being recorded. You have the opportunity to pause or rewind the stream. A feature that is not available on Twitch.`,
     },
-    {
-        id: 'resumable',
-        title: 'Resumable Stream',
-        description: `If the streamer loses its connection, the stream will be set on hold and if the streamer returns within 10 minutes the stream will be resumed. 
-        And no seperate video slot will be occupied. The stream will be treated as one consecutive stream! Note: This only works if you have the option Watching Live enabled. 
-        Otherwise the stream will be stopped and a new one will be started`,
-    },
+    // {
+    //     id: 'resumable',
+    //     title: 'Resumable Stream',
+    //     description: `If the streamer loses its connection, the stream will be set on hold and if the streamer returns within 10 minutes the stream will be resumed. 
+    //     And no seperate video slot will be occupied. The stream will be treated as one consecutive stream! Note: This only works if you have the option Watching Live enabled. 
+    //     Otherwise the stream will be stopped and a new one will be started`,
+    // },
     {
         id: 'recording-slots',
         title: 'Recording Slots',

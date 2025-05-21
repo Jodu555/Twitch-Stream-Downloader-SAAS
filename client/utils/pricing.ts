@@ -6,7 +6,7 @@ export type PricingTable = Record<SubscriptionTypes, PricingTableObject>;
 export interface PricingTableObject {
     adFree: boolean;
     watchWhileRecording: boolean;
-    resumableStream: boolean;
+    // resumableStream: boolean;
     recordingSlots: number;
     videoSlots: number;
     automationSlots: number;
@@ -31,7 +31,7 @@ export function usePricingTable() {
         FREE: {
             adFree: true,
             watchWhileRecording: false,
-            resumableStream: false,
+            // resumableStream: false,
             recordingSlots: 1,
             videoSlots: 2,
             automationSlots: 3,
@@ -42,7 +42,7 @@ export function usePricingTable() {
         PREMIUM: {
             adFree: true,
             watchWhileRecording: false,
-            resumableStream: true,
+            // resumableStream: true,
             recordingSlots: 4,
             videoSlots: 6,
             automationSlots: 8,
@@ -53,7 +53,7 @@ export function usePricingTable() {
         ADVANCED: {
             adFree: true,
             watchWhileRecording: true,
-            resumableStream: true,
+            // resumableStream: true,
             recordingSlots: 8,
             videoSlots: 20,
             automationSlots: 15,
@@ -84,8 +84,8 @@ export function limitationToNiceName(key: keyof PricingTableObject) {
             return 'Ad-Free';
         case 'watchWhileRecording':
             return 'Watch While Recording';
-        case 'resumableStream':
-            return 'Resumable Stream';
+        // case 'resumableStream':
+        //     return 'Resumable Stream';
         case 'recordingSlots':
             return 'Recording Slots';
         case 'videoSlots':
@@ -123,7 +123,7 @@ export const cardTable = ref<CardTable>({
         price: 10,
         features: [
             'Completely Ad-Free',
-            'Resumable: If Stream stops for a short time',
+            // 'Resumable: If Stream stops for a short time',
             '5 Simultaneous Stream Recordings',
             '7 Recorded Streams',
             '7 Automation Slots',
@@ -137,7 +137,7 @@ export const cardTable = ref<CardTable>({
         features: [
             'Completely Ad-Free',
             'Watch Live While Recording',
-            'Resumable: If Stream stops for a short time',
+            // 'Resumable: If Stream stops for a short time',
             '8 Simultaneous Stream Recordings',
             '20 Recorded Streams',
             '11 Automation Slots',
