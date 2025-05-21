@@ -5,7 +5,10 @@
       <ul class="d-flex justify-content-around nav nav-tabs">
         <li v-for="tab in tabs" :key="tab.name" :style="{ cursor: tab.disabled ? 'not-allowed' : 'pointer' }"
           class="nav-item">
-          <NuxtLink :to="tab.route" class="nav-link" active-class="active">{{ tab.name }}</NuxtLink>
+          <NuxtLink :to="tab.route" class="nav-link" :class="{
+            disabled: tab.disabled,
+          }" active-class="active" :aria-disabled="tab.disabled">{{ tab.name }}
+          </NuxtLink>
           <!-- <a class="nav-link" :class="{
             active: selectedTab == tab.name,
             disabled: tab.disabled,
@@ -32,7 +35,7 @@ const tabs = [
   { name: 'Infos', disabled: false, route: '/account/infos' },
   { name: 'Invoices', disabled: false, route: '/account/invoices' },
   { name: 'Subscription Status', disabled: false, route: '/account/subscriptionStatus' },
-  { name: 'Linked Accounts', disabled: false, route: '/account/linkedAccounts' },
+  { name: 'Linked Accounts', disabled: true, route: '/account/linkedAccounts' },
 ] as { name: string, disabled: boolean; route: string; }[];
 
 </script>

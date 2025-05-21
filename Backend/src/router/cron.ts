@@ -63,11 +63,26 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
 
         const accounts = await database.get<Account>('accounts').get({ status: 'VERIFIED' });
         for (const account of accounts) {
+            if (account.subscription_type == 'FREE') continue;
 
             //The Last renewed date is the date the user last renewed their subscription
             //If the user has not renewed their subscription in 25 days, send them an email that their subscription is about to expire in 5 days
             const invoices = await database.get<DatabaseInvoice>('invoices').get({ userUUID: account.UUID, status: 'UNPAID' });
             if (account.last_renewed + toDays(25) <= Date.now() && invoices.length == 0) {
+
+                //TODO: Check if a user submitted downgrade is pending
+
+                if (account.pendingDowngrade) {
+                    await database.get<Account>('accounts').update({ UUID: account.UUID }, { pendingDowngrade: undefined });
+                    // await database.get<Account>('accounts').update({ UUID: account.UUID }, { subscription_type: account.pendingDowngrade, pendingDowngrade: undefined });
+                    if (account.pendingDowngrade == 'FREE') {
+                        continue;
+                    }
+                    account.pendingDowngrade = undefined;
+                    account.subscription_type = account.pendingDowngrade;
+                }
+
+
                 //Create a new invoice for the user
                 const invoice = {
                     ID: crypto.randomUUID(),

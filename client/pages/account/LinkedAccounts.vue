@@ -18,7 +18,7 @@
                     <h5 class="mb-1">{{ linkedAccount.youtubeChannelName }}</h5>
                     <small class="text-muted">Added {{ new
                         Date(parseInt(linkedAccount.created_at as any as string)).toLocaleDateString('de')
-                        }}</small>
+                    }}</small>
                 </div>
                 <p class="mb-1">Used in <strong>3 Automations</strong></p>
 
@@ -38,6 +38,7 @@
 <script lang="ts" setup>
 definePageMeta({
     middleware: 'auth',
+    redirect: { path: '/account/' }
 });
 
 const globalStore = useGlobalStore();

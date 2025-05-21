@@ -6,7 +6,7 @@ import { emailManager, io, processes } from '..';
 import { z } from 'zod';
 import bcrypt from "bcryptjs";
 import { LIMITS } from '../utils/permissions';
-import { notificationSchema } from 'src/utils/notifications';
+import { notificationSchema } from '../utils/notifications';
 
 const database = Database.getDatabase();
 
@@ -60,9 +60,10 @@ router.post('/api/v1/auth/register', async (req, res, next) => {
                 created_at: Date.now(),
                 updated_at: Date.now(),
                 subscription_type: 'FREE',
+                pendingDowngrade: undefined,
                 overrides: '{}',
                 notificationSettings: JSON.stringify(defaultNotificationSettings),
-            } as Account;
+            } satisfies Account;
             await database.get<Account>('accounts').create(user);
 
             emailManager.sendEmail(user.UUID, 'VERIFICATION', {
@@ -253,7 +254,7 @@ router.get('/api/v1/auth/downgrade/:type', authentication(), async (req: Authent
 
         //TODO: Downgrade to type after the current plan ends
 
-        // await database.get<Account>('accounts').update({ UUID: user.UUID }, { subscription_type: type });
+        await database.get<Account>('accounts').update({ UUID: user.UUID }, { pendingDowngrade: type });
 
         const dateToChange = new Date(user.last_renewed);
 

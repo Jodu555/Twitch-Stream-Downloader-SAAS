@@ -249,6 +249,10 @@ export function setupTables() {
             type: 'BIGINT',
             null: true,
         },
+        pendingDowngrade: {
+            type: 'VARCHAR(32)',
+            null: true,
+        },
         overrides: {
             type: 'TEXT',
             null: true,

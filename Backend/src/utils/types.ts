@@ -75,6 +75,7 @@ export interface Account {
     first_subscribed?: number;
     last_handshake?: number;
     last_login?: number;
+    pendingDowngrade?: SubscriptionTypes;
     overrides?: string | LimitKeys;
     notificationSettings?: string | NotificationSettings;
 }
