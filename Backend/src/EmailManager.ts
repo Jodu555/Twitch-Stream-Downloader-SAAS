@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { Database } from '@jodu555/mysqlapi';
-import { Email, EmailTypes } from './utils/types';
+import { Account, DatabaseInvoice, Email, EmailTypes } from './utils/types';
 
 const database = Database.getDatabase();
 
@@ -21,9 +21,9 @@ const database = Database.getDatabase();
 // type DataType<T> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } : never;
 
 type DataType<T> =
-  T extends 'VERIFICATION' ? { email: string; verificationToken: string; } :
-  T extends 'DISCOUNT' ? { discountAmount: number; discountCode: string; } :
-  T extends 'VIDEO_ABT_DELETED' ? { videoName: string; } :
+  T extends 'VERIFICATION' ? { verificationToken: string; } :
+  T extends 'DISCOUNT' ? { discountAmount: number; discountCode: string; expiryDate: number; } :
+  T extends 'VIDEO_ABT_DELETED' ? { videoName: string; deleteDate: number; } :
   T extends 'RECORDING_AUTO_STARTED' ? { streamerName: string; } :
   T extends 'RECORDING_AUTO_ENDED' ? { streamerName: string; } :
   T extends 'INVOICE_OPENED' ? { invoiceID: string; } :
@@ -71,7 +71,8 @@ export default class EmailManager {
   }
 
 
-  async sendEmail<T extends EmailTypes>(userUUID: string, email_type: T, data: DataType<T>) {
+  async sendEmail<T extends EmailTypes>(userUUID: string, email_type: T, data: DataType<T> & { email?: string; }) {
+    data.email = data.email || (await database.get<Account>('accounts').getOne({ UUID: userUUID }))?.email;
     const obj = this.getEmailData(email_type, data);
 
     const email: Email = {
@@ -95,6 +96,21 @@ export default class EmailManager {
       return this.generateEmailVerification(data);
     }
     if (email_type === 'DISCOUNT') {
+      data;
+    }
+    if (email_type === 'VIDEO_ABT_DELETED') {
+      data;
+    }
+    if (email_type === 'RECORDING_AUTO_STARTED') {
+      data;
+    }
+    if (email_type === 'RECORDING_AUTO_ENDED') {
+      data;
+    }
+    if (email_type === 'INVOICE_OPENED') {
+      data;
+    }
+    if (email_type === 'INVOICE_DUE') {
       data;
     }
   }
@@ -126,7 +142,7 @@ export default class EmailManager {
     // );
   }
 
-  generateEmailVerification(data: DataType<'VERIFICATION'>) {
+  generateEmailVerification(data: DataType<'VERIFICATION'> & { email: string; }) {
     const { email, verificationToken } = data;
 
     const html = `<!DOCTYPE html>
@@ -237,4 +253,808 @@ export default class EmailManager {
 
     return { subject: 'Email Verification', html, text };
   }
+
+  generateDiscount(data: DataType<'DISCOUNT'> & { email: string; }) {
+    const { email, discountCode, discountAmount, expiryDate } = data;
+
+    const html = `<!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Special Discount Offer</title>
+            <style>
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .email-container {
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid #e0e0e0;
+              }
+              .email-header {
+                background-color: #4f46e5;
+                padding: 20px;
+                text-align: center;
+              }
+              .email-header h1 {
+                color: white;
+                margin: 0;
+                font-size: 24px;
+              }
+              .email-body {
+                background-color: #ffffff;
+                padding: 30px;
+              }
+              .email-footer {
+                background-color: #f9fafb;
+                padding: 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #6b7280;
+              }
+              .button {
+                display: inline-block;
+                background-color: #4f46e5;
+                color: white;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-weight: bold;
+                margin: 20px 0;
+              }
+              .code {
+                background-color: #f1f5f9;
+                padding: 12px;
+                border-radius: 4px;
+                font-family: monospace;
+                text-align: center;
+                font-size: 18px;
+                letter-spacing: 2px;
+                margin: 20px 0;
+                color: #4f46e5;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="email-header">
+                <h1>Special Discount Offer</h1>
+              </div>
+              <div class="email-body">
+                <p>Hello ${email},</p>
+                <p>We're excited to offer you a special discount on your TwitchStreamRecorder subscription!</p>
+                
+                <div style="text-align: center;">
+                  <h2>Save ${discountAmount}% on your next payment</h2>
+                  <h3 class="code">${discountCode}</h3>
+                  <p>Use the code above at checkout or when renewing your subscription</p>
+                </div>
+                
+                <p>This exclusive offer expires on ${expiryDate}, so don't miss out!</p>
+                
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="#" class="button">Redeem Now</a>
+                </div>
+                
+                <p>Thank you for being a valued user of our service.</p>
+                
+                <p>Best regards,<br>The TwitchRecorder App</p>
+              </div>
+              <div class="email-footer">
+                <p>© ${new Date().getFullYear()} TwitchStreamRecorder. All rights reserved.</p>
+                <p>If you need any assistance, please just reply to this email!</p>
+              </div>
+            </div>
+          </body>
+          </html>`;
+
+    const text = `
+          Hello ${email},
+          
+          We're excited to offer you a special discount on your TwitchStreamRecorder subscription!
+          
+          Save ${discountAmount}% on your next payment with code: ${discountCode}
+          
+          This exclusive offer expires on ${expiryDate}, so don't miss out!
+          
+          To redeem, visit our website and enter the code at checkout or when renewing your subscription.
+          
+          Thank you for being a valued user of our service.
+          
+          Best regards,
+          The TwitchStreamRecorder App
+        `;
+
+    return { subject: `${discountAmount}% Off Your TwitchStreamRecorder Subscription`, html, text };
+  }
+
+  generateVideoAboutToBeDeleted(data: DataType<'VIDEO_ABT_DELETED'> & { email: string; }) {
+    const { email, videoName, deleteDate, } = data;
+
+    const html = `<!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Video Deletion Notice</title>
+            <style>
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .email-container {
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid #e0e0e0;
+              }
+              .email-header {
+                background-color: #4f46e5;
+                padding: 20px;
+                text-align: center;
+              }
+              .email-header h1 {
+                color: white;
+                margin: 0;
+                font-size: 24px;
+              }
+              .email-body {
+                background-color: #ffffff;
+                padding: 30px;
+              }
+              .email-footer {
+                background-color: #f9fafb;
+                padding: 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #6b7280;
+              }
+              .button {
+                display: inline-block;
+                background-color: #4f46e5;
+                color: white;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-weight: bold;
+                margin: 20px 0;
+              }
+              .warning {
+                background-color: #fee2e2;
+                border-left: 4px solid #ef4444;
+                padding: 10px 15px;
+                margin: 20px 0;
+                border-radius: 4px;
+              }
+              .video-info {
+                background-color: #f1f5f9;
+                padding: 15px;
+                border-radius: 4px;
+                margin: 20px 0;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="email-header">
+                <h1>Video Deletion Notice</h1>
+              </div>
+              <div class="email-body">
+                <p>Hello ${email},</p>
+                <p>This is a notification that one of your recorded videos will be automatically deleted soon.</p>
+                
+                <div class="video-info">
+                  <h3>Video: ${videoName}</h3>
+                  <p><strong>Will be deleted on:</strong> ${deleteDate}</p>
+                </div>
+                
+                <div class="warning">
+                  <p><strong>Important:</strong> After deletion, this video cannot be recovered. If you wish to keep this content, please download it before the deletion date.</p>
+                </div>
+                
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="#" class="button">Download Now</a>
+                </div>
+                
+                <p>You can also extend the storage period by upgrading your subscription plan.</p>
+                
+                <p>Best regards,<br>The TwitchRecorder App</p>
+              </div>
+              <div class="email-footer">
+                <p>© ${new Date().getFullYear()} TwitchStreamRecorder. All rights reserved.</p>
+                <p>If you need any assistance, please just reply to this email!</p>
+              </div>
+            </div>
+          </body>
+          </html>`;
+
+    const text = `
+          Hello ${email},
+          
+          This is a notification that one of your recorded videos will be automatically deleted soon.
+          
+          Video: ${videoName}
+          Will be deleted on: ${deleteDate}
+          
+          IMPORTANT: After deletion, this video cannot be recovered. If you wish to keep this content, please download it before the deletion date.
+          
+          To download your video, please visit our website and navigate to your recordings section.
+          
+          You can also extend the storage period by upgrading your subscription plan.
+          
+          Best regards,
+          The TwitchStreamRecorder App
+        `;
+
+    return { subject: 'Important: Your Video Will Be Deleted Soon', html, text };
+  }
+
+  generateRecordingAutoStarted(data: DataType<'RECORDING_AUTO_STARTED'> & { email: string; }) {
+    const { email, streamerName } = data;
+
+    const html = `<!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Recording Started</title>
+            <style>
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .email-container {
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid #e0e0e0;
+              }
+              .email-header {
+                background-color: #4f46e5;
+                padding: 20px;
+                text-align: center;
+              }
+              .email-header h1 {
+                color: white;
+                margin: 0;
+                font-size: 24px;
+              }
+              .email-body {
+                background-color: #ffffff;
+                padding: 30px;
+              }
+              .email-footer {
+                background-color: #f9fafb;
+                padding: 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #6b7280;
+              }
+              .button {
+                display: inline-block;
+                background-color: #4f46e5;
+                color: white;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-weight: bold;
+                margin: 20px 0;
+              }
+              .stream-info {
+                background-color: #f1f5f9;
+                padding: 15px;
+                border-radius: 4px;
+                margin: 20px 0;
+              }
+              .success {
+                background-color: #dcfce7;
+                border-left: 4px solid #22c55e;
+                padding: 10px 15px;
+                margin: 20px 0;
+                border-radius: 4px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="email-header">
+                <h1>Recording Started</h1>
+              </div>
+              <div class="email-body">
+                <p>Hello ${email},</p>
+                
+                <div class="success">
+                  <p><strong>Good news!</strong> We've automatically started recording a stream for you.</p>
+                </div>
+                
+                <div class="stream-info">
+                  <h3>${streamerName}</h3>
+                </div>
+                
+                <p>The recording is currently in progress and will be automatically saved to your library when the stream ends.</p>
+                
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="#" class="button">View Your Recordings</a>
+                </div>
+                
+                <p>If you want to stop this recording before the stream ends, you can do so from your dashboard.</p>
+                
+                <p>Best regards,<br>The TwitchRecorder App</p>
+              </div>
+              <div class="email-footer">
+                <p>© ${new Date().getFullYear()} TwitchStreamRecorder. All rights reserved.</p>
+                <p>If you need any assistance, please just reply to this email!</p>
+              </div>
+            </div>
+          </body>
+          </html>`;
+
+    const text = `
+          Hello ${email},
+          
+          Good news! We've automatically started recording a stream for you.
+          
+          Stream: ${streamerName}
+          
+          The recording is currently in progress and will be automatically saved to your library when the stream ends.
+          
+          If you want to stop this recording before the stream ends, you can do so from your dashboard.
+          
+          Best regards,
+          The TwitchStreamRecorder App
+        `;
+
+    return { subject: `Recording Started From: ${streamerName}`, html, text };
+  }
+
+  generateRecordingAutoEnded(data: DataType<'RECORDING_AUTO_ENDED'> & { email: string; }) {
+    const { email, streamerName } = data;
+
+    const html = `<!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Recording Completed</title>
+            <style>
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .email-container {
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid #e0e0e0;
+              }
+              .email-header {
+                background-color: #4f46e5;
+                padding: 20px;
+                text-align: center;
+              }
+              .email-header h1 {
+                color: white;
+                margin: 0;
+                font-size: 24px;
+              }
+              .email-body {
+                background-color: #ffffff;
+                padding: 30px;
+              }
+              .email-footer {
+                background-color: #f9fafb;
+                padding: 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #6b7280;
+              }
+              .button {
+                display: inline-block;
+                background-color: #4f46e5;
+                color: white;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-weight: bold;
+                margin: 20px 0;
+              }
+              .recording-info {
+                background-color: #f1f5f9;
+                padding: 15px;
+                border-radius: 4px;
+                margin: 20px 0;
+              }
+              .success {
+                background-color: #dcfce7;
+                border-left: 4px solid #22c55e;
+                padding: 10px 15px;
+                margin: 20px 0;
+                border-radius: 4px;
+              }
+              .button-row {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin: 25px 0;
+              }
+              .secondary-button {
+                display: inline-block;
+                background-color: #ffffff;
+                color: #4f46e5;
+                border: 1px solid #4f46e5;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-weight: bold;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="email-header">
+                <h1>Recording Completed</h1>
+              </div>
+              <div class="email-body">
+                <p>Hello ${email},</p>
+                
+                <div class="success">
+                  <p><strong>Great news!</strong> Your stream recording is complete and ready to watch.</p>
+                </div>
+                
+                <div class="recording-info">
+                  <h3>${streamerName}</h3>
+                </div>
+                
+                <p>Your recording has been processed and is now available in your library. You can watch, download, or share it right away.</p>
+                
+                <div class="button-row">
+                  <a href="#" class="button">Watch Now</a>
+                  <a href="#" class="secondary-button">Download</a>
+                </div>
+                
+                <p>Remember that this recording will be stored according to your current subscription plan. Check your storage limits in your account settings.</p>
+                
+                <p>Best regards,<br>The TwitchRecorder App</p>
+              </div>
+              <div class="email-footer">
+                <p>© ${new Date().getFullYear()} TwitchStreamRecorder. All rights reserved.</p>
+                <p>If you need any assistance, please just reply to this email!</p>
+              </div>
+            </div>
+          </body>
+          </html>`;
+
+    const text = `
+          Hello ${email},
+          
+          Great news! Your stream recording is complete and ready to watch.
+          
+          Stream: ${streamerName}
+          
+          Your recording has been processed and is now available in your library. You can watch, download, or share it right away.
+          
+          To access your recording, please visit our website and navigate to your recordings section.
+          
+          Remember that this recording will be stored according to your current subscription plan. Check your storage limits in your account settings.
+          
+          Best regards,
+          The TwitchStreamRecorder App
+        `;
+
+    return { subject: `Recording Complete From: ${streamerName}`, html, text };
+  }
+
+  async generateInvoiceOpened(data: DataType<'INVOICE_OPENED'> & { email: string; }) {
+    const { email, invoiceID } = data;
+
+    const invoice = await database.get<DatabaseInvoice>('invoices').getOne({ invoiceID });
+
+    const invoiceNumber = invoice.ID.split('-')[0];
+    const dueDate = new Date(invoice.createdAt + 10 * 24 * 60 * 60 * 1000).toLocaleDateString('de');
+    const subscriptionPlan = invoice.action.split(':')[1];
+    const amount = invoice.amount;
+    const html = `<!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>New Invoice</title>
+            <style>
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .email-container {
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid #e0e0e0;
+              }
+              .email-header {
+                background-color: #4f46e5;
+                padding: 20px;
+                text-align: center;
+              }
+              .email-header h1 {
+                color: white;
+                margin: 0;
+                font-size: 24px;
+              }
+              .email-body {
+                background-color: #ffffff;
+                padding: 30px;
+              }
+              .email-footer {
+                background-color: #f9fafb;
+                padding: 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #6b7280;
+              }
+              .button {
+                display: inline-block;
+                background-color: #4f46e5;
+                color: white;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-weight: bold;
+                margin: 20px 0;
+              }
+              .invoice-info {
+                background-color: #f1f5f9;
+                padding: 15px;
+                border-radius: 4px;
+                margin: 20px 0;
+              }
+              .amount {
+                font-size: 24px;
+                font-weight: bold;
+                color: #4f46e5;
+                margin: 10px 0;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+              }
+              table th, table td {
+                padding: 10px;
+                text-align: left;
+                border-bottom: 1px solid #e0e0e0;
+              }
+              table th {
+                background-color: #f1f5f9;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="email-header">
+                <h1>New Invoice</h1>
+              </div>
+              <div class="email-body">
+                <p>Hello ${email},</p>
+                
+                <p>Your invoice for TwitchStreamRecorder services is now available.</p>
+                
+                <div class="invoice-info">
+                  <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
+                  <p><strong>Due Date:</strong> ${dueDate}</p>
+                  <p><strong>Plan:</strong> ${subscriptionPlan}</p>
+                  <div class="amount">$${amount}</div>
+                </div>
+                
+                <table>
+                  <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                  </tr>
+                  <tr>
+                    <td>${subscriptionPlan} Plan - Monthly Subscription</td>
+                    <td>$${amount}</td>
+                  </tr>
+                </table>
+                
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="#" class="button">View & Pay Invoice</a>
+                </div>
+                
+                <p>Please ensure payment is made by the due date to avoid any interruption to your service.</p>
+                
+                <p>Thank you for choosing TwitchStreamRecorder for your recording needs.</p>
+                
+                <p>Best regards,<br>The TwitchRecorder App</p>
+              </div>
+              <div class="email-footer">
+                <p>© ${new Date().getFullYear()} TwitchStreamRecorder. All rights reserved.</p>
+                <p>If you need any assistance, please just reply to this email!</p>
+              </div>
+            </div>
+          </body>
+          </html>`;
+
+    const text = `
+          Hello ${email},
+          Your invoice for TwitchStreamRecorder services is now available.
+          
+          #${invoiceNumber}
+
+          Due Date: ${dueDate}
+          Plan: ${subscriptionPlan}
+          Amount: $${amount}
+
+          Please ensure payment is made by the due date to avoid any interruption to your service.
+          Thank you for choosing TwitchStreamRecorder for your recording needs.
+          Best regards,
+          The TwitchStreamRecorder App
+          `;
+
+    return { subject: `Invoice #${invoiceNumber} Created`, html, text };
+  }
+
+  async generateInvoiceDue(data: DataType<'INVOICE_DUE'> & { email: string; }) {
+    const { email, invoiceID } = data;
+
+    const invoice = await database.get<DatabaseInvoice>('invoices').getOne({ invoiceID });
+
+    const invoiceNumber = invoice.ID.split('-')[0];
+    const dueDate = new Date(invoice.createdAt + 10 * 24 * 60 * 60 * 1000).toLocaleDateString('de');
+    const subscriptionPlan = invoice.action.split(':')[1];
+    const amount = invoice.amount;
+
+    const html = `<!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Invoice Payment Reminder</title>
+            <style>
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .email-container {
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid #e0e0e0;
+              }
+              .email-header {
+                background-color: #4f46e5;
+                padding: 20px;
+                text-align: center;
+              }
+              .email-header h1 {
+                color: white;
+                margin: 0;
+                font-size: 24px;
+              }
+              .email-body {
+                background-color: #ffffff;
+                padding: 30px;
+              }
+              .email-footer {
+                background-color: #f9fafb;
+                padding: 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #6b7280;
+              }
+              .button {
+                display: inline-block;
+                background-color: #4f46e5;
+                color: white;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-weight: bold;
+                margin: 20px 0;
+              }
+              .invoice-info {
+                background-color: #f1f5f9;
+                padding: 15px;
+                border-radius: 4px;
+                margin: 20px 0;
+              }
+              .amount {
+                font-size: 24px;
+                font-weight: bold;
+                color: #4f46e5;
+                margin: 10px 0;
+              }
+              .warning {
+                background-color: #fee2e2;
+                border-left: 4px solid #ef4444;
+                padding: 10px 15px;
+                margin: 20px 0;
+                border-radius: 4px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="email-header">
+                <h1>Invoice Payment Reminder</h1>
+              </div>
+              <div class="email-body">
+                <p>Hello ${email},</p>
+                
+                <div class="warning">
+                  <p><strong>Important Notice:</strong> Your invoice is Due.</p>
+                </div>
+                
+                <p>This is a friendly reminder that payment for your TwitchStreamRecorder subscription is Due.</p>
+                
+                <div class="invoice-info">
+                  <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
+                  <p><strong>Due Date:</strong> ${dueDate}</p>
+                  <div class="amount">${amount}</div>
+                </div>
+                
+                <p>To ensure uninterrupted service and access to your recorded content, please make payment as soon as possible.</p>
+                
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="#" class="button">Pay Now</a>
+                </div>
+                
+                <p>If you've already made a payment, please disregard this reminder. If you're experiencing any issues with payment or have questions about your invoice, please contact our support team.</p>
+                
+                <p>Thank you for your prompt attention to this matter.</p>
+                
+                <p>Best regards,<br>The TwitchRecorder App</p>
+              </div>
+              <div class="email-footer">
+                <p>© ${new Date().getFullYear()} TwitchStreamRecorder. All rights reserved.</p>
+                <p>If you need any assistance, please just reply to this email!</p>
+              </div>
+            </div>
+          </body>
+          </html>`;
+
+    const text = `
+          Hello ${email},
+          
+          Important Notice: Your invoice is Due.
+          
+          This is a friendly reminder that payment for your TwitchStreamRecorder subscription is Due.
+          
+          Invoice Number: ${invoiceNumber}
+          Due Date: ${dueDate}
+          Amount: ${amount}
+          
+          To ensure uninterrupted service and access to your recorded content, please make payment as soon as possible.
+          
+          To pay your invoice, please visit our website and navigate to your billing section.
+          
+          If you've already made a payment, please disregard this reminder. If you're experiencing any issues with payment or have questions about your invoice, please contact our support team.
+          
+          Thank you for your prompt attention to this matter.
+          
+          Best regards,
+          The TwitchStreamRecorder App
+        `;
+  };
+
 }

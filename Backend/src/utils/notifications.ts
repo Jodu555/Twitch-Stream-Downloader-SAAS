@@ -24,14 +24,14 @@ export const notificationSchema = z.object(
 
 type DataType<T extends keyof NotificationSettings> =
     T extends 'discountCode' ? { discountAmount: number; discountCode: string; } :
-    T extends 'videoDeletion' ? { videoName: string; } :
+    T extends 'videoDeletion' ? { videoName: string; deleteDate: number; } :
     T extends 'recordingStart' ? { twitchStreamerName: string; } :
     T extends 'recordingFinished' ? { twitchStreamerName: string; } :
     T extends 'invoiceOpened' ? { invoiceID: string; } :
     T extends 'invoiceDue' ? { invoiceID: string; } :
     never;
 
-export async function checkAndSendNotificationAccount<T extends keyof NotificationSettings>(user: Account, type: T, data: any) {
+export async function checkAndSendNotificationAccount<T extends keyof NotificationSettings>(user: Account, type: T, data: DataType<T>) {
     if (typeof user.overrides === 'string') user.overrides = JSON.parse(user.overrides);
     if (typeof user.notificationSettings === 'string') user.notificationSettings = JSON.parse(user.notificationSettings);
     if (user.notificationSettings[type as keyof NotificationSettings] == false) return;
@@ -40,27 +40,35 @@ export async function checkAndSendNotificationAccount<T extends keyof Notificati
 
     if (type === 'discountCode') {
         emailManager.sendEmail(user.UUID, 'DISCOUNT', {
+            expiryDate: Date.now() + 1000 * 60 * 60 * 24 * 30,
             discountAmount: 10,
             discountCode: 'user.overrides.discountCode',
         });
     } else if (type === 'invoiceOpened') {
         emailManager.sendEmail(user.UUID, 'INVOICE_OPENED', {
+            //@ts-ignore
             invoiceID: data.invoiceID,
         });
     } else if (type === 'invoiceDue') {
         emailManager.sendEmail(user.UUID, 'INVOICE_DUE', {
+            //@ts-ignore
             invoiceID: data.invoiceID,
         });
     } else if (type === 'videoDeletion') {
         emailManager.sendEmail(user.UUID, 'VIDEO_ABT_DELETED', {
+            //@ts-ignore
             videoName: data.videoName,
+            //@ts-ignore
+            deleteDate: data.deleteDate,
         });
     } else if (type === 'recordingStart') {
         emailManager.sendEmail(user.UUID, 'RECORDING_AUTO_STARTED', {
+            //@ts-ignore
             streamerName: data.twitchStreamerName,
         });
     } else if (type === 'recordingFinished') {
         emailManager.sendEmail(user.UUID, 'RECORDING_AUTO_ENDED', {
+            //@ts-ignore
             streamerName: data.twitchStreamerName,
         });
     }

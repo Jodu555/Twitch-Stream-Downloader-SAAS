@@ -42,6 +42,13 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
                 const user = await getUser(userMap, entry.userUUID);
                 const deletionAt = entry.finishedAt + toDays(await getUserLimitByAccount(user, 'videoRetentionDays'));
 
+                if (deletionAt + toDays(2) < Date.now() || deletionAt + toDays(1) < Date.now()) {
+                    await checkAndSendNotificationAccount(user, 'videoDeletion', {
+                        videoName: entry.twitchStreamerName,
+                        deleteDate: deletionAt,
+                    });
+                }
+
                 if (deletionAt < Date.now()) {
                     await entry.delete();
                 }
