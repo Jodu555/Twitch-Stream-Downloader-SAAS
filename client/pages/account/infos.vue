@@ -30,7 +30,7 @@
                         v-model="notificationSettings[notificationId]">
                     <label class="form-check-label" :for="notificationId">{{
                         notificationDescriptionLookup[notificationId]
-                        }}</label>
+                    }}</label>
                 </div>
                 <!-- <div v-for="notification in notificationSettings" :key="notification.id" class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" :id="notification.id"
@@ -58,7 +58,7 @@ interface NotificationSettings {
     videoDeletion: boolean;
     recordingStart: boolean;
     recordingFinished: boolean;
-    openInvoice: boolean;
+    invoiceOpened: boolean;
     invoiceDue: boolean;
 }
 
@@ -71,7 +71,7 @@ const notificationDescriptionLookup: Record<keyof NotificationSettings, string> 
     'videoDeletion': 'Send a notification if a Video is about to be deleted',
     'recordingStart': 'Send a notification when a recording is automatically started',
     'recordingFinished': 'Send a notification when a recording is finished',
-    'openInvoice': 'Send a notification when an Invoice is opened',
+    'invoiceOpened': 'Send a notification when an Invoice is opened',
     'invoiceDue': 'Send a notification when an Invoice is due',
 };
 

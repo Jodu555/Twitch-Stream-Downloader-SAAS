@@ -47,7 +47,7 @@ router.post('/api/v1/auth/register', async (req, res, next) => {
                 videoDeletion: true,
                 recordingStart: false,
                 recordingFinished: false,
-                openInvoice: true,
+                invoiceOpened: true,
                 invoiceDue: true,
             } satisfies NotificationSettings;
 

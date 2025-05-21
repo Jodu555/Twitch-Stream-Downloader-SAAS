@@ -20,11 +20,14 @@ const database = Database.getDatabase();
 
 // type DataType<T> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } : never;
 
-type DataType<T> = T extends 'VERIFICATION' ? { email: string; verificationToken: string; } :
+type DataType<T> =
+  T extends 'VERIFICATION' ? { email: string; verificationToken: string; } :
   T extends 'DISCOUNT' ? { discountAmount: number; discountCode: string; } :
   T extends 'VIDEO_ABT_DELETED' ? { videoName: string; } :
   T extends 'RECORDING_AUTO_STARTED' ? { streamerName: string; } :
   T extends 'RECORDING_AUTO_ENDED' ? { streamerName: string; } :
+  T extends 'INVOICE_OPENED' ? { invoiceID: string; } :
+  T extends 'INVOICE_DUE' ? { invoiceID: string; } :
   undefined;
 
 export default class EmailManager {

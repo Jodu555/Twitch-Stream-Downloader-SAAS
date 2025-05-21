@@ -40,26 +40,14 @@ type FetchError = {
 
 export async function fetchErrorHandler(error: any, cleanup: () => void = () => { }) {
     if (error) {
-        if (error.name !== 'FetchError') {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                icon: 'error',
-                title: 'Failed to connect to the server',
-                timerProgressBar: true,
-            });
-            await cleanup();
-            return;
-        }
+        const notificationMessage = error.name == 'FetchError' ? error.data.error.message : error.message;
         Swal.fire({
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
             timer: 3000,
             icon: 'error',
-            title: (error as any).data.error.message,
+            title: notificationMessage,
             timerProgressBar: true,
         });
         await cleanup();

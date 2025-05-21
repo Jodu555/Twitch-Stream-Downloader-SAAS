@@ -58,7 +58,7 @@ export interface NotificationSettings {
     videoDeletion: boolean;
     recordingStart: boolean;
     recordingFinished: boolean;
-    openInvoice: boolean;
+    invoiceOpened: boolean;
     invoiceDue: boolean;
 }
 

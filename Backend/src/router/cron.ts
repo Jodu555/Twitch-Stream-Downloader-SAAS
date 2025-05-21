@@ -6,6 +6,7 @@ import { Account, DatabaseInvoice } from '../utils/types';
 import { getUserLimitByAccount } from '../utils/permissions';
 import { emailManager, processes } from '..';
 import { priceMap, resetAccountToTier } from './auth';
+import { checkAndSendNotificationAccount } from '../utils/notifications';
 
 const database = Database.getDatabase();
 
@@ -93,11 +94,15 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
                     createdAt: Date.now(),
                 } satisfies DatabaseInvoice;
                 await database.get<DatabaseInvoice>('invoices').create(invoice);
-                emailManager.sendEmail(account.UUID, 'INVOICE_OPENED', undefined);
+                await checkAndSendNotificationAccount(account, 'invoiceOpened', {
+                    invoiceID: invoices[0].ID
+                });
             }
 
             if (account.last_renewed + toDays(30) <= Date.now() && invoices.length > 0) {
-                emailManager.sendEmail(account.UUID, 'INVOICE_DUE', undefined);
+                await checkAndSendNotificationAccount(account, 'invoiceDue', {
+                    invoiceID: invoices[0].ID
+                });
             }
 
             if (account.last_renewed + toDays(35) <= Date.now() && invoices.length > 0) {
