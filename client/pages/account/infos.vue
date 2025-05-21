@@ -16,17 +16,29 @@
                 </div>
 
             </div>
-            <div class="col-6 shadow-sm p-4 mb-5 rounded">
+            <div v-auto-animate class="col-6 shadow-sm p-4 mb-5 rounded">
+
                 <h3 class="text-left">Notification Settings</h3>
-                <pre>
+
+                <!-- <pre>
                             {{ globalStore.auth.user?.notificationSettings }}
-                        </pre>
-                <div v-for="notification in notificationSettings" :key="notification.id" class="form-check form-switch">
+                        </pre> -->
+                <div v-if="notificationSettings"
+                    v-for="notificationId in Object.keys(notificationDescriptionLookup) as (keyof NotificationSettings)[]"
+                    :key="notificationId" class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" :id="notificationId"
+                        v-model="notificationSettings[notificationId]">
+                    <label class="form-check-label" :for="notificationId">{{
+                        notificationDescriptionLookup[notificationId]
+                    }}</label>
+                </div>
+                <!-- <div v-for="notification in notificationSettings" :key="notification.id" class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" :id="notification.id"
                         v-model="notification.enabled">
                     <label class="form-check-label" :for="notification.id">{{ notification.description
                         }}</label>
-                </div>
+                </div> -->
+                <p class="text-success-emphasis h6 mt-3 neon-text" v-if="saved">Saved...</p>
 
             </div>
         </div>
@@ -39,6 +51,8 @@ definePageMeta({
     middleware: 'auth',
 });
 
+
+
 interface NotificationSettings {
     discountCode: boolean;
     videoDeletion: boolean;
@@ -48,25 +62,8 @@ interface NotificationSettings {
     invoiceDue: boolean;
 }
 
-const userNotificationSettings: NotificationSettings = {
-    discountCode: true,
-    videoDeletion: true,
-    recordingStart: true,
-    recordingFinished: true,
-    openInvoice: true,
-    invoiceDue: true,
-};
-
-interface NotificationObject {
-    id: keyof NotificationSettings;
-    enabled: boolean;
-    description: string;
-}
-
 const notificationSettings = computed(() => {
-    return (Object.keys(userNotificationSettings) as (keyof NotificationSettings)[]).map(x => {
-        return { id: x, enabled: userNotificationSettings[x], description: notificationDescriptionLookup[x] } satisfies NotificationObject;
-    });
+    return globalStore.auth.user?.notificationSettings;
 });
 
 const notificationDescriptionLookup: Record<keyof NotificationSettings, string> = {
@@ -78,8 +75,49 @@ const notificationDescriptionLookup: Record<keyof NotificationSettings, string> 
     'invoiceDue': 'Send a notification when an Invoice is due',
 };
 
+const saved = ref(false);
+const savedTimeout = ref<NodeJS.Timeout>();
 
+watchDeep(notificationSettings, async (newVal) => {
+    if (saved.value == true) {
+        clearTimeout(savedTimeout.value);
+    }
+    saved.value = true;
+
+    const { data: response, error } = await tryCatch($fetch('http://138.201.131.52:8081/api/v1/auth/settings', {
+        method: 'POST',
+        headers: {
+            'auth-token': globalStore.auth.token,
+        },
+        body: JSON.stringify(newVal),
+    }));
+    if (error) {
+        console.log(error);
+    }
+
+    savedTimeout.value = setTimeout(() => {
+        savedTimeout.value = undefined;
+        saved.value = false;
+    }, 2500);
+})
 
 </script>
 
-<style scoped></style>
+<style scoped>
+.neon-text {
+    /* font-size: 4rem; */
+    color: #fff;
+    text-shadow: 0 0 10px #19962d, 0 0 20px #19962d, 0 0 40px #19962d, 0 0 80px #19962d, 0 0 160px #19962d;
+    animation: glow 1s infinite alternate;
+}
+
+@keyframes glow {
+    0% {
+        text-shadow: 0 0 5px #00ff2a, 0 0 10px #00ff2a, 0 0 20px #00ff2a, 0 0 40px #00ff2a, 0 0 80px #00ff2a;
+    }
+
+    100% {
+        text-shadow: 0 0 10px #19962d, 0 0 20px #19962d, 0 0 40px #19962d, 0 0 80px #19962d, 0 0 160px #19962d;
+    }
+}
+</style>

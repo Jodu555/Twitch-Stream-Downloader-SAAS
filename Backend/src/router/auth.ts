@@ -6,6 +6,7 @@ import { emailManager, io, processes } from '..';
 import { z } from 'zod';
 import bcrypt from "bcryptjs";
 import { LIMITS } from '../utils/permissions';
+import { notificationSchema } from 'src/utils/notifications';
 
 const database = Database.getDatabase();
 
@@ -144,6 +145,21 @@ router.get('/api/v1/auth/info', authentication(), async (req: AuthenticatedReque
         next(error);
     }
 });
+
+router.post('/api/v1/auth/settings', authentication(), async (req: AuthenticatedRequest, res, next) => {
+    try {
+        const settings = notificationSchema.parse(req.body);
+
+        const user = req.credentials.user;
+
+        await database.get<Account>('accounts').update({ UUID: user.UUID }, { notificationSettings: JSON.stringify(settings) });
+
+        res.json(req.credentials.user);
+    } catch (error) {
+        next(error);
+    }
+});
+
 
 const numMap: Record<SubscriptionTypes, number> = {
     FREE: 0,

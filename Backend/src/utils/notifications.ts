@@ -1,17 +1,9 @@
 import { Account, NotificationSettings } from 'src/utils/types';
 import { Database } from '@jodu555/mysqlapi';
 import { emailManager } from '..';
+import { z } from 'zod';
 
 const database = Database.getDatabase();
-
-// export interface NotificationSettings {
-//     discountCode: boolean;
-//     videoDeletion: boolean;
-//     recordingStart: boolean;
-//     recordingFinished: boolean;
-//     openInvoice: boolean;
-//     invoiceDue: boolean;
-// }
 
 // type DataType<T extends keyof NotificationSettings> =
 //     T extends 'DISCOUNT' ? { discountAmount: number; discountCode: string; } :
@@ -19,6 +11,16 @@ const database = Database.getDatabase();
 //     T extends 'RECORDING_AUTO_STARTED' ? { streamerName: string; } :
 //     T extends 'RECORDING_AUTO_ENDED' ? { streamerName: string; } :
 //     never;
+
+export const notificationSchema = z.object(
+    {
+        discountCode: z.boolean(),
+        videoDeletion: z.boolean(),
+        recordingStart: z.boolean(),
+        recordingFinished: z.boolean(),
+        openInvoice: z.boolean(),
+        invoiceDue: z.boolean(),
+    });
 
 type DataType<T extends keyof NotificationSettings> =
     T extends 'discountCode' ? { discountAmount: number; discountCode: string; } :
