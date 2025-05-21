@@ -30,7 +30,7 @@
                         v-model="notificationSettings[notificationId]">
                     <label class="form-check-label" :for="notificationId">{{
                         notificationDescriptionLookup[notificationId]
-                    }}</label>
+                        }}</label>
                 </div>
                 <!-- <div v-for="notification in notificationSettings" :key="notification.id" class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" :id="notification.id"
@@ -92,7 +92,10 @@ watchDeep(notificationSettings, async (newVal) => {
         body: JSON.stringify(newVal),
     }));
     if (error) {
-        console.log(error);
+        fetchErrorHandler(error, async () => {
+            saved.value = false;
+        });
+        return;
     }
 
     savedTimeout.value = setTimeout(() => {

@@ -79,7 +79,7 @@
                         </li> -->
                         <li class="list-group-item text-danger fw-bold"><b>Deletion:</b> {{
                             countdown((calcVideoDeletion(video) - timestamp) / 1000)
-                            }}</li>
+                        }}</li>
                     </ul>
                     <div class="card-body">
                         <div class="row justify-content-around">
@@ -87,7 +87,7 @@
                                 Date(video.finishedAt).toLocaleString('de') }}</span>
                             <span class="col-auto text-warning fw-bold">Video löschung: {{ new
                                 Date(calcVideoDeletion(video)).toLocaleString('de')
-                            }}</span>
+                                }}</span>
                         </div>
                         <div class="d-flex justify-content-between py-2">
                             <button class="col-7 btn btn-outline-secondary"
@@ -107,7 +107,7 @@
                                 </span>
                                 <span style="vertical-align: top;" class="h4" role="status">{{
                                     downloadingMap[video.id]?.progress
-                                }}%</span>
+                                    }}%</span>
                                 <br>
                                 <small class="h6">
                                     > {{ downloadingMap[video.id]?.rate }}
@@ -223,12 +223,19 @@ function getLastCheck(lastCheck: number, seconds: boolean) {
 }
 
 async function deleteVideo(id: string) {
-    const response = await $fetch(`http://138.201.131.52:8081/api/v1/videos/${id}`, {
+    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/videos/${id}`, {
         method: 'DELETE',
         headers: {
             'auth-token': globalStore.auth.token
         },
-    });
+    }));
+
+    if (error) {
+        fetchErrorHandler(error, async () => {
+        });
+        return;
+    }
+
     console.log(response);
     await refresh();
 }

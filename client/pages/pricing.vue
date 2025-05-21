@@ -301,7 +301,9 @@ async function upgrade(to: SubscriptionTypes) {
         },
     }));
     if (error) {
-        console.log(error);
+        fetchErrorHandler(error, async () => {
+            await globalStore.fetchInvoices();
+        });
         return;
     }
     await globalStore.fetchInvoices();
@@ -317,7 +319,8 @@ async function downgrade(to: SubscriptionTypes) {
         },
     }));
     if (error) {
-        console.log(error);
+        fetchErrorHandler(error, async () => {
+        });
         return;
     }
     console.log(response);

@@ -132,7 +132,9 @@ async function addAutomation() {
     }));
 
     if (error) {
-        console.log(error);
+        fetchErrorHandler(error, async () => {
+            await refreshAutomations();
+        });
         return;
     }
     await refreshAutomations();
@@ -157,7 +159,9 @@ async function deleteAutomation(ID: string) {
     }));
 
     if (error) {
-        console.log(error);
+        fetchErrorHandler(error, async () => {
+            await refreshAutomations();
+        });
         return;
     }
     await refreshAutomations();

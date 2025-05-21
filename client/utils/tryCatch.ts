@@ -19,8 +19,50 @@ export async function tryCatch<T, E = Error>(
         data = await promise;
         return { data, error: null };
     } catch (error) {
-        console.log('ININININININ Error:', data);
+        console.log('ININININININ Error:', error, data);
 
         return { data: data as T, error: error as E };
+    }
+}
+import Swal from 'sweetalert2';
+
+type FetchError = {
+    data: {
+        success: false;
+        method: string;
+        path: string;
+        error: {
+            message: string;
+            stack: string;
+        };
+    };
+};
+
+export async function fetchErrorHandler(error: any, cleanup: () => void = () => { }) {
+    if (error) {
+        if (error.name !== 'FetchError') {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                icon: 'error',
+                title: 'Failed to connect to the server',
+                timerProgressBar: true,
+            });
+            cleanup();
+            return;
+        }
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            icon: 'error',
+            title: (error as any).data.error.message,
+            timerProgressBar: true,
+        });
+        cleanup();
+        return;
     }
 }

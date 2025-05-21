@@ -166,17 +166,21 @@ definePageMeta({
 
 import { useTimestamp } from '@vueuse/core';
 
+
 const startRecordingLoading = ref(false);
 const twitchUsernameToRecord = ref('');
 const twitchRecordWatchLive = ref(false);
 
 const userData = computed(() => globalStore.auth.userData);
 
+
+
 async function startRecording() {
 	if (startRecordingLoading.value) {
 		return;
 	}
 	startRecordingLoading.value = true;
+
 	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/records`, {
 		method: 'POST',
 		body: {
@@ -189,10 +193,14 @@ async function startRecording() {
 	}));
 
 	if (error) {
-		console.log(error);
-		startRecordingLoading.value = false;
+		fetchErrorHandler(error, () => {
+			// twitchUsernameToRecord.value = '';
+			startRecordingLoading.value = false;
+		});
 		return;
 	}
+
+
 	console.log('Result', response);
 	twitchUsernameToRecord.value = '';
 	startRecordingLoading.value = false;
@@ -206,12 +214,12 @@ async function stopRecording(id: string) {
 		},
 	}));
 	if (error) {
-		console.log(error);
+		fetchErrorHandler(error, async () => {
+			await refresh();
+		});
 		return;
 	}
 	await refresh();
-	console.log(response);
-
 }
 
 function getLastImageTime(imageUrl: string) {

@@ -18,7 +18,7 @@
                     <h5 class="mb-1">{{ linkedAccount.youtubeChannelName }}</h5>
                     <small class="text-muted">Added {{ new
                         Date(parseInt(linkedAccount.created_at as any as string)).toLocaleDateString('de')
-                    }}</small>
+                        }}</small>
                 </div>
                 <p class="mb-1">Used in <strong>3 Automations</strong></p>
 
@@ -53,7 +53,7 @@ export interface LinkedAccount {
     updated_at: number;
 }
 
-const { status: linkedAccountsStatus, data: linkedAccounts } = useFetch<LinkedAccount[]>('http://138.201.131.52:8081/api/v1/youtube/linkedAccounts', {
+const { status: linkedAccountsStatus, data: linkedAccounts, refresh } = useFetch<LinkedAccount[]>('http://138.201.131.52:8081/api/v1/youtube/linkedAccounts', {
     headers: {
         'auth-token': globalStore.auth.token
     },
@@ -71,7 +71,9 @@ async function linkYoutubeAccount() {
             },
         }));
         if (error) {
-            console.log(error);
+            fetchErrorHandler(error, async () => {
+                await refresh();
+            });
             return;
         }
 
@@ -104,7 +106,9 @@ async function unlinkYoutubekAccount(youtubeAccountID: string) {
         }
     }));
     if (error) {
-        console.error(error);
+        fetchErrorHandler(error, async () => {
+            await refresh();
+        });
         return;
     }
     console.log(response);
