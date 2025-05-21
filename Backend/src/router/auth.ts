@@ -216,7 +216,7 @@ router.get('/api/v1/auth/upgrade/:type', authentication(), async (req: Authentic
             await database.get<DatabaseInvoice>('invoices').create(invoice);
         } else {
             //If User is on a paid plan, upgrade to the new plan immediately new invoice will be generated after the current plan ends
-            await database.get<Account>('accounts').update({ UUID: user.UUID }, { subscription_type: type, first_subscribed: Date.now() });
+            await database.get<Account>('accounts').update({ UUID: user.UUID }, { subscription_type: type });
         }
 
 

@@ -78,8 +78,6 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
             const invoices = await database.get<DatabaseInvoice>('invoices').get({ userUUID: account.UUID, status: 'UNPAID' });
             if (account.last_renewed + toDays(25) <= Date.now() && invoices.length == 0) {
 
-                //TODO: Check if a user submitted downgrade is pending
-
                 if (account.pendingDowngrade) {
                     await database.get<Account>('accounts').update({ UUID: account.UUID }, { pendingDowngrade: undefined });
                     // await database.get<Account>('accounts').update({ UUID: account.UUID }, { subscription_type: account.pendingDowngrade, pendingDowngrade: undefined });
