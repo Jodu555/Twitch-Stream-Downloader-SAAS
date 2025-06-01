@@ -219,14 +219,13 @@ app.get('/api/v1/streamers/image/:id', authentication(), async (req: Authenticat
     res.sendFile(imageFilePath);
 });
 
-app.get('/api/v1/live/:id/hls/:filename', authentication(), async (req: AuthenticatedRequest, res) => {
-    const userUUID = req.credentials.user.UUID;
+app.get('/api/v1/live/:id/hls/:filename', async (req: Request, res) => {
     const parse = z.object({
         id: z.string(),
         filename: z.string(),
     });
     const reqData = parse.parse(req.params);
-    const process = processes.filter(x => x.userUUID == userUUID).find(x => x.id == reqData.id);
+    const process = processes.find(x => x.id == reqData.id);
     if (process == null) {
         res.status(404).send('Process Not Found');
         return;
