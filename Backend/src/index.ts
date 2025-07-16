@@ -331,7 +331,7 @@ const commandManager = CommandManager.createCommandManager(process.stdin, proces
 
 export const processes = [] as RecordEntry[];
 
-const enbaleautomations = false;
+const enbaleautomations = true;
 
 let lastCheck = Date.now();
 main();

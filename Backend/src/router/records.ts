@@ -6,12 +6,11 @@ import { AuthenticatedRequest, authentication } from './auth';
 import { z } from 'zod';
 import { getUserLimit, getUserLimitByAccount, isAbleToCreateAutomation, isAbleToHaveVideo, isAbleToRecord, PermissionError } from '../utils/permissions';
 import RecordEntry from '../RecordEntry';
+import { isLive } from 'src/streamLinkHelpers';
 
 const database = Database.getDatabase();
 
 export const router = Router();
-
-
 
 
 router.get('/api/v1/records', authentication(), async (req: AuthenticatedRequest, res) => {
@@ -41,6 +40,10 @@ router.post('/api/v1/records/', authentication(), async (req: AuthenticatedReque
 
         if (!await isAbleToHaveVideo(user)) {
             return next(new PermissionError('Not able to record! Hit video limit!'));
+        }
+
+        if (!await isLive(twitchUsername)) {
+            return next(new PermissionError('The Streamer ' + twitchUsername + ' is not live!'));
         }
 
         const entry = new RecordEntry(user.UUID, twitchUsername, undefined, watchLive);
