@@ -6,7 +6,7 @@ import { AuthenticatedRequest, authentication } from './auth';
 import { z } from 'zod';
 import { getUserLimit, getUserLimitByAccount, isAbleToCreateAutomation, isAbleToHaveVideo, isAbleToRecord, PermissionError } from '../utils/permissions';
 import RecordEntry from '../RecordEntry';
-import { isLive } from 'src/streamLinkHelpers';
+import { isLive } from '../streamLinkHelpers';
 
 const database = Database.getDatabase();
 
