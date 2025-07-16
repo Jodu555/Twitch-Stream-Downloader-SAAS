@@ -449,11 +449,11 @@ async function main() {
 
             if (enbaleautomations) {
                 if (!await isLive(automation.twitchStreamerName)) {
-                    console.log('Stream', automation.twitchStreamerName, 'is not live!');
+                    // console.log('Stream', automation.twitchStreamerName, 'is not live!');
                     continue;
                 }
                 if (processes.find(x => x.automationUUID == automation.ID && x.userUUID == automation.userUUID)) {
-                    console.log('Process already exists for', automation.userUUID, 'and', automation.twitchStreamerName);
+                    // console.log('Process already exists for', automation.userUUID, 'and', automation.twitchStreamerName);
                     continue;
                 }
                 const entry = new RecordEntry(automation.userUUID, automation.twitchStreamerName, automation.ID, false);
