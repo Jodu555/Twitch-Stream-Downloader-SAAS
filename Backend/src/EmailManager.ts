@@ -65,7 +65,7 @@ export default class EmailManager {
     }
 
     async processEmails() {
-        console.log('Processing emails...', this.ready, this.inflight);
+        // console.log('Processing emails...', this.ready, this.inflight);
         if (!this.ready) {
             console.log('Email transporter not ready, skipping email processing');
             setTimeout(() => this.processEmails(), 1000 * 60 * 5); // Retry in 5 minutes
