@@ -253,7 +253,7 @@ class RecordEntry {
             for await (const back of backOptions) {
                 const output = await this.deepExecPromisify(genCommand(back), process.cwd());
                 if (fs.existsSync(this.imageFilePath)) {
-                    this.imageUrl = `http://138.201.131.52:8081/api/v1/streamers/image/${this.id}?time=${new Date().getTime()}`;
+                    this.imageUrl = `http://big.jodu555.de:8081/api/v1/streamers/image/${this.id}?time=${new Date().getTime()}`;
                     await this.updateRecordInDatabaseAndSockets();
                     return;
                 }

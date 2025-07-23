@@ -121,7 +121,7 @@ const automations = computed(() => globalStore.automations);
 const { error: automationError, refresh: refreshAutomations, status: automationStatus } = useAsyncData('automations', globalStore.fetchAutomations);
 
 async function addAutomation() {
-    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/automations/`, {
+    const { data: response, error } = await tryCatch($fetch(`http://big.jodu555.de:8081/api/v1/automations/`, {
         method: 'POST',
         headers: {
             'auth-token': globalStore.auth.token
@@ -151,7 +151,7 @@ function getLastCheck(timestamp: number | undefined, lastCheck: number, seconds:
 }
 
 async function deleteAutomation(ID: string) {
-    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/automations/${ID}`, {
+    const { data: response, error } = await tryCatch($fetch(`http://big.jodu555.de:8081/api/v1/automations/${ID}`, {
         method: 'DELETE',
         headers: {
             'auth-token': globalStore.auth.token

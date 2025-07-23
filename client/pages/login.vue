@@ -135,7 +135,7 @@ async function sendVerificationCode() {
     error.value = '';
     sendVerificationCodeLoading.value = true;
 
-    const { data, error: respError } = await tryCatch($fetch<any>(`http://138.201.131.52:8081/api/v1/auth/register/`, {
+    const { data, error: respError } = await tryCatch($fetch<any>(`http://big.jodu555.de:8081/api/v1/auth/register/`, {
         ignoreResponseError: true,
         method: 'POST',
         body: {
@@ -160,7 +160,7 @@ async function sendVerificationCode() {
 async function onLogin() {
     error.value = '';
     loading.value = true;
-    const { data, error: respError } = await tryCatch($fetch<any>(`http://138.201.131.52:8081/api/v1/auth/login/`, {
+    const { data, error: respError } = await tryCatch($fetch<any>(`http://big.jodu555.de:8081/api/v1/auth/login/`, {
         ignoreResponseError: true,
         method: 'POST',
         body: {
@@ -201,7 +201,7 @@ async function onRegister() {
     error.value = '';
     registerLoading.value = true;
 
-    const { data, error: respError } = await tryCatch($fetch<any>(`http://138.201.131.52:8081/api/v1/auth/verify/`, {
+    const { data, error: respError } = await tryCatch($fetch<any>(`http://big.jodu555.de:8081/api/v1/auth/verify/`, {
         method: 'POST',
         body: {
             email: form.email,

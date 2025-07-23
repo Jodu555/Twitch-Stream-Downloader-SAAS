@@ -84,7 +84,7 @@ watchDeep(notificationSettings, async (newVal) => {
     }
     saved.value = true;
 
-    const { data: response, error } = await tryCatch($fetch('http://138.201.131.52:8081/api/v1/auth/settings', {
+    const { data: response, error } = await tryCatch($fetch('http://big.jodu555.de:8081/api/v1/auth/settings', {
         method: 'POST',
         headers: {
             'auth-token': globalStore.auth.token,

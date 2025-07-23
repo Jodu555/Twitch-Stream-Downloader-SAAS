@@ -182,7 +182,7 @@ export const useGlobalStore = defineStore('globalStore', {
             if (!this.auth.isAuthenticated) {
                 return [];
             }
-            const response = await $fetch<Streamer[]>('http://138.201.131.52:8081/api/v1/records', {
+            const response = await $fetch<Streamer[]>('http://big.jodu555.de:8081/api/v1/records', {
                 headers: {
                     'auth-token': this.auth.token,
                 },
@@ -194,7 +194,7 @@ export const useGlobalStore = defineStore('globalStore', {
             if (!this.auth.isAuthenticated) {
                 return [];
             }
-            const response = await $fetch<Automation[]>('http://138.201.131.52:8081/api/v1/automations', {
+            const response = await $fetch<Automation[]>('http://big.jodu555.de:8081/api/v1/automations', {
                 headers: {
                     'auth-token': this.auth.token,
                 },
@@ -206,7 +206,7 @@ export const useGlobalStore = defineStore('globalStore', {
             if (!this.auth.isAuthenticated) {
                 return [];
             }
-            const response = await $fetch<RecordedVideo[]>('http://138.201.131.52:8081/api/v1/videos', {
+            const response = await $fetch<RecordedVideo[]>('http://big.jodu555.de:8081/api/v1/videos', {
                 headers: {
                     'auth-token': this.auth.token,
                 },
@@ -219,7 +219,7 @@ export const useGlobalStore = defineStore('globalStore', {
                 return [];
             }
 
-            const response = await $fetch<Invoice[]>('http://138.201.131.52:8081/api/v1/invoices', {
+            const response = await $fetch<Invoice[]>('http://big.jodu555.de:8081/api/v1/invoices', {
                 headers: {
                     'auth-token': this.auth.token,
                 },
@@ -237,7 +237,7 @@ export const useGlobalStore = defineStore('globalStore', {
                     return;
                 const token = this.auth.token;
 
-                const response = await $fetch<Account>('http://138.201.131.52:8081/api/v1/auth/info', {
+                const response = await $fetch<Account>('http://big.jodu555.de:8081/api/v1/auth/info', {
                     headers: {
                         'auth-token': token,
                     },
@@ -260,7 +260,7 @@ export const useGlobalStore = defineStore('globalStore', {
             }
         },
         async logout() {
-            const response = await $fetch<Account>('http://138.201.131.52:8081/api/v1/auth/logout', {
+            const response = await $fetch<Account>('http://big.jodu555.de:8081/api/v1/auth/logout', {
                 headers: {
                     'auth-token': this.auth.token as string,
                 },

@@ -92,7 +92,9 @@
                         <div class="d-flex justify-content-between py-2">
                             <button class="col-7 btn btn-outline-secondary"
                                 @click="showTitel = true; titleViewID = video.id">Titel & Kategorien</button>
-                            <span class="col-4 text-info-emphasis text-center align-middle">Coming Soon</span>
+                            <!-- <span class="col-4 text-info-emphasis text-center align-middle">Coming Soon</span> -->
+                            <a class="col-4 btn btn-outline-info" target="_blank"
+                                :href="`http://big.jodu555.de:8081/api/v1/video/${video.id}?auth-token=${globalStore.auth.token}`">Watch</a>
                         </div>
                         <div class="d-flex justify-content-between py-2">
 
@@ -223,7 +225,7 @@ function getLastCheck(lastCheck: number, seconds: boolean) {
 }
 
 async function deleteVideo(id: string) {
-    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/videos/${id}`, {
+    const { data: response, error } = await tryCatch($fetch(`http://big.jodu555.de:8081/api/v1/videos/${id}`, {
         method: 'DELETE',
         headers: {
             'auth-token': globalStore.auth.token
@@ -251,7 +253,7 @@ function downloadVideo(video: RecordedVideo) {
 
     // return;
 
-    const url = `http://138.201.131.52:8081/api/v1/video/${video.id}?auth-token=${globalStore.auth.token}`;
+    const url = `http://big.jodu555.de:8081/api/v1/video/${video.id}?auth-token=${globalStore.auth.token}`;
 
     // Use axios with responseType blob and onDownloadProgress
     axios({

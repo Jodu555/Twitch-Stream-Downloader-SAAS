@@ -74,7 +74,7 @@
 					<ClientOnly v-if="streamer.watchingLive && streamer.state == 'RECORDING'"
 						fallback="Loading video...">
 						<VideoPlayer class="card-img-top py-2"
-							:link="`http://138.201.131.52:8081/api/v1/live/${streamer.id}/hls/master.m3u8`" />
+							:link="`http://big.jodu555.de:8081/api/v1/live/${streamer.id}/hls/master.m3u8`" />
 					</ClientOnly>
 					<div class="card-body">
 						<span class="text-muted">Slot {{ idx + 1 }} / {{ userData.recordingSlots }}</span>
@@ -181,7 +181,7 @@ async function startRecording() {
 	}
 	startRecordingLoading.value = true;
 
-	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/records`, {
+	const { data: response, error } = await tryCatch($fetch(`http://big.jodu555.de:8081/api/v1/records`, {
 		method: 'POST',
 		body: {
 			name: twitchUsernameToRecord.value,
@@ -207,7 +207,7 @@ async function startRecording() {
 }
 
 async function stopRecording(id: string) {
-	const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/records/${id}/transcode`, {
+	const { data: response, error } = await tryCatch($fetch(`http://big.jodu555.de:8081/api/v1/records/${id}/transcode`, {
 		method: 'GET',
 		headers: {
 			'auth-token': globalStore.auth.token

@@ -22,7 +22,7 @@ interface ListenEvents {
 let socket: Socket<ListenEvents, any> | null = null;
 
 export function useSocket() {
-    if (socket == null) socket = io('http://138.201.131.52:8081', { autoConnect: false });
+    if (socket == null) socket = io('http://big.jodu555.de:8081', { autoConnect: false });
 
     return socket;
 }

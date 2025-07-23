@@ -294,7 +294,7 @@ const detailedExplanation = ref([
 
 async function upgrade(to: SubscriptionTypes) {
     actionLoading.value = true;
-    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/auth/upgrade/${to}`, {
+    const { data: response, error } = await tryCatch($fetch(`http://big.jodu555.de:8081/api/v1/auth/upgrade/${to}`, {
         method: 'GET',
         headers: {
             'auth-token': globalStore.auth.token
@@ -312,7 +312,7 @@ async function upgrade(to: SubscriptionTypes) {
 
 async function downgrade(to: SubscriptionTypes) {
     actionLoading.value = true;
-    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/auth/downgrade/${to}`, {
+    const { data: response, error } = await tryCatch($fetch(`http://big.jodu555.de:8081/api/v1/auth/downgrade/${to}`, {
         method: 'GET',
         headers: {
             'auth-token': globalStore.auth.token

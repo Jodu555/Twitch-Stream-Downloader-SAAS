@@ -53,7 +53,7 @@ export interface LinkedAccount {
     updated_at: number;
 }
 
-const { status: linkedAccountsStatus, data: linkedAccounts, refresh } = useFetch<LinkedAccount[]>('http://138.201.131.52:8081/api/v1/youtube/linkedAccounts', {
+const { status: linkedAccountsStatus, data: linkedAccounts, refresh } = useFetch<LinkedAccount[]>('http://big.jodu555.de:8081/api/v1/youtube/linkedAccounts', {
     headers: {
         'auth-token': globalStore.auth.token
     },
@@ -64,7 +64,7 @@ async function linkYoutubeAccount() {
     try {
         const { data: response, error } = await tryCatch($fetch<{
             authUrl: string;
-        }>(`http://138.201.131.52:8081/api/v1/youtube/getAuthURL`, {
+        }>(`http://big.jodu555.de:8081/api/v1/youtube/getAuthURL`, {
             method: 'GET',
             headers: {
                 'auth-token': globalStore.auth.token
@@ -99,7 +99,7 @@ async function linkYoutubeAccount() {
 }
 
 async function unlinkYoutubekAccount(youtubeAccountID: string) {
-    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/youtube/unlinkAccount?youtubeAccountID=${youtubeAccountID}`, {
+    const { data: response, error } = await tryCatch($fetch(`http://big.jodu555.de:8081/api/v1/youtube/unlinkAccount?youtubeAccountID=${youtubeAccountID}`, {
         method: 'GET',
         headers: {
             'auth-token': globalStore.auth.token

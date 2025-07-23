@@ -86,7 +86,7 @@ async function renderInvoicePaypalButtons() {
                     // Capture the funds from the transaction.
                     const { data: response, error } = await tryCatch($fetch<{
                         status: InvoiceStatus;
-                    }>("http://138.201.131.52:8081/api/v1/paypal/captureOrder", {
+                    }>("http://big.jodu555.de:8081/api/v1/paypal/captureOrder", {
                         method: "POST",
                         body: {
                             invoiceID: invoice.ID,
@@ -121,7 +121,7 @@ async function renderInvoicePaypalButtons() {
                     try {
                         const { data: response, error } = await tryCatch($fetch<{
                             orderID: string;
-                        }>("http://138.201.131.52:8081/api/v1/paypal/createOrder", {
+                        }>("http://big.jodu555.de:8081/api/v1/paypal/createOrder", {
                             method: "POST",
                             body: {
                                 invoiceID: invoice.ID,

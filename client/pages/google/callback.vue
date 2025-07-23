@@ -26,7 +26,7 @@ onMounted(async () => {
   const { code, scope } = route.query;
 
   if (typeof code === 'string') {
-    const { data: response, error } = await tryCatch($fetch(`http://138.201.131.52:8081/api/v1/youtube/callback?code=${code}&scope=${scope}`, {
+    const { data: response, error } = await tryCatch($fetch(`http://big.jodu555.de:8081/api/v1/youtube/callback?code=${code}&scope=${scope}`, {
       method: 'GET',
       headers: {
         'auth-token': globalStore.auth.token
