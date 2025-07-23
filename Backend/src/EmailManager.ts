@@ -138,6 +138,11 @@ export default class EmailManager {
     }
 
     private async deepSendEmail(email: Email) {
+
+        if (typeof email.data === 'string') {
+            email.data = JSON.parse(email.data);
+        }
+
         if (!this.ready) {
             console.log('Email transporter not ready for', email.ID);
             return;
@@ -146,7 +151,7 @@ export default class EmailManager {
         this.transporter.sendMail(
             {
                 from: process.env.MAIL_APP_MAIL,
-                to: 'Jodu505@gmail.com',
+                to: (email.data as any).email,
                 subject: email.subject,
                 html: email.html,
                 text: email.text,

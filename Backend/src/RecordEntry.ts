@@ -75,7 +75,7 @@ class RecordEntry {
 
     private notLiveAttempts: number;
 
-    constructor(userUUID: string, twitchStreamerName: string, automationUUID?: string, watchingLive?: boolean) {
+    constructor(userUUID: string, twitchStreamerName: string, automationUUID?: string, watchingLive?: boolean, coldCreate = false) {
         this.id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         this.userUUID = userUUID;
         this.twitchStreamerName = twitchStreamerName;
@@ -91,15 +91,17 @@ class RecordEntry {
         this.outputFilePath = path.join(this.tmpDir, `${this.twitchStreamerName}-${this.id}.mp4`);
         this.createdAt = Date.now();
         //TODO: Maybe do this only if automation UUID is present
-        checkAndSendNotification(this.userUUID, 'recordingStart', { twitchStreamerName: this.twitchStreamerName });
-        getUserLimit(this.userUUID, 'maxRecordingTime').then(maxRecordingTime => {
-            this.maxRecordingTimeSeconds = maxRecordingTime * 60 * 60;
-            this.updateRecordInDatabaseAndSockets();
-        });
+        if (!coldCreate) {
+            checkAndSendNotification(this.userUUID, 'recordingStart', { twitchStreamerName: this.twitchStreamerName });
+            getUserLimit(this.userUUID, 'maxRecordingTime').then(maxRecordingTime => {
+                this.maxRecordingTimeSeconds = maxRecordingTime * 60 * 60;
+                this.updateRecordInDatabaseAndSockets();
+            });
+        }
     }
 
     static fromDatabase(entry: DatabaseRecordEntry) {
-        const record = new RecordEntry(entry.userUUID, entry.twitchStreamerName, entry.automationUUID, false);
+        const record = new RecordEntry(entry.userUUID, entry.twitchStreamerName, entry.automationUUID, false, true);
         record.id = entry.ID;
         record.state = entry.state;
         record.metas = JSON.parse(entry.metas);
