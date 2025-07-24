@@ -161,9 +161,10 @@ export default class EmailManager {
                     console.log(error);
                     return;
                 } else {
-                    console.log('Email sent: ' + info);
+                    console.log('Email sent:', info);
                     email.sent_at = Date.now();
                     email.status = 'SENT';
+                    email.data = JSON.stringify(email.data);
                     database.get<Email>('emails').update({ ID: email.ID }, email);
                 }
             }
