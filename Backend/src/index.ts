@@ -452,7 +452,7 @@ async function main() {
                     // console.log('Stream', automation.twitchStreamerName, 'is not live!');
                     continue;
                 }
-                if (processes.find(x => x.automationUUID == automation.ID && x.userUUID == automation.userUUID)) {
+                if (processes.find(x => x.automationUUID == automation.ID && x.userUUID == automation.userUUID && x.getState() == 'RECORDING')) {
                     // console.log('Process already exists for', automation.userUUID, 'and', automation.twitchStreamerName);
                     continue;
                 }
