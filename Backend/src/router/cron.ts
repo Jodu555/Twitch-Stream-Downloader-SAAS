@@ -31,6 +31,7 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
         }).parse(req.query);
         if (cronToken !== process.env.CRON_TOKEN) {
             res.status(401).send('Invalid Cron Token');
+            return;
         }
 
         const toDays = (days: number) => days * 24 * 60 * 60 * 1000;
