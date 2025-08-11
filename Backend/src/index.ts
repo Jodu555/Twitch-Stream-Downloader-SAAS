@@ -261,11 +261,19 @@ app.get('/api/v1/live/:id/hls/:filename', async (req: Request, res) => {
 app.get('/api/v1/debug/mail/:type', async (req, res) => {
     // 'VERIFICATION' | 'INVOICE_OPENED' | 'INVOICE_DUE' | 'DISCOUNT' | 'VIDEO_ABT_DELETED' | 'RECORDING_AUTO_STARTED' | 'RECORDING_AUTO_ENDED'
     const parse = z.object({
-        type: z.enum(['VERIFICATION', 'INVOICE_OPENED', 'INVOICE_DUE', 'DISCOUNT', 'VIDEO_ABT_DELETED', 'RECORDING_AUTO_STARTED', 'RECORDING_AUTO_ENDED']),
+        type: z.enum(['VERIFICATION', 'INVOICE_OPENED', 'INVOICE_DUE', 'DISCOUNT', 'VIDEO_ABT_DELETED', 'RECORDING_AUTO_STARTED', 'RECORDING_AUTO_ENDED', 'CRON_LOG']),
     });
     const { type } = parse.parse(req.params);
 
-    const data = await emailManager.getEmailData(type, req.query as any);
+    let data: { subject: string; html: string; text: string; };
+    if (type == 'CRON_LOG' && !req.query.log) {
+        data = await emailManager.getEmailData(type, {
+            log: ['This is a test log for the CRON_LOG email.', 'Second line of the log.', 'Third line of the log.']
+        });
+    } else {
+        data = await emailManager.getEmailData(type, req.query as any);
+    }
+
 
     console.log(data.subject);
     res.send(data.html);

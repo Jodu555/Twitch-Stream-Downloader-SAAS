@@ -25,6 +25,12 @@ async function getUser(userMap: Map<string, Account>, userUUID: string) {
 }
 
 router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFunction) => {
+    const logLines = [];
+
+    function log(line: string) {
+        logLines.push(line);
+    }
+    const startTime = Date.now();
     try {
         const { cronToken } = z.object({
             cronToken: z.string()
@@ -38,12 +44,15 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
 
         const userMap = new Map<string, Account>();
 
+
+        log(`Starting cron job at ${new Date().toISOString()}`);
         for (const entry of processes) {
             if (entry.getState() == 'FINISHED') {
                 const user = await getUser(userMap, entry.userUUID);
                 const deletionAt = entry.finishedAt + toDays(await getUserLimitByAccount(user, 'videoRetentionDays'));
 
                 if (deletionAt + toDays(2) < Date.now() || deletionAt + toDays(1) < Date.now()) {
+                    log(`Deleting video ${entry.twitchStreamerName} for user ${user.email} AT ${new Date(deletionAt).toISOString()}`);
                     await checkAndSendNotificationAccount(user, 'videoDeletion', {
                         videoName: entry.twitchStreamerName,
                         deleteDate: deletionAt,
@@ -51,11 +60,13 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
                 }
 
                 if (deletionAt < Date.now()) {
+                    log(`Deleting video ${entry.twitchStreamerName} for user ${user.email} NOW`);
                     await entry.delete();
                 }
             }
             if (entry.getState() == 'DELETED') {
                 const user = await getUser(userMap, entry.userUUID);
+                log(`Video ${entry.twitchStreamerName} for user ${user.email} needs to be removed from the database / disk`);
                 //TODO: Actually delete the video from the server / disk
             }
         }
@@ -85,6 +96,7 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
                     if (account.pendingDowngrade == 'FREE') {
                         continue;
                     }
+                    log(`User ${account.email} has a pending Downgrade from ${account.subscription_type} to ${account.pendingDowngrade}`);
                     account.pendingDowngrade = undefined;
                     account.subscription_type = account.pendingDowngrade;
                 }
@@ -103,19 +115,34 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
                 await checkAndSendNotificationAccount(account, 'invoiceOpened', {
                     invoiceID: invoices[0].ID
                 });
+                log(`Creating invoice for user ${account.email} with ID ${invoice.ID} for amount ${invoice.amount}`);
             }
 
             if (account.last_renewed + toDays(30) <= Date.now() && invoices.length > 0) {
                 await checkAndSendNotificationAccount(account, 'invoiceDue', {
                     invoiceID: invoices[0].ID
                 });
+                log(`Sending invoice due notification to user ${account.email} for invoice ${invoices[0].ID} due in 5 days`);
             }
 
             if (account.last_renewed + toDays(35) <= Date.now() && invoices.length > 0) {
                 resetAccountToTier(account.UUID, 'FREE');
+                log(`Resetting user ${account.email} to FREE tier due to unpaid invoice! Last renewed: ${new Date(account.last_renewed).toISOString()}`);
             }
         }
     } catch (error) {
         next(error);
+    } finally {
+        log(`Cron job finished at ${new Date().toISOString()}`);
+        const executionTime = Date.now() - startTime;
+        log(`Execution time: ${executionTime}ms`);
+        if (logLines.length > 0) {
+            console.log(logLines.join('\n'));
+            emailManager.sendEmail(process.env.ADMIN_USER_UUID, 'CRON_LOG', {
+                email: process.env.ADMIN_EMAIL,
+                timestamp: startTime,
+                log: logLines,
+            });
+        }
     }
 });

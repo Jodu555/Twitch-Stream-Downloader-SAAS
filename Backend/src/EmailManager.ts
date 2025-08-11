@@ -28,6 +28,7 @@ type DataType<T> =
     T extends 'RECORDING_AUTO_ENDED' ? { streamerName: string; } :
     T extends 'INVOICE_OPENED' ? { invoiceID: string; } :
     T extends 'INVOICE_DUE' ? { invoiceID: string; } :
+    T extends 'CRON_LOG' ? { email: string; log: string[]; timestamp: number; } :
     undefined;
 
 export default class EmailManager {
@@ -113,7 +114,7 @@ export default class EmailManager {
         }
     }
 
-    async getEmailData<T extends EmailTypes>(email_type: T, data: any) {
+    async getEmailData<T extends EmailTypes>(email_type: T, data: any): Promise<{ subject: string; html: string; text: string; }> {
         if (email_type === 'VERIFICATION') {
             return this.generateEmailVerification(data);
         }
@@ -134,6 +135,9 @@ export default class EmailManager {
         }
         if (email_type === 'INVOICE_DUE') {
             return await this.generateEmailInvoiceDue(data);
+        }
+        if (email_type === 'CRON_LOG') {
+            return this.generateEmailCronLog(data);
         }
     }
 
@@ -1084,6 +1088,157 @@ export default class EmailManager {
           The TwitchStreamRecorder App
         `;
         return { subject: `Invoice #${invoiceNumber} Due`, html, text };
+    };
+
+    async generateEmailCronLog(data: { email: string; log: string[]; timestamp: number; }) {
+        const { email, log, timestamp: stamp } = data;
+
+        const timestamp = new Date(stamp).toLocaleDateString('de') + ' ' + new Date(stamp).toLocaleTimeString('de');
+        const logCount = log.length;
+
+        const html = `<!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cron Job Execution Log</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .email-container {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+          }
+          .email-header {
+            background-color: #4f46e5;
+            padding: 20px;
+            text-align: center;
+          }
+          .email-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 24px;
+          }
+          .email-body {
+            background-color: #ffffff;
+            padding: 30px;
+          }
+          .email-footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+          }
+          .log-info {
+            background-color: #f1f5f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+          }
+          .log-container {
+            background-color: #1f2937;
+            color: #f9fafb;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #374151;
+          }
+          .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+            border-bottom: 1px solid #374151;
+          }
+          .log-entry:last-child {
+            border-bottom: none;
+          }
+          .execution-info {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4f46e5;
+            margin: 10px 0;
+          }
+          .success-notice {
+            background-color: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 10px 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="email-container">
+          <div class="email-header">
+            <h1>Cron Job Execution Log</h1>
+          </div>
+          <div class="email-body">
+            <p>Hello ${email},</p>
+            
+            <div class="success-notice">
+              <p><strong>Status:</strong> Cron job executed successfully.</p>
+            </div>
+            
+            <p>Here is the complete execution log for your TwitchStreamRecorder cron job.</p>
+            
+            <div class="log-info">
+              <p><strong>Execution Time:</strong> ${timestamp}</p>
+              <div class="execution-info">Log Entries: ${logCount}</div>
+            </div>
+            
+            <p><strong>Complete Execution Log:</strong></p>
+            <div class="log-container">
+              ${log.map(entry => `<div class="log-entry">${entry}</div>`).join('')}
+            </div>
+            
+            <p>This log contains all the activities and operations performed during the cron job execution. If you notice any errors or have concerns about the execution, please contact our support team.</p>
+            
+            <p>Thank you for using TwitchStreamRecorder.</p>
+            
+            <p>Best regards,<br>The TwitchRecorder App</p>
+          </div>
+          <div class="email-footer">
+            <p>© ${new Date().getFullYear()} TwitchStreamRecorder. All rights reserved.</p>
+            <p>If you need any assistance, please just reply to this email!</p>
+          </div>
+        </div>
+      </body>
+        </html>`;
+
+        const text = `
+      Hello ${email},
+      
+      Status: Cron job executed successfully.
+      
+      Here is the complete execution log for your TwitchStreamRecorder cron job.
+      
+      Execution Time: ${timestamp}
+      Log Entries: ${logCount}
+      
+      Complete Execution Log:
+      ${log.map((entry, index) => `${index + 1}. ${entry}`).join('\n')}
+      
+      This log contains all the activities and operations performed during the cron job execution. If you notice any errors or have concerns about the execution, please contact our support team.
+      
+      Thank you for using TwitchStreamRecorder.
+      
+      Best regards,
+      The TwitchStreamRecorder App
+        `;
+
+        return { subject: `Cron Job Log - ${timestamp}`, html, text };
     };
 
 }
