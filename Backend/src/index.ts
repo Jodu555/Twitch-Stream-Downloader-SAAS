@@ -268,6 +268,7 @@ app.get('/api/v1/debug/mail/:type', async (req, res) => {
     let data: { subject: string; html: string; text: string; };
     if (type == 'CRON_LOG' && !req.query.log) {
         data = await emailManager.getEmailData(type, {
+            ...req.query,
             log: ['This is a test log for the CRON_LOG email.', 'Second line of the log.', 'Third line of the log.']
         });
     } else {

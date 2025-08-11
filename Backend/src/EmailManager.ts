@@ -1092,8 +1092,7 @@ export default class EmailManager {
 
     async generateEmailCronLog(data: { email: string; log: string[]; timestamp: number; }) {
         const { email, log, timestamp: stamp } = data;
-
-        const timestamp = new Date(stamp).toLocaleDateString('de') + ' ' + new Date(stamp).toLocaleTimeString('de');
+        const timestamp = new Date(Number(stamp)).toLocaleDateString('de') + ' ' + new Date(Number(stamp)).toLocaleTimeString('de');
         const logCount = log.length;
 
         const html = `<!DOCTYPE html>
