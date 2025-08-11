@@ -200,7 +200,7 @@ class RecordEntry {
             this.notLiveAttempts++;
             if (this.notLiveAttempts > 5) {
                 if (this.state == 'RECORDING') {
-                    await this.cleanup();
+                    await this.callCleanup();
                 }
                 return;
             }

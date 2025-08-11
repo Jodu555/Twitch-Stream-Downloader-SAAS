@@ -144,5 +144,11 @@ router.get('/api/v1/cron/', async (req: Request, res: Response, next: NextFuncti
                 log: logLines,
             });
         }
+        res.json({
+            message: 'Cron job executed',
+            startTime,
+            executionTime,
+            log: logLines
+        });
     }
 });
