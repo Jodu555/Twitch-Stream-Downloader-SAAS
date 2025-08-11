@@ -200,7 +200,35 @@ class RecordEntry {
             this.notLiveAttempts++;
             if (this.notLiveAttempts > 5) {
                 if (this.state == 'RECORDING') {
-                    await this.callCleanup();
+                    if (this.cleanup == undefined) {
+                        console.log(`Encountered edge case where cleanup is undefined for ${this.id} - ${this.twitchStreamerName}. Attempting to rebuild cleanup...`);
+
+                        if (this.process != null) {
+                            this.process.kill();
+                            if (!this.process.killed) {
+                                this.process.kill('SIGKILL');
+                            }
+                        }
+
+                        if (this.ffmpegMetadata != null) {
+                            this.videoMeta = {
+                                time: this.ffmpegMetadata?.time,
+                                size: this.ffmpegMetadata?.size,
+                            };
+                        } else {
+                            this.videoMeta = {
+                                time: '00:00:00.00',
+                                size: '0',
+                            };
+                        }
+
+                        console.log('Cleaned up for ', this.toFrontend());
+                        await this.updateRecordInDatabaseAndSockets();
+                        await this.startTranscoding();
+
+                    } else {
+                        await this.cleanup();
+                    }
                 }
                 return;
             }
